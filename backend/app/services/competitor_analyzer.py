@@ -53,9 +53,10 @@ class CompetitorAnalyzer:
         """Extract business context from a website"""
         try:
             async with httpx.AsyncClient(
-                timeout=10.0,
+                timeout=15.0,
                 follow_redirects=True,
-                headers={"User-Agent": "Mozilla/5.0 (compatible; DwightBot/1.0)"}
+                verify=False,  # Allow sites with SSL issues
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
             ) as client:
                 response = await client.get(url)
                 response.raise_for_status()

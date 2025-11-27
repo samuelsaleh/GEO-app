@@ -42,23 +42,38 @@ class ContentAnalyzer:
         """Analyze a single page for AI visibility"""
         logger.info(f"Analyzing page: {url}")
         
-        async with httpx.AsyncClient(
-            timeout=15.0,
-            follow_redirects=True,
-            headers={
-                "User-Agent": "Mozilla/5.0 (compatible; DwightBot/1.0; +https://dwight.app)"
-            }
-        ) as client:
+        # Try with SSL verification first, fallback to no verification
+        html = None
+        for verify_ssl in [True, False]:
             try:
-                response = await client.get(url)
-                response.raise_for_status()
-                html = response.text
+                async with httpx.AsyncClient(
+                    timeout=20.0,
+                    follow_redirects=True,
+                    verify=verify_ssl,
+                    headers={
+                        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    }
+                ) as client:
+                    response = await client.get(url)
+                    response.raise_for_status()
+                    html = response.text
+                    if not verify_ssl:
+                        logger.warning(f"Had to disable SSL verification for {url}")
+                    break
             except httpx.TimeoutException:
-                raise Exception(f"Timeout fetching page (>15s)")
+                if verify_ssl:
+                    continue
+                raise Exception(f"Timeout fetching page (>20s)")
             except httpx.HTTPStatusError as e:
                 raise Exception(f"HTTP error {e.response.status_code}")
             except Exception as e:
+                if verify_ssl:
+                    logger.warning(f"SSL error for {url}, retrying without verification: {e}")
+                    continue
                 raise Exception(f"Failed to fetch page: {str(e)}")
+        
+        if html is None:
+            raise Exception("Failed to fetch page after retries")
 
         soup = BeautifulSoup(html, 'lxml')
         
