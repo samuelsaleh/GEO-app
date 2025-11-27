@@ -243,21 +243,25 @@ class GEOScorer:
             points += 3
             factors.append({'factor': 'Basic heading structure', 'status': 'ok', 'points': 3})
         
-        # Content depth - word count (5 points)
+        # Content depth - word count (5 points) - more generous thresholds
         word_count = content.get('word_count', 0)
-        if word_count >= 1500:
+        if word_count >= 1000:
             points += 5
             factors.append({'factor': f'Comprehensive content ({word_count} words)', 'status': 'good', 'points': 5})
-        elif word_count >= 800:
+        elif word_count >= 500:
             points += 4
             factors.append({'factor': f'Good content depth ({word_count} words)', 'status': 'good', 'points': 4})
-        elif word_count >= 300:
+        elif word_count >= 200:
+            points += 3
+            factors.append({'factor': f'Moderate content ({word_count} words)', 'status': 'ok', 'points': 3,
+                          'fix': 'Consider expanding content for better AI coverage'})
+        elif word_count >= 100:
             points += 2
-            factors.append({'factor': f'Thin content ({word_count} words)', 'status': 'warning', 'points': 2,
-                          'fix': 'Expand content to at least 800 words for better AI coverage'})
+            factors.append({'factor': f'Light content ({word_count} words)', 'status': 'warning', 'points': 2})
         else:
-            factors.append({'factor': f'Very thin content ({word_count} words)', 'status': 'critical', 'points': 0,
-                          'fix': 'Content is too short for AI to extract meaningful information'})
+            points += 1
+            factors.append({'factor': f'Minimal content ({word_count} words)', 'status': 'warning', 'points': 1,
+                          'fix': 'Add more content for AI to extract information'})
         
         # Internal linking (5 points)
         internal_links = structure.get('internal_links', 0)
@@ -296,16 +300,18 @@ class GEOScorer:
         schema_count = schema.get('count', 0)
         
         if not has_schema:
+            # Give base points even without schema - many good sites lack formal schema
+            base_points = 4
             factors.append({
-                'factor': 'No structured data detected',
-                'status': 'critical',
-                'points': 0,
-                'fix': 'Add JSON-LD schema markup - this is the #1 factor for AI visibility'
+                'factor': 'No formal structured data detected',
+                'status': 'opportunity',
+                'points': base_points,
+                'fix': 'Add JSON-LD schema markup for better AI visibility'
             })
-            return 0, ScoreBreakdown(
+            return base_points, ScoreBreakdown(
                 category='Schema',
                 max_points=max_points,
-                earned_points=0,
+                earned_points=base_points,
                 factors=factors
             )
         
@@ -378,10 +384,12 @@ class GEOScorer:
             points += 5
             factors.append({'factor': 'Author information present', 'status': 'good', 'points': 5})
         else:
+            # Partial credit - many legitimate sites don't have explicit author info
+            points += 2
             factors.append({
-                'factor': 'No author information',
-                'status': 'warning',
-                'points': 0,
+                'factor': 'No explicit author information',
+                'status': 'opportunity',
+                'points': 2,
                 'fix': 'Add author name and bio to establish expertise'
             })
         
@@ -391,14 +399,16 @@ class GEOScorer:
             points += 5
             factors.append({'factor': f'{external_links} external references', 'status': 'good', 'points': 5})
         elif external_links >= 1:
-            points += 3
-            factors.append({'factor': f'{external_links} external reference(s)', 'status': 'ok', 'points': 3})
+            points += 4
+            factors.append({'factor': f'{external_links} external reference(s)', 'status': 'ok', 'points': 4})
         else:
+            # Partial credit - not all pages need external links
+            points += 2
             factors.append({
                 'factor': 'No external references',
-                'status': 'warning',
-                'points': 0,
-                'fix': 'Add citations to authoritative sources'
+                'status': 'opportunity',
+                'points': 2,
+                'fix': 'Consider adding citations to authoritative sources'
             })
         
         # Organization/brand signals (5 points)
@@ -446,10 +456,12 @@ class GEOScorer:
                 'note': 'FAQs are the most citable format for AI'
             })
         else:
+            # Give partial credit - FAQ is a bonus, not a requirement
+            points += 2
             factors.append({
-                'factor': 'No FAQ section',
+                'factor': 'No FAQ section (opportunity)',
                 'status': 'opportunity',
-                'points': 0,
+                'points': 2,
                 'fix': 'Add FAQ section - AI loves to cite Q&A format'
             })
         
@@ -525,11 +537,13 @@ class GEOScorer:
             points += 5
             factors.append({'factor': 'Publication date present', 'status': 'good', 'points': 5})
         else:
+            # Many good sites don't have explicit dates - partial credit
+            points += 2
             factors.append({
-                'factor': 'No publication date',
-                'status': 'warning',
-                'points': 0,
-                'fix': 'Add datePublished and dateModified to schema'
+                'factor': 'No explicit publication date',
+                'status': 'opportunity',
+                'points': 2,
+                'fix': 'Consider adding datePublished and dateModified to schema'
             })
         
         # Recent year mentions (3 points)
@@ -632,16 +646,20 @@ class GEOScorer:
         )
     
     def _calculate_grade(self, score: int) -> str:
-        """Convert score to letter grade"""
-        if score >= 90:
+        """Convert score to letter grade - recalibrated for realistic expectations"""
+        if score >= 85:
             return 'A+'
-        elif score >= 80:
+        elif score >= 75:
             return 'A'
-        elif score >= 70:
+        elif score >= 65:
+            return 'B+'
+        elif score >= 55:
             return 'B'
-        elif score >= 60:
+        elif score >= 45:
+            return 'C+'
+        elif score >= 35:
             return 'C'
-        elif score >= 50:
+        elif score >= 25:
             return 'D'
         else:
             return 'F'
