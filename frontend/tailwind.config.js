@@ -8,59 +8,70 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // British Phone Booth - Primary Reds
-        booth: {
-          50: '#FFF5F5',
-          100: '#FFE8E8',
-          200: '#FFD1D4',
-          300: '#FFA8AD',
-          400: '#FF6B74',
-          500: '#FF001A', // Main British Phone Booth Red
-          600: '#E00017',
-          700: '#B80014',
-          800: '#960012',
-          900: '#7A0010',
-          950: '#450008',
+        // Soft Rose - #F08787
+        rose: {
+          50: '#FDF5F5',
+          100: '#FCEAEA',
+          200: '#F8D4D4',
+          300: '#F4B3B3',
+          400: '#F08787', // Main color
+          500: '#E06B6B',
+          600: '#C85555',
+          700: '#A84444',
+          800: '#8B3838',
+          900: '#6B2B2B',
         },
-        // Mulberry Tulip - Deep Burgundy/Wine tones
-        mulberry: {
-          50: '#FCF5F7',
-          100: '#F9E8ED',
-          200: '#F3D1DC',
-          300: '#E9ABC0',
-          400: '#DB7A9A',
-          500: '#C94D73',
-          600: '#A83259',
-          700: '#8B1C42',
-          800: '#741838',
-          900: '#621832',
-          950: '#380818',
+        // Soft Peach - #FFC7A7
+        peach: {
+          50: '#FFFAF7',
+          100: '#FFF3EC',
+          200: '#FFE5D6',
+          300: '#FFC7A7', // Main color
+          400: '#FFB08A',
+          500: '#F5956B',
+          600: '#E07A50',
+          700: '#C4633C',
+          800: '#A35030',
+          900: '#7D3E26',
         },
-        // Coral/Peach accent tones
-        coral: {
-          50: '#FFF7F5',
-          100: '#FFEDE8',
-          200: '#FFD9D1',
-          300: '#FFB8A8',
-          400: '#FF8A6F',
-          500: '#FF6347',
-          600: '#ED4026',
-          700: '#C82D1A',
-          800: '#A52818',
-          900: '#88261A',
+        // Butter Cream - #FEE2AD
+        butter: {
+          50: '#FFFDF7',
+          100: '#FFFBEF',
+          200: '#FEF3D8',
+          300: '#FEE2AD', // Main color
+          400: '#FDD580',
+          500: '#F5C450',
+          600: '#E0AC30',
+          700: '#C49420',
+          800: '#A07818',
+          900: '#7D5E14',
         },
-        // Warm Cream/Peach backgrounds
-        cream: {
-          50: '#FFFBF7',
-          100: '#FFF5EB',
-          200: '#FFECD9',
-          300: '#FFDBB8',
-          400: '#FFC48A',
-          500: '#FFAA5C',
-          600: '#F28C2E',
-          700: '#CB6E1A',
-          800: '#A65718',
-          900: '#874917',
+        // Light Lemon - #F8FAB4
+        lemon: {
+          50: '#FEFEF5',
+          100: '#FDFDE8',
+          200: '#FBFCD4',
+          300: '#F8FAB4', // Main color
+          400: '#F2F590',
+          500: '#E8EC6C',
+          600: '#D4D850',
+          700: '#B8BC38',
+          800: '#96992D',
+          900: '#747724',
+        },
+        // Dark accent for text/contrast
+        warmgray: {
+          50: '#FAF9F7',
+          100: '#F5F3F0',
+          200: '#E8E4DE',
+          300: '#D4CEC4',
+          400: '#B5ADA0',
+          500: '#8B8178',
+          600: '#6B6259',
+          700: '#524A43',
+          800: '#3D3732',
+          900: '#2A2622',
         },
       },
       fontFamily: {

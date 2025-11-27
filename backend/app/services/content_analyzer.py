@@ -3,6 +3,7 @@ import httpx
 from bs4 import BeautifulSoup
 from app.models.health_check import PageAnalysis
 from app.config import settings
+from app.services.geo_scoring import geo_scorer, GEOScore
 from typing import List, Dict, Any, Optional
 import re
 import json
@@ -258,37 +259,75 @@ class ContentAnalyzer:
         seo: Dict[str, Any],
         structure: Dict[str, Any]
     ) -> int:
-        """Calculate overall AI visibility score"""
+        """
+        Calculate overall AI visibility score using the GEO Scoring System
+        
+        The GEO (Generative Engine Optimization) score evaluates:
+        - STRUCTURE (25%): Content organization, headings, links
+        - SCHEMA (20%): Structured data quality
+        - AUTHORITY (15%): E-E-A-T signals
+        - CITABILITY (20%): How quotable is the content
+        - FRESHNESS (10%): Up-to-date signals
+        - ACCESSIBILITY (10%): Technical SEO
+        
+        Returns: Score from 0-100
+        """
+        try:
+            # Use the advanced GEO scoring system
+            geo_result: GEOScore = geo_scorer.calculate_score(
+                schema_data=schema,
+                content_data=content,
+                seo_data=seo,
+                structure_data=structure
+            )
+            
+            logger.info(f"GEO Score: {geo_result.total_score} (Grade: {geo_result.grade})")
+            
+            return geo_result.total_score
+            
+        except Exception as e:
+            logger.error(f"GEO scoring failed, using fallback: {e}")
+            # Fallback to simple scoring if GEO scorer fails
+            return self._calculate_score_fallback(schema, content, seo, structure)
+    
+    def _calculate_score_fallback(
+        self,
+        schema: Dict[str, Any],
+        content: Dict[str, Any],
+        seo: Dict[str, Any],
+        structure: Dict[str, Any]
+    ) -> int:
+        """Fallback scoring if GEO scorer fails"""
         score = 30  # Base score
         
         # Schema (max +25)
-        if schema["has_schema"]:
+        if schema.get("has_schema"):
             score += 15
-            if len(schema["types"]) > 1:
+            if len(schema.get("types", [])) > 1:
                 score += 10
         
         # Content quality (max +25)
-        if content["has_faq"]:
+        if content.get("has_faq"):
             score += 10
-        if content["word_count"] >= 500:
+        if content.get("word_count", 0) >= 500:
             score += 8
-        elif content["word_count"] >= 300:
+        elif content.get("word_count", 0) >= 300:
             score += 4
-        if content["readability_score"] >= 60:
+        if content.get("readability_score", 0) >= 60:
             score += 7
         
         # SEO (max +15)
-        if seo["has_meta_desc"]:
+        if seo.get("has_meta_desc"):
             score += 5
-        if seo["has_og_tags"]:
+        if seo.get("has_og_tags"):
             score += 5
-        if seo["has_canonical"]:
+        if seo.get("has_canonical"):
             score += 5
         
         # Structure (max +5)
-        if structure["h1_count"] == 1:
+        if structure.get("h1_count") == 1:
             score += 3
-        if structure["h2_count"] >= 2:
+        if structure.get("h2_count", 0) >= 2:
             score += 2
         
         return min(100, score)
