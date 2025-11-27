@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Code, ArrowLeft } from 'lucide-react'
+import { Search, Code, ArrowLeft, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ToolsPage() {
@@ -28,40 +28,62 @@ export default function ToolsPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <Link
             href="/tools/health-check"
-            className="card-elevated p-10 group"
+            className="card-elevated p-8 group"
           >
-            <div className="w-16 h-16 bg-claude-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-              <Search className="w-8 h-8 text-claude-500" />
+            <div className="w-14 h-14 bg-claude-100 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition">
+              <Search className="w-7 h-7 text-claude-500" />
             </div>
-            <h2 className="font-display text-2xl font-bold mb-4 text-ink-900 group-hover:text-claude-500 transition">
+            <h2 className="font-display text-xl font-bold mb-3 text-ink-900 group-hover:text-claude-500 transition">
               AI Visibility Health-Check
             </h2>
-            <p className="text-ink-500 mb-6 leading-relaxed">
+            <p className="text-ink-500 mb-5 leading-relaxed text-sm">
               Get a free score showing how well your content performs in ChatGPT, Bing Chat, and Google Gemini.
             </p>
-            <div className="flex items-center gap-2 text-claude-500 font-semibold">
+            <div className="flex items-center gap-2 text-claude-500 font-semibold text-sm">
               Start Free Check
               <span className="group-hover:translate-x-1 transition">→</span>
             </div>
           </Link>
 
           <Link
-            href="/tools/schema-generator"
-            className="card-elevated p-10 group"
+            href="/tools/ai-visibility"
+            className="card-elevated p-8 group relative overflow-hidden"
           >
-            <div className="w-16 h-16 bg-cream-300 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-              <Code className="w-8 h-8 text-ink-600" />
+            <div className="absolute top-3 right-3 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+              NEW
             </div>
-            <h2 className="font-display text-2xl font-bold mb-4 text-ink-900 group-hover:text-ink-600 transition">
+            <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition">
+              <Eye className="w-7 h-7 text-purple-600" />
+            </div>
+            <h2 className="font-display text-xl font-bold mb-3 text-ink-900 group-hover:text-purple-600 transition">
+              AI Visibility Checker
+            </h2>
+            <p className="text-ink-500 mb-5 leading-relaxed text-sm">
+              Test if your brand appears when people ask AI for recommendations. See the actual AI response.
+            </p>
+            <div className="flex items-center gap-2 text-purple-600 font-semibold text-sm">
+              Test Your Visibility
+              <span className="group-hover:translate-x-1 transition">→</span>
+            </div>
+          </Link>
+
+          <Link
+            href="/tools/schema-generator"
+            className="card-elevated p-8 group"
+          >
+            <div className="w-14 h-14 bg-cream-300 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition">
+              <Code className="w-7 h-7 text-ink-600" />
+            </div>
+            <h2 className="font-display text-xl font-bold mb-3 text-ink-900 group-hover:text-ink-600 transition">
               Schema Generator
             </h2>
-            <p className="text-ink-500 mb-6 leading-relaxed">
+            <p className="text-ink-500 mb-5 leading-relaxed text-sm">
               Create perfect schema markup (invisible labels) in seconds. No coding required.
             </p>
-            <div className="flex items-center gap-2 text-ink-600 font-semibold">
+            <div className="flex items-center gap-2 text-ink-600 font-semibold text-sm">
               Generate Schema
               <span className="group-hover:translate-x-1 transition">→</span>
             </div>
