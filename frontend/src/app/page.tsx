@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, BarChart3, CheckCircle, ArrowRight, Sparkles, Zap, Target, TrendingUp, Quote, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, BarChart3, CheckCircle, ArrowRight, Sparkles, Zap, Target, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { waitlistAPI } from '@/lib/api'
 
@@ -99,24 +99,6 @@ export default function Home() {
     }
   }
 
-  const testimonials = [
-    {
-      quote: "Dwight offers key insights on AI visibility, helping brands stay at the forefront of discovery in the age of AI and generative search. As ChatGPT, Perplexity, and Gemini drive traffic and conversions, Dwight measures the growth.",
-      author: "Sarah Mitchell",
-      role: "Head of SEO, TechFlow"
-    },
-    {
-      quote: "Dwight's platform cuts through the complexity of AI responses. Leveraging its analytical capabilities allows us to focus on specific content optimizations and identify the variants that perform best in AI search.",
-      author: "Marcus Chen",
-      role: "Team Lead SEO, FinanceHub"
-    },
-    {
-      quote: "Dwight gave us a data-informed view of our AI optimization strategy virtually overnight. With its insights, our blog posts started ranking for targeted ChatGPT prompts within 24 hours.",
-      author: "Emma Rodriguez",
-      role: "Head of Marketing, StartupScale"
-    }
-  ]
-
   const faqs = [
     {
       question: "What's included in the 30% off Black Friday offer?",
@@ -194,16 +176,16 @@ export default function Home() {
           </div>
 
           <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight animate-fade-in-up animate-delay-100 text-ink-900">
-            Search is changing.
+            When people ask AI,
             <br />
             <span className="text-gradient-claude">
-              Is your brand visible in AI?
+              does it mention you?
             </span>
           </h1>
 
           <p className="text-xl text-ink-500 mb-10 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
-            Dwight helps you understand, measure, and improve your brand's visibility inside AI platforms — 
-            so customers discover your brand when they ask ChatGPT, Perplexity, or Gemini for recommendations.
+            Millions now ask ChatGPT and Perplexity for recommendations instead of Google. 
+            Dwight shows you exactly how AI describes your brand — and how to make it better.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in-up animate-delay-300">
@@ -296,7 +278,7 @@ export default function Home() {
               <span className="text-claude-600 font-semibold text-sm">Save 30% on annual plans</span>
             </div>
             <h2 className="font-display text-4xl font-bold mb-4 text-ink-900">
-              Black Friday prices to help you win AI search
+              Simple pricing. Powerful tools.
             </h2>
           </div>
 
@@ -548,34 +530,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl font-bold mb-4 text-ink-900">
-              Trusted by forward-thinking marketers and growth teams
-            </h2>
-            <p className="text-xl text-ink-500">
-              Leading marketing teams, digital strategists, and AI researchers use Dwight to understand how their brands perform in AI search.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="card-elevated p-8">
-                <Quote className="w-8 h-8 text-claude-300 mb-4" />
-                <p className="text-ink-600 leading-relaxed mb-6">
-                  "{testimonial.quote}"
-                </p>
-                <div>
-                  <div className="font-display font-bold text-ink-900">{testimonial.author}</div>
-                  <div className="text-ink-500 text-sm">{testimonial.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* FAQ Section */}
       <section className="py-24 bg-cream-100">
