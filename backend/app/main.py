@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 
-from app.api import health_check, schema_generator, waitlist, contact
+from app.api import health_check, schema_generator, waitlist, contact, visibility
 from app.config import settings
 from app.database import init_db
 
@@ -51,6 +51,7 @@ app.include_router(health_check.router, prefix="/api/health-check", tags=["Healt
 app.include_router(schema_generator.router, prefix="/api/schema", tags=["Schema Generator"])
 app.include_router(waitlist.router, prefix="/api/waitlist", tags=["Waitlist"])
 app.include_router(contact.router, prefix="/api/contact", tags=["Contact"])
+app.include_router(visibility.router, prefix="/api/visibility", tags=["AI Visibility Monitor"])
 
 
 @app.get("/")
@@ -64,6 +65,8 @@ async def root():
         "endpoints": {
             "health_check": "/api/health-check/analyze",
             "schema_generator": "/api/schema/generate",
+            "visibility_check": "/api/visibility/check",
+            "visibility_quick": "/api/visibility/quick-check",
             "waitlist": "/api/waitlist/join",
             "contact": "/api/contact/submit"
         }
