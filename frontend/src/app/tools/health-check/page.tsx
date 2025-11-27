@@ -45,7 +45,22 @@ export default function HealthCheck() {
       
     } catch (err: any) {
       console.error('Analysis error:', err)
-      setError(err.response?.data?.detail || err.message || 'Analysis failed. Please try again.')
+      // Handle different error formats
+      let errorMessage = 'Analysis failed. Please try again.'
+      if (err.response?.data?.detail) {
+        const detail = err.response.data.detail
+        if (typeof detail === 'string') {
+          errorMessage = detail
+        } else if (Array.isArray(detail)) {
+          // Pydantic validation errors
+          errorMessage = detail.map((e: any) => e.msg || e.message || JSON.stringify(e)).join(', ')
+        } else if (typeof detail === 'object') {
+          errorMessage = detail.msg || detail.message || JSON.stringify(detail)
+        }
+      } else if (err.message) {
+        errorMessage = err.message
+      }
+      setError(errorMessage)
       setStep('form')
     }
   }
