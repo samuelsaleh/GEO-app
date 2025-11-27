@@ -553,6 +553,227 @@ class VisibilityMonitor:
         
         return recommendations
     
+    async def generate_smart_prompts(
+        self,
+        brand: str,
+        competitors: List[str] = [],
+        industry: str = "default",
+        count: int = 5
+    ) -> List[Dict[str, str]]:
+        """
+        Generate smart prompts based on brand and competitors using AI.
+        Returns prompts with categories.
+        """
+        # First try to generate with AI
+        if self.ai_service:
+            try:
+                prompt = f"""Generate {count} search prompts that a potential customer might ask an AI assistant when looking for products/services like {brand} offers.
+
+Brand: {brand}
+Industry: {industry}
+Competitors: {', '.join(competitors) if competitors else 'unknown'}
+
+Generate prompts in these categories:
+1. General recommendation (e.g., "Best X brands")
+2. Comparison (e.g., "X vs Y")  
+3. Purchase intent (e.g., "Where to buy X")
+4. Review/reputation (e.g., "Is X good?")
+5. Specific feature (e.g., "Best X for Y")
+
+Return as JSON array with objects containing "prompt" and "category" fields.
+Example: [{{"prompt": "Best jewelry brands", "category": "recommendation"}}]"""
+
+                response = await self.ai_service.generate(
+                    prompt=prompt,
+                    system_prompt="You are a marketing expert. Generate realistic search prompts. Return only valid JSON array.",
+                    max_tokens=500
+                )
+                
+                if response:
+                    import json
+                    import re
+                    # Clean and parse JSON
+                    cleaned = response.strip()
+                    if cleaned.startswith("```"):
+                        cleaned = re.sub(r'^```(?:json)?\n?', '', cleaned)
+                        cleaned = re.sub(r'\n?```$', '', cleaned)
+                    
+                    prompts = json.loads(cleaned)
+                    return prompts[:count]
+            except Exception as e:
+                logger.warning(f"AI prompt generation failed: {e}")
+        
+        # Fallback to template-based prompts
+        return self._get_template_prompts(brand, competitors, industry, count)
+    
+    def _get_template_prompts(
+        self,
+        brand: str,
+        competitors: List[str],
+        industry: str,
+        count: int = 5
+    ) -> List[Dict[str, str]]:
+        """Generate template-based prompts as fallback."""
+        
+        comp = competitors[0] if competitors else "competitors"
+        
+        templates = {
+            "jewelry": [
+                {"prompt": "What are the best luxury jewelry brands?", "category": "recommendation"},
+                {"prompt": f"Is {brand} a good jewelry brand?", "category": "reputation"},
+                {"prompt": f"{brand} vs {comp} - which is better for engagement rings?", "category": "comparison"},
+                {"prompt": "Where to buy high-quality diamond jewelry online?", "category": "purchase"},
+                {"prompt": "Best sustainable and ethical jewelry brands", "category": "feature"},
+            ],
+            "saas": [
+                {"prompt": f"Best {industry} software for small businesses", "category": "recommendation"},
+                {"prompt": f"Is {brand} worth it?", "category": "reputation"},
+                {"prompt": f"{brand} vs {comp} comparison", "category": "comparison"},
+                {"prompt": f"Where to get {industry} tools?", "category": "purchase"},
+                {"prompt": f"Best {industry} software with good customer support", "category": "feature"},
+            ],
+            "ecommerce": [
+                {"prompt": f"Best online stores for {industry}", "category": "recommendation"},
+                {"prompt": f"Is {brand} legit and trustworthy?", "category": "reputation"},
+                {"prompt": f"{brand} vs {comp} - better deals?", "category": "comparison"},
+                {"prompt": f"Where to buy {industry} products online?", "category": "purchase"},
+                {"prompt": f"Best {industry} sites with fast shipping", "category": "feature"},
+            ],
+            "default": [
+                {"prompt": f"Best {industry} brands or companies", "category": "recommendation"},
+                {"prompt": f"Is {brand} good? Reviews and reputation", "category": "reputation"},
+                {"prompt": f"{brand} vs {comp} comparison", "category": "comparison"},
+                {"prompt": f"Where to find {industry} services?", "category": "purchase"},
+                {"prompt": f"Top rated {industry} with best quality", "category": "feature"},
+            ]
+        }
+        
+        prompts = templates.get(industry.lower(), templates["default"])
+        return prompts[:count]
+    
+    async def run_comprehensive_test(
+        self,
+        brand: str,
+        competitors: List[str] = [],
+        industry: str = "default",
+        num_prompts: int = 5
+    ) -> Dict[str, Any]:
+        """
+        Run comprehensive visibility test:
+        - Generate 5 smart prompts
+        - Test each prompt across all 6 models
+        - Return detailed matrix of results
+        """
+        # Generate prompts
+        prompts = await self.generate_smart_prompts(
+            brand=brand,
+            competitors=competitors,
+            industry=industry,
+            count=num_prompts
+        )
+        
+        # Test each prompt across all models
+        all_results = []
+        prompt_summaries = []
+        
+        for prompt_data in prompts:
+            prompt_text = prompt_data.get("prompt", prompt_data) if isinstance(prompt_data, dict) else prompt_data
+            category = prompt_data.get("category", "general") if isinstance(prompt_data, dict) else "general"
+            
+            result = await self.test_across_models(
+                prompt=prompt_text,
+                brand=brand,
+                competitors=competitors
+            )
+            
+            prompt_summaries.append({
+                "prompt": prompt_text,
+                "category": category,
+                "models_mentioning": result.models_mentioning,
+                "models_tested": result.models_tested,
+                "mention_rate": result.mention_rate,
+                "results": [
+                    {
+                        "model_id": r.model_id,
+                        "model_name": r.model_name,
+                        "provider": r.provider,
+                        "mentioned": r.brand_mentioned,
+                        "position": r.position,
+                        "sentiment": r.sentiment
+                    }
+                    for r in result.results
+                ]
+            })
+            
+            all_results.extend(result.results)
+        
+        # Calculate overall stats
+        total_tests = len(all_results)
+        total_mentions = sum(1 for r in all_results if r.brand_mentioned)
+        overall_rate = (total_mentions / total_tests * 100) if total_tests > 0 else 0
+        
+        # Model performance
+        model_stats = {}
+        for r in all_results:
+            if r.model_id not in model_stats:
+                model_stats[r.model_id] = {"name": r.model_name, "provider": r.provider, "total": 0, "mentions": 0}
+            model_stats[r.model_id]["total"] += 1
+            if r.brand_mentioned:
+                model_stats[r.model_id]["mentions"] += 1
+        
+        # Best/worst prompts
+        sorted_prompts = sorted(prompt_summaries, key=lambda x: x["mention_rate"], reverse=True)
+        
+        return {
+            "brand": brand,
+            "competitors": competitors,
+            "industry": industry,
+            "total_tests": total_tests,
+            "total_mentions": total_mentions,
+            "overall_visibility": overall_rate,
+            "prompts_tested": len(prompts),
+            "models_tested": len(self.models),
+            "prompt_results": prompt_summaries,
+            "model_performance": [
+                {
+                    "model_id": mid,
+                    "model_name": stats["name"],
+                    "provider": stats["provider"],
+                    "mentions": stats["mentions"],
+                    "total": stats["total"],
+                    "rate": (stats["mentions"] / stats["total"] * 100) if stats["total"] > 0 else 0
+                }
+                for mid, stats in model_stats.items()
+            ],
+            "best_prompt": sorted_prompts[0] if sorted_prompts else None,
+            "worst_prompt": sorted_prompts[-1] if sorted_prompts else None,
+            "matrix": self._build_visibility_matrix(prompt_summaries)
+        }
+    
+    def _build_visibility_matrix(self, prompt_summaries: List[Dict]) -> Dict[str, Any]:
+        """Build a matrix of prompts × models for visualization."""
+        if not prompt_summaries:
+            return {"rows": [], "columns": []}
+        
+        # Get model columns from first result
+        columns = []
+        if prompt_summaries[0].get("results"):
+            columns = [r["model_name"] for r in prompt_summaries[0]["results"]]
+        
+        rows = []
+        for ps in prompt_summaries:
+            row = {
+                "prompt": ps["prompt"][:50] + "..." if len(ps["prompt"]) > 50 else ps["prompt"],
+                "category": ps["category"],
+                "cells": [r["mentioned"] for r in ps.get("results", [])]
+            }
+            rows.append(row)
+        
+        return {
+            "columns": columns,
+            "rows": rows
+        }
+    
     def get_default_prompts(self, industry: str, brand: str) -> List[str]:
         """Generate default prompts for common industries."""
         

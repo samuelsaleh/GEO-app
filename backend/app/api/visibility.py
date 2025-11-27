@@ -48,6 +48,14 @@ class MultiModelRequest(BaseModel):
     models: Optional[List[str]] = None  # None = all models
 
 
+class ComprehensiveTestRequest(BaseModel):
+    """Request for comprehensive visibility test"""
+    brand: str
+    competitors: List[str] = []
+    industry: str = "default"
+    num_prompts: int = 5
+
+
 @router.get("/models")
 async def get_available_models():
     """Get list of available AI models for testing"""
@@ -112,6 +120,71 @@ async def test_across_models(request: MultiModelRequest):
         }
     except Exception as e:
         logger.error(f"Error testing across models: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/comprehensive-test")
+async def run_comprehensive_test(request: ComprehensiveTestRequest):
+    """
+    Run comprehensive visibility test:
+    - Auto-generates 5 relevant questions based on your brand
+    - Tests each question across all 6 AI models
+    - Returns a matrix showing visibility across prompts × models
+    
+    Example:
+    ```json
+    {
+        "brand": "Love Lab",
+        "competitors": ["Cartier", "Tiffany"],
+        "industry": "jewelry",
+        "num_prompts": 5
+    }
+    ```
+    
+    Returns:
+    - Overall visibility score
+    - Results matrix (5 prompts × 6 models = 30 tests)
+    - Best/worst performing prompts
+    - Model-by-model performance
+    """
+    try:
+        result = await visibility_monitor.run_comprehensive_test(
+            brand=request.brand,
+            competitors=request.competitors,
+            industry=request.industry,
+            num_prompts=request.num_prompts
+        )
+        
+        # Add icons for frontend
+        model_icons = {m["id"]: m["icon"] for m in AI_MODELS}
+        
+        # Enhance model performance with icons
+        for mp in result.get("model_performance", []):
+            mp["icon"] = model_icons.get(mp["model_id"], "🤖")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in comprehensive test: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-prompts")
+async def generate_prompts(brand: str, competitors: List[str] = [], industry: str = "default"):
+    """
+    Generate smart prompts based on brand and industry.
+    Uses AI to create relevant questions customers might ask.
+    """
+    try:
+        prompts = await visibility_monitor.generate_smart_prompts(
+            brand=brand,
+            competitors=competitors,
+            industry=industry,
+            count=5
+        )
+        return {"brand": brand, "prompts": prompts}
+    except Exception as e:
+        logger.error(f"Error generating prompts: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

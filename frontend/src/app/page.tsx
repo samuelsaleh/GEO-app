@@ -300,17 +300,58 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter */}
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free */}
             <div className="card-elevated p-8 border-2 border-cream-200 hover:border-claude-200 transition">
+              <h3 className="font-display text-xl font-bold text-ink-900 mb-2">Free</h3>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-4xl font-display font-bold text-ink-900">€0</span>
+              </div>
+              <p className="text-ink-500 mb-6">forever</p>
+              <p className="text-ink-600 mb-6 text-sm leading-relaxed">
+                Try our tools and see how AI-ready your website is.
+              </p>
+              
+              <Link
+                href="/tools"
+                className="block w-full text-center border-2 border-claude-500 text-claude-600 px-6 py-3 rounded-lg font-semibold mb-6 hover:bg-claude-50 transition"
+              >
+                Get Started Free
+              </Link>
+
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-600">3 GEO Health Checks per month</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-600">5 Schema generations per month</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-600">Basic visibility report</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-600">Email support</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Starter - Most Popular */}
+            <div className="card-elevated p-8 border-2 border-claude-500 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-claude-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                Most Popular
+              </div>
               <h3 className="font-display text-xl font-bold text-ink-900 mb-2">Starter</h3>
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-ink-400 line-through text-lg">€89</span>
-                <span className="text-4xl font-display font-bold text-ink-900">€61</span>
+                <span className="text-ink-400 line-through text-lg">€29</span>
+                <span className="text-4xl font-display font-bold text-ink-900">€19</span>
               </div>
               <p className="text-ink-500 mb-6">per month</p>
               <p className="text-ink-600 mb-6 text-sm leading-relaxed">
-                For growing startups that are starting to track and grow their AI search visibility.
+                For startups ready to optimize their AI search visibility.
               </p>
               
               <Link
@@ -323,48 +364,37 @@ export default function Home() {
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Access to ChatGPT, Perplexity, and AIO</span>
+                  <span className="text-ink-600">Unlimited GEO Health Checks</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Track up to 25 prompts</span>
+                  <span className="text-ink-600">Unlimited Schema generations</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Daily prompt analysis</span>
+                  <span className="text-ink-600">Detailed visibility reports</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Up to 2,250 AI answers analyzed/month</span>
+                  <span className="text-ink-600">Export reports as PDF</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Unlimited countries</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Unlimited seats</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Email Support</span>
+                  <span className="text-ink-600">Priority email support</span>
                 </li>
               </ul>
             </div>
 
             {/* Pro */}
-            <div className="card-elevated p-8 border-2 border-claude-500 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-claude-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                Most Popular
-              </div>
+            <div className="card-elevated p-8 border-2 border-cream-200 hover:border-claude-200 transition">
               <h3 className="font-display text-xl font-bold text-ink-900 mb-2">Pro</h3>
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-ink-400 line-through text-lg">€199</span>
-                <span className="text-4xl font-display font-bold text-ink-900">€133</span>
+                <span className="text-ink-400 line-through text-lg">€59</span>
+                <span className="text-4xl font-display font-bold text-ink-900">€39</span>
               </div>
               <p className="text-ink-500 mb-6">per month</p>
               <p className="text-ink-600 mb-6 text-sm leading-relaxed">
-                For agile SMEs wanting deeper insights into their AI search efforts and faster growth.
+                For teams who need advanced features and white-label reports.
               </p>
               
               <Link
@@ -377,89 +407,30 @@ export default function Home() {
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Access to ChatGPT, Perplexity, and AIO</span>
+                  <span className="text-ink-600">Everything in Starter</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Track up to 100 prompts</span>
+                  <span className="text-ink-600">White-label reports</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Daily prompt analysis</span>
+                  <span className="text-ink-600">API access</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Up to 9,000 AI answers analyzed/month</span>
+                  <span className="text-ink-600">Team collaboration (up to 5 seats)</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Unlimited countries</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Unlimited seats</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Email + Slack Support</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Enterprise */}
-            <div className="card-elevated p-8 border-2 border-cream-200 hover:border-claude-200 transition">
-              <h3 className="font-display text-xl font-bold text-ink-900 mb-2">Enterprise</h3>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-ink-400 line-through text-lg">€499</span>
-                <span className="text-4xl font-display font-bold text-ink-900">€349+</span>
-              </div>
-              <p className="text-ink-500 mb-6">per month</p>
-              <p className="text-ink-600 mb-6 text-sm leading-relaxed">
-                For enterprises needing advanced tracking and custom reporting.
-              </p>
-              
-              <Link
-                href="/pricing"
-                className="block w-full text-center btn-claude text-white px-6 py-3 rounded-lg font-semibold mb-6"
-              >
-                Claim your 30% off
-              </Link>
-
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Access to ChatGPT, Perplexity, and AIO</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Track 300+ prompts</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Daily prompt analysis</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">27,000+ AI answers analyzed/month</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Unlimited countries</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Unlimited seats</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-600">Dedicated Account Rep</span>
+                  <span className="text-ink-600">Priority support</span>
                 </li>
               </ul>
             </div>
           </div>
 
           <p className="text-center text-ink-500 mt-8 text-sm">
-            Add Gemini, AI Mode, Claude, DeepSeek, Llama, Grok and more for an additional fee.
+            All prices in EUR. Annual billing saves 30% — that's 4 months free.
           </p>
         </div>
       </section>

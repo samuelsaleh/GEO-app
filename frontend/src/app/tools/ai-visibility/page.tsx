@@ -41,6 +41,53 @@ interface MultiModelResponse {
   }
 }
 
+interface PromptSummary {
+  prompt: string
+  category: string
+  models_mentioning: number
+  models_tested: number
+  mention_rate: number
+  results: Array<{
+    model_id: string
+    model_name: string
+    provider: string
+    mentioned: boolean
+    position: number | null
+    sentiment: string
+  }>
+}
+
+interface ComprehensiveResult {
+  brand: string
+  competitors: string[]
+  industry: string
+  total_tests: number
+  total_mentions: number
+  overall_visibility: number
+  prompts_tested: number
+  models_tested: number
+  prompt_results: PromptSummary[]
+  model_performance: Array<{
+    model_id: string
+    model_name: string
+    provider: string
+    mentions: number
+    total: number
+    rate: number
+    icon: string
+  }>
+  best_prompt: PromptSummary | null
+  worst_prompt: PromptSummary | null
+  matrix: {
+    columns: string[]
+    rows: Array<{
+      prompt: string
+      category: string
+      cells: boolean[]
+    }>
+  }
+}
+
 interface VisibilityReport {
   brand: string
   visibility_score: string
@@ -69,6 +116,8 @@ export default function AIVisibilityTool() {
   const [singleResult, setSingleResult] = useState<PromptResult | null>(null)
   const [multiModelResult, setMultiModelResult] = useState<MultiModelResponse | null>(null)
   const [expandedModel, setExpandedModel] = useState<string | null>(null)
+  const [comprehensiveResult, setComprehensiveResult] = useState<ComprehensiveResult | null>(null)
+  const [testProgress, setTestProgress] = useState<string>('')
 
   const addPrompt = () => {
     setPrompts([...prompts, ''])
@@ -168,6 +217,48 @@ export default function AIVisibilityTool() {
       case 'anthropic': return 'bg-orange-50 border-orange-200'
       case 'google': return 'bg-blue-50 border-blue-200'
       default: return 'bg-gray-50 border-gray-200'
+    }
+  }
+
+  // Run comprehensive test (5 prompts × 6 models)
+  const runComprehensiveTest = async () => {
+    if (!brand) return
+    
+    setLoading(true)
+    setComprehensiveResult(null)
+    setTestProgress('Generating smart questions for your brand...')
+    
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/visibility/comprehensive-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brand: brand,
+          competitors: competitors.filter(c => c.trim()),
+          industry: industry,
+          num_prompts: 5
+        })
+      })
+      
+      const data = await response.json()
+      setComprehensiveResult(data)
+      setTestProgress('')
+    } catch (error) {
+      console.error('Error running comprehensive test:', error)
+      setTestProgress('Error running test')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'recommendation': return 'bg-blue-100 text-blue-700'
+      case 'comparison': return 'bg-purple-100 text-purple-700'
+      case 'purchase': return 'bg-green-100 text-green-700'
+      case 'reputation': return 'bg-yellow-100 text-yellow-700'
+      case 'feature': return 'bg-pink-100 text-pink-700'
+      default: return 'bg-gray-100 text-gray-700'
     }
   }
 
