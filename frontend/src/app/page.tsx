@@ -422,78 +422,62 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl font-bold mb-4 text-ink-900">
-              Turn AI search insights into new customers with Dwight
+              Two tools. Everything you need.
             </h2>
             <p className="text-xl text-ink-500 max-w-2xl mx-auto">
-              Identify the prompts that matter, monitor your rankings, and act before your competitors do.
+              We built the essentials for AI visibility — no bloat, no fluff. Just what works.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* GEO Health Check */}
             <div className="card-elevated p-8">
               <div className="w-12 h-12 bg-claude-100 rounded-xl flex items-center justify-center mb-6">
                 <Search className="w-6 h-6 text-claude-500" />
               </div>
-              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">Set up Prompts</h3>
-              <p className="text-ink-500 leading-relaxed">
-                Prompts are the foundation of your AI search strategy. Uncover and organize the prompts that matter most.
+              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">GEO Health Check</h3>
+              <p className="text-ink-500 leading-relaxed mb-4">
+                Scan any webpage and get a detailed report on how AI-ready it is. We check for schema markup, content structure, citations, and more.
               </p>
+              <ul className="space-y-2 text-sm text-ink-600">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  Score out of 100 with letter grade
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  Competitor comparison
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  Priority fixes list
+                </li>
+              </ul>
             </div>
 
-            {/* Feature 2 */}
-            <div className="card-elevated p-8">
-              <div className="w-12 h-12 bg-claude-100 rounded-xl flex items-center justify-center mb-6">
-                <BarChart3 className="w-6 h-6 text-claude-500" />
-              </div>
-              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">Use Data to Pick Winners</h3>
-              <p className="text-ink-500 leading-relaxed">
-                Leverage AI-suggested prompts and search volumes to focus on the biggest opportunities.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="card-elevated p-8">
-              <div className="w-12 h-12 bg-claude-100 rounded-xl flex items-center justify-center mb-6">
-                <Target className="w-6 h-6 text-claude-500" />
-              </div>
-              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">Add Brands</h3>
-              <p className="text-ink-500 leading-relaxed">
-                See how you rank against the players that matter in your market.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
+            {/* Schema Generator */}
             <div className="card-elevated p-8">
               <div className="w-12 h-12 bg-claude-100 rounded-xl flex items-center justify-center mb-6">
                 <Zap className="w-6 h-6 text-claude-500" />
               </div>
-              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">Choose AI Models</h3>
-              <p className="text-ink-500 leading-relaxed">
-                Track rankings across the models that drive the most traffic and visibility.
+              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">Schema Generator</h3>
+              <p className="text-ink-500 leading-relaxed mb-4">
+                Create the structured data AI needs to understand your content. Copy-paste ready JSON-LD for your website.
               </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="card-elevated p-8">
-              <div className="w-12 h-12 bg-claude-100 rounded-xl flex items-center justify-center mb-6">
-                <TrendingUp className="w-6 h-6 text-claude-500" />
-              </div>
-              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">Find Key Sources</h3>
-              <p className="text-ink-500 leading-relaxed">
-                Spot the citations shaping your visibility and refine your GEO strategy.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="card-elevated p-8">
-              <div className="w-12 h-12 bg-claude-100 rounded-xl flex items-center justify-center mb-6">
-                <Sparkles className="w-6 h-6 text-claude-500" />
-              </div>
-              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">Act on Insights</h3>
-              <p className="text-ink-500 leading-relaxed">
-                Use recommendations to capture high-impact opportunities and boost your ranking.
-              </p>
+              <ul className="space-y-2 text-sm text-ink-600">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  Organization, Product, FAQ schemas
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  Valid JSON-LD output
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  Easy implementation guide
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -503,17 +487,17 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-br from-claude-500 to-claude-600">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-sm font-semibold mb-6">
-            Limited offer!
+            Black Friday Sale
           </div>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">
-            Start tracking your AI visibility today.
+            Fix your AI visibility before competitors do.
           </h2>
           <p className="text-xl text-claude-100 mb-10 max-w-2xl mx-auto">
-            Get 30% off Dwight annual plans — when you pay for 12 months upfront. Get ahead while others are still catching up.
+            Lock in 30% off when you go annual. Your website's AI-readiness can't wait.
           </p>
           
           <div className="mb-10">
-            <p className="text-claude-100 mb-4 text-sm">Offer ends in</p>
+            <p className="text-claude-100 mb-4 text-sm">Sale ends in</p>
             <CountdownTimer />
           </div>
 
@@ -521,11 +505,11 @@ export default function Home() {
             href="/pricing"
             className="inline-block bg-white text-claude-600 px-10 py-4 rounded-lg hover:bg-cream-100 transition font-bold text-lg shadow-lg"
           >
-            Claim Your 30% Off
+            Get 30% Off
           </Link>
           
           <p className="text-claude-200 text-sm mt-6">
-            Ends November 30 at 00:00 UTC. Offer valid only for annual plans, 12 months paid upfront.
+            Valid until November 30 · Annual plans only
           </p>
         </div>
       </section>
