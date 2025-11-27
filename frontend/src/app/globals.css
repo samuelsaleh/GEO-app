@@ -3,20 +3,16 @@
 @tailwind utilities;
 
 :root {
-  /* Soft Warm Color System */
-  --salmon: #F08080;
-  --salmon-light: #FF9A9E;
-  --peach: #FFA07A;
-  --peach-light: #FFBB94;
-  --butter: #FFD470;
-  --butter-light: #FFEAB8;
-  --wine: #8B3A48;
-  --cream: #FFF9F3;
+  /* Core Palette */
+  --rose: #F08787;
+  --peach: #FFC7A7;
+  --butter: #FEE2AD;
+  --lemon: #F8FAB4;
   
   /* Semantic colors */
-  --foreground: #4A3F3A;
+  --foreground: #3D3732;
+  --foreground-muted: #6B6259;
   --background: #FFFDFB;
-  --muted: #8B7B72;
 }
 
 html {
@@ -34,53 +30,53 @@ body {
 /* Warm gradient background */
 .hero-gradient {
   background: 
-    radial-gradient(ellipse at 20% 0%, rgba(240, 128, 128, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(255, 160, 122, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 234, 184, 0.12) 0%, transparent 60%),
-    linear-gradient(180deg, #FFFDFB 0%, #FFF9F3 100%);
+    radial-gradient(ellipse at 20% 0%, rgba(240, 135, 135, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(255, 199, 167, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(254, 226, 173, 0.15) 0%, transparent 60%),
+    linear-gradient(180deg, #FFFDFB 0%, #FFFAF7 100%);
 }
 
 /* Glass effect for nav */
 .glass-nav {
-  background: rgba(255, 253, 251, 0.9);
+  background: rgba(255, 253, 251, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Button hover effects - Salmon */
-.btn-salmon {
-  background: linear-gradient(135deg, #F08080 0%, #E06B6B 100%);
+/* Button - Rose */
+.btn-rose {
+  background: linear-gradient(135deg, #F08787 0%, #E06B6B 100%);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 14px 0 rgba(240, 128, 128, 0.3);
+  box-shadow: 0 4px 14px 0 rgba(240, 135, 135, 0.35);
 }
 
-.btn-salmon:hover {
+.btn-rose:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(240, 128, 128, 0.4);
+  box-shadow: 0 6px 20px 0 rgba(240, 135, 135, 0.45);
 }
 
 /* Button - Peach */
 .btn-peach {
-  background: linear-gradient(135deg, #FFA07A 0%, #F08B65 100%);
+  background: linear-gradient(135deg, #FFC7A7 0%, #FFB08A 100%);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 14px 0 rgba(255, 160, 122, 0.3);
+  box-shadow: 0 4px 14px 0 rgba(255, 199, 167, 0.4);
 }
 
 .btn-peach:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(255, 160, 122, 0.4);
+  box-shadow: 0 6px 20px 0 rgba(255, 199, 167, 0.5);
 }
 
-/* Button - Wine (for contrast) */
-.btn-wine {
-  background: linear-gradient(135deg, #8B3A48 0%, #73313D 100%);
+/* Button - Warm Dark (for text contrast) */
+.btn-warm {
+  background: linear-gradient(135deg, #524A43 0%, #3D3732 100%);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 14px 0 rgba(139, 58, 72, 0.25);
+  box-shadow: 0 4px 14px 0 rgba(61, 55, 50, 0.25);
 }
 
-.btn-wine:hover {
+.btn-warm:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(139, 58, 72, 0.35);
+  box-shadow: 0 6px 20px 0 rgba(61, 55, 50, 0.35);
 }
 
 /* Card styling */
@@ -88,21 +84,21 @@ body {
   background: white;
   border-radius: 1.25rem;
   box-shadow: 
-    0 1px 3px rgba(139, 58, 72, 0.03),
-    0 4px 12px rgba(240, 128, 128, 0.06);
+    0 1px 3px rgba(107, 98, 89, 0.04),
+    0 4px 16px rgba(240, 135, 135, 0.08);
   transition: all 0.3s ease;
 }
 
 .card-elevated:hover {
   transform: translateY(-4px);
   box-shadow: 
-    0 4px 6px rgba(139, 58, 72, 0.04),
-    0 12px 24px rgba(240, 128, 128, 0.1);
+    0 4px 8px rgba(107, 98, 89, 0.06),
+    0 16px 32px rgba(240, 135, 135, 0.12);
 }
 
 /* Gradient text */
 .text-gradient-warm {
-  background: linear-gradient(135deg, #F08080 0%, #FFA07A 50%, #FFD470 100%);
+  background: linear-gradient(135deg, #F08787 0%, #FFC7A7 50%, #FEE2AD 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -111,14 +107,14 @@ body {
 /* Input focus styles */
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #F08080;
-  box-shadow: 0 0 0 3px rgba(240, 128, 128, 0.15);
+  border-color: #F08787;
+  box-shadow: 0 0 0 3px rgba(240, 135, 135, 0.15);
 }
 
 /* Selection color */
 ::selection {
-  background: rgba(255, 160, 122, 0.2);
-  color: #73313D;
+  background: rgba(255, 199, 167, 0.3);
+  color: #3D3732;
 }
 
 @layer utilities {
