@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Creed - Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(to bottom, #f8fafc, #ffffff);
+        }
+        h1 { color: #0284c7; }
+        .success {
+            background: #d1fae5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #10b981;
+        }
+        .test {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #0284c7;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #0369a1; }
+        .info {
+            background: #dbeafe;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Creed - Test Page</h1>
+
+    <div class="success">
+        <strong>✅ Great!</strong> If you can see this page, your files are working!
+    </div>
+
+    <div class="info">
+        <h3>📋 What You Have:</h3>
+        <ul>
+            <li>✅ <strong>demo.html</strong> - Schema Generator (fully working!)</li>
+            <li>✅ <strong>Frontend</strong> - Next.js app (needs npm install)</li>
+            <li>✅ <strong>Backend</strong> - Python API (needs pip install)</li>
+        </ul>
+    </div>
+
+    <div class="test">
+        <h3>🧪 Quick Test - Schema Generator</h3>
+        <p>Generate a simple product schema:</p>
+
+        <input type="text" id="prodName" placeholder="Product Name" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px;">
+        <input type="number" id="prodPrice" placeholder="Price" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px;">
+
+        <button onclick="generate()">Generate Schema</button>
+
+        <pre id="output" style="background: #1e293b; color: #10b981; padding: 15px; border-radius: 6px; margin-top: 15px; overflow-x: auto; display: none;"></pre>
+    </div>
+
+    <div class="test">
+        <h3>🎯 Next Steps:</h3>
+        <ol>
+            <li><strong>Try demo.html</strong> - Open it for the full Schema Generator</li>
+            <li><strong>Install dependencies:</strong>
+                <pre style="background: #f1f5f9; padding: 10px; border-radius: 4px;">cd frontend && npm install</pre>
+            </li>
+            <li><strong>Run the app:</strong>
+                <pre style="background: #f1f5f9; padding: 10px; border-radius: 4px;">npm run dev</pre>
+            </li>
+        </ol>
+    </div>
+
+    <script>
+        function generate() {
+            const name = document.getElementById('prodName').value || 'Sample Product';
+            const price = document.getElementById('prodPrice').value || '99.99';
+
+            const schema = {
+                "@context": "https://schema.org/",
+                "@type": "Product",
+                "name": name,
+                "offers": {
+                    "@type": "Offer",
+                    "price": price,
+                    "priceCurrency": "EUR"
+                }
+            };
+
+            const code = JSON.stringify(schema, null, 2);
+            document.getElementById('output').textContent = code;
+            document.getElementById('output').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
