@@ -91,7 +91,7 @@ class ContentAnalyzer:
         # Meta description
         if not seo_analysis["has_meta_desc"]:
             issues.append("Missing meta description")
-        elif len(seo_analysis.get("meta_desc_length", 0)) < 50:
+        elif seo_analysis.get("meta_desc_length", 0) < 50:
             issues.append("Meta description too short")
         else:
             strengths.append("Meta description present and optimized")

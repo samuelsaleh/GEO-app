@@ -77,18 +77,18 @@ class CategoryComparison(BaseModel):
 class CompetitorComparison(BaseModel):
     """Comprehensive comparison between user and competitors"""
     user_score: int
-    user_grade: str
-    avg_competitor_score: float
+    user_grade: str = "C"
+    avg_competitor_score: float = 0.0
     competitors: List[CompetitorAnalysis]
     ranking: int  # User's rank (1 = best)
     total_analyzed: int
-    # Category-by-category breakdown
-    category_comparison: List[CategoryComparison]
+    # Category-by-category breakdown (optional for now)
+    category_comparison: Optional[List[CategoryComparison]] = None
     # Actionable insights
     insights: List[str]
     opportunities: List[str]
-    winning_categories: List[str]
-    losing_categories: List[str]
+    winning_categories: List[str] = []
+    losing_categories: List[str] = []
 
 
 class HealthCheckResult(BaseModel):

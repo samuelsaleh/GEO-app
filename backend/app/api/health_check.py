@@ -17,6 +17,16 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+def get_grade(score: int) -> str:
+    """Convert score to letter grade"""
+    if score >= 90: return "A+"
+    elif score >= 80: return "A"
+    elif score >= 70: return "B"
+    elif score >= 60: return "C"
+    elif score >= 50: return "D"
+    else: return "F"
+
+
 @router.post("/analyze", response_model=HealthCheckResult)
 async def analyze_health(request: HealthCheckRequest, background_tasks: BackgroundTasks):
     """
@@ -127,6 +137,7 @@ async def analyze_health(request: HealthCheckRequest, background_tasks: Backgrou
                     name=comp["name"],
                     url=comp["url"],
                     score=comp_analysis.score,
+                    grade=get_grade(comp_analysis.score),
                     difference=diff,
                     status=status,
                     has_schema=comp_analysis.has_schema,
@@ -142,6 +153,7 @@ async def analyze_health(request: HealthCheckRequest, background_tasks: Backgrou
                     name=comp["name"],
                     url=comp["url"],
                     score=0,
+                    grade="F",
                     difference=overall_score,
                     status="ahead",
                     has_schema=False,
@@ -211,6 +223,8 @@ async def analyze_health(request: HealthCheckRequest, background_tasks: Backgrou
             
             competitor_comparison = CompetitorComparison(
                 user_score=overall_score,
+                user_grade=get_grade(overall_score),
+                avg_competitor_score=avg_comp_score,
                 competitors=competitor_analyses,
                 ranking=ranking,
                 total_analyzed=len(all_scores),
@@ -224,6 +238,7 @@ async def analyze_health(request: HealthCheckRequest, background_tasks: Backgrou
 
     return HealthCheckResult(
         overall_score=overall_score,
+        grade=get_grade(overall_score),
         total_pages=len(request.page_urls),
         pages_analyzed=pages_analyzed,
         top_issues=top_issues,
