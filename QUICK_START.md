@@ -1,4 +1,4 @@
-# 🚀 Quick Start - Creed
+# 🚀 Quick Start - Dwight
 
 ## Option 1: Simple Demo (No Setup Required) ⚡
 

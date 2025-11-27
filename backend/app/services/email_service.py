@@ -70,7 +70,7 @@ class EmailService:
 
     def send_waitlist_confirmation(self, to_email: str, position: int) -> bool:
         """Send waitlist confirmation email"""
-        subject = "Welcome to Creed - You're on the Waitlist!"
+        subject = "Welcome to Dwight - You're on the Waitlist!"
 
         html_content = f"""
         <!DOCTYPE html>
@@ -88,7 +88,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>Welcome to Creed!</h1>
+                    <h1>Welcome to Dwight!</h1>
                 </div>
                 <div class="content">
                     <p>Hi there!</p>
@@ -118,7 +118,7 @@ class EmailService:
                     <p>We'll notify you as soon as we launch!</p>
 
                     <p>Best regards,<br>
-                    The Creed Team</p>
+                    The Dwight Team</p>
                 </div>
             </div>
         </body>
@@ -181,7 +181,7 @@ class EmailService:
                     <p>Questions? Just reply to this email.</p>
 
                     <p>Best regards,<br>
-                    The Creed Team</p>
+                    The Dwight Team</p>
                 </div>
             </div>
         </body>

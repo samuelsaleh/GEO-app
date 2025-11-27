@@ -11,7 +11,7 @@ export default function AboutPage() {
             <Link href="/" className="flex items-center gap-2">
               <ArrowLeft className="w-5 h-5" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                Creed
+                Dwight
               </h1>
             </Link>
             <div className="flex gap-6">
@@ -32,7 +32,7 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="pt-20 pb-12 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-6">About Creed</h1>
+          <h1 className="text-5xl font-bold mb-6">About Dwight</h1>
           <p className="text-xl text-gray-600 leading-relaxed">
             We're building the future of search visibility in the age of AI. As traditional search
             evolves into conversational AI, we help businesses stay discoverable and relevant.

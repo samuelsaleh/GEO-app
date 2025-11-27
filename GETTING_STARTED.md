@@ -1,6 +1,6 @@
-# 🚀 Getting Started with Creed
+# 🚀 Getting Started with Dwight
 
-Welcome! This guide will help you get your **Creed** platform up and running.
+Welcome! This guide will help you get your **Dwight** platform up and running.
 
 ---
 
@@ -58,7 +58,7 @@ API docs available at: **http://localhost:8000/docs**
 
 ### 1️⃣ Browse the Landing Page
 - Go to http://localhost:3000
-- See your beautiful Creed homepage
+- See your beautiful Dwight homepage
 - Click around to explore
 
 ### 2️⃣ Try the Schema Generator
@@ -188,4 +188,4 @@ You now have a fully functional AI optimization platform!
 
 **Questions?** Check the README.md or the code comments.
 
-**Enjoy building Creed!** 🚀
+**Enjoy building Dwight!** 🚀

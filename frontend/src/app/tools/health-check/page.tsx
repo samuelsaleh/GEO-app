@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, ArrowLeft, CheckCircle, AlertCircle, Loader } from 'lucide-react'
+import { Search, ArrowLeft, CheckCircle, AlertCircle, Loader, Users, Trophy, TrendingUp, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { healthCheckAPI } from '@/lib/api'
 
@@ -15,11 +15,40 @@ interface Question {
   id: number
 }
 
+interface Competitor {
+  name: string
+  url: string
+  id: number
+}
+
+interface CompetitorAnalysis {
+  name: string
+  url: string
+  score: number
+  difference: number
+  status: 'ahead' | 'behind' | 'tied'
+  has_schema: boolean
+  has_faq: boolean
+  top_strengths: string[]
+  ai_discovered: boolean
+  discovery_reason?: string
+}
+
+interface CompetitorComparison {
+  user_score: number
+  competitors: CompetitorAnalysis[]
+  ranking: number
+  total_analyzed: number
+  insights: string[]
+  opportunities: string[]
+}
+
 interface AnalysisResult {
   score: number
   issues: string[]
   strengths: string[]
   recommendations: string[]
+  competitor_comparison?: CompetitorComparison
 }
 
 export default function HealthCheck() {
@@ -30,6 +59,12 @@ export default function HealthCheck() {
   const [companyName, setCompanyName] = useState('')
   const [analyzing, setAnalyzing] = useState(false)
   const [result, setResult] = useState<AnalysisResult | null>(null)
+  
+  // New: Competitor states
+  const [competitors, setCompetitors] = useState<Competitor[]>([])
+  const [autoDiscoverCompetitors, setAutoDiscoverCompetitors] = useState(false)
+  const [industryKeywords, setIndustryKeywords] = useState('')
+  const [analyzingStep, setAnalyzingStep] = useState('')
 
   const addPageUrl = () => {
     setPageUrls([...pageUrls, { url: '', id: Date.now() }])
@@ -55,29 +90,67 @@ export default function HealthCheck() {
     setQuestions(questions.filter(q => q.id !== id))
   }
 
+  // New: Competitor handlers
+  const addCompetitor = () => {
+    if (competitors.length < 3) {
+      setCompetitors([...competitors, { name: '', url: '', id: Date.now() }])
+    }
+  }
+
+  const updateCompetitor = (id: number, field: 'name' | 'url', value: string) => {
+    setCompetitors(competitors.map(c => c.id === id ? { ...c, [field]: value } : c))
+  }
+
+  const removeCompetitor = (id: number) => {
+    setCompetitors(competitors.filter(c => c.id !== id))
+  }
+
   const handleSubmit = async () => {
     setAnalyzing(true)
+    setAnalyzingStep('Scanning your pages...')
 
     try {
-      // Call the real backend API
-      const response = await healthCheckAPI.analyze({
+      // Build request with competitor info
+      const requestData: any = {
         company_name: companyName,
         contact_email: contactEmail,
         page_urls: pageUrls.map(p => p.url).filter(u => u),
         questions: questions.map(q => q.question).filter(q => q)
-      })
+      }
 
-      // Transform backend response to match our interface
+      // Add competitor info if provided
+      const validCompetitors = competitors.filter(c => c.name && c.url)
+      if (validCompetitors.length > 0) {
+        setAnalyzingStep('Analyzing your competitors...')
+        requestData.competitors = validCompetitors.map(c => ({
+          name: c.name,
+          url: c.url
+        }))
+      } else if (autoDiscoverCompetitors) {
+        setAnalyzingStep('AI is discovering your competitors...')
+        requestData.auto_discover_competitors = true
+        if (industryKeywords) {
+          requestData.industry_keywords = industryKeywords.split(',').map(k => k.trim())
+        }
+      }
+
+      setAnalyzingStep('Running AI visibility analysis...')
+
+      const response = await healthCheckAPI.analyze(requestData)
+
+      setAnalyzingStep('Generating your report...')
+
       setResult({
         score: response.overall_score,
         issues: response.top_issues,
         strengths: response.top_strengths,
-        recommendations: response.recommendations
+        recommendations: response.recommendations,
+        competitor_comparison: response.competitor_comparison
       })
       setStep(3)
     } catch (error) {
       console.error('Analysis failed:', error)
-      // Fallback to demo data if API fails
+      // Fallback to demo data
       setResult({
         score: 45,
         issues: [
@@ -103,6 +176,7 @@ export default function HealthCheck() {
       setStep(3)
     } finally {
       setAnalyzing(false)
+      setAnalyzingStep('')
     }
   }
 
@@ -112,10 +186,22 @@ export default function HealthCheck() {
     return 'text-red-600'
   }
 
+  const getScoreBgColor = (score: number) => {
+    if (score >= 70) return 'bg-green-100'
+    if (score >= 40) return 'bg-yellow-100'
+    return 'bg-red-100'
+  }
+
   const getScoreLabel = (score: number) => {
     if (score >= 70) return 'Good'
     if (score >= 40) return 'Needs Work'
     return 'Critical'
+  }
+
+  const getStatusColor = (status: string) => {
+    if (status === 'ahead') return 'text-green-600 bg-green-100'
+    if (status === 'behind') return 'text-red-600 bg-red-100'
+    return 'text-yellow-600 bg-yellow-100'
   }
 
   return (
@@ -127,7 +213,7 @@ export default function HealthCheck() {
             <Link href="/" className="flex items-center gap-2">
               <ArrowLeft className="w-5 h-5" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                Creed
+                Dwight
               </h1>
             </Link>
           </div>
@@ -172,69 +258,184 @@ export default function HealthCheck() {
           </div>
         </div>
 
-        {/* Step 1: Page URLs */}
+        {/* Step 1: Page URLs & Competitors */}
         {step === 1 && (
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold mb-2">Step 1: Your Important Pages</h2>
-            <p className="text-gray-600 mb-6">
-              Enter 10-30 URLs of your most important pages (products, blog posts, landing pages)
-            </p>
+          <div className="space-y-6">
+            {/* Your Pages */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              <h2 className="text-2xl font-bold mb-2">Step 1: Your Important Pages</h2>
+              <p className="text-gray-600 mb-6">
+                Enter 10-30 URLs of your most important pages (products, blog posts, landing pages)
+              </p>
 
-            <div className="space-y-3 mb-6">
-              {pageUrls.map((page, index) => (
-                <div key={page.id} className="flex gap-3">
+              <div className="space-y-3 mb-6">
+                {pageUrls.map((page, index) => (
+                  <div key={page.id} className="flex gap-3">
+                    <input
+                      type="url"
+                      value={page.url}
+                      onChange={(e) => updatePageUrl(page.id, e.target.value)}
+                      placeholder={`https://example.com/page-${index + 1}`}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {pageUrls.length > 1 && (
+                      <button
+                        onClick={() => removePageUrl(page.id)}
+                        className="px-4 py-3 text-red-500 hover:bg-red-50 rounded-lg transition"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {pageUrls.length < 30 && (
+                <button
+                  onClick={addPageUrl}
+                  className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition mb-6"
+                >
+                  + Add Another Page
+                </button>
+              )}
+
+              <div className="border-t pt-6">
+                <h3 className="font-semibold mb-3">Contact Information</h3>
+                <div className="grid gap-4">
                   <input
-                    type="url"
-                    value={page.url}
-                    onChange={(e) => updatePageUrl(page.id, e.target.value)}
-                    placeholder={`https://example.com/page-${index + 1}`}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Company or Website Name"
+                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                  {pageUrls.length > 1 && (
-                    <button
-                      onClick={() => removePageUrl(page.id)}
-                      className="px-4 py-3 text-red-500 hover:bg-red-50 rounded-lg transition"
-                    >
-                      Remove
-                    </button>
-                  )}
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="Your Email (for receiving the report)"
+                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
                 </div>
-              ))}
+              </div>
             </div>
 
-            {pageUrls.length < 30 && (
-              <button
-                onClick={addPageUrl}
-                className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition mb-6"
-              >
-                + Add Another Page
-              </button>
-            )}
+            {/* Competitor Analysis */}
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-8 shadow-lg border border-purple-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">🆕 Competitor Analysis</h2>
+                  <p className="text-gray-600 text-sm">Compare your AI visibility against competitors</p>
+                </div>
+              </div>
 
-            <div className="border-t pt-6">
-              <h3 className="font-semibold mb-3">Contact Information</h3>
-              <div className="grid gap-4">
-                <input
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Company or Website Name"
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <input
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="Your Email (for receiving the report)"
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+              {/* Option 1: Add competitors manually */}
+              <div className="mb-6">
+                <label className="flex items-center gap-2 font-medium mb-3">
+                  <input
+                    type="radio"
+                    name="competitor_mode"
+                    checked={!autoDiscoverCompetitors && competitors.length >= 0}
+                    onChange={() => setAutoDiscoverCompetitors(false)}
+                    className="w-4 h-4 text-purple-600"
+                  />
+                  Add your competitors manually (optional)
+                </label>
+                
+                {!autoDiscoverCompetitors && (
+                  <div className="ml-6 space-y-3">
+                    {competitors.map((comp, index) => (
+                      <div key={comp.id} className="flex gap-3">
+                        <input
+                          type="text"
+                          value={comp.name}
+                          onChange={(e) => updateCompetitor(comp.id, 'name', e.target.value)}
+                          placeholder={`Competitor ${index + 1} name`}
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                        />
+                        <input
+                          type="url"
+                          value={comp.url}
+                          onChange={(e) => updateCompetitor(comp.id, 'url', e.target.value)}
+                          placeholder="https://competitor.com"
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                        />
+                        <button
+                          onClick={() => removeCompetitor(comp.id)}
+                          className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    {competitors.length < 3 && (
+                      <button
+                        onClick={addCompetitor}
+                        className="px-4 py-2 text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition text-sm font-medium"
+                      >
+                        + Add Competitor ({3 - competitors.length} remaining)
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Option 2: AI auto-discovery */}
+              <div className="border-t border-purple-200 pt-6">
+                <label className="flex items-center gap-2 font-medium mb-3">
+                  <input
+                    type="radio"
+                    name="competitor_mode"
+                    checked={autoDiscoverCompetitors}
+                    onChange={() => {
+                      setAutoDiscoverCompetitors(true)
+                      setCompetitors([])
+                    }}
+                    className="w-4 h-4 text-purple-600"
+                  />
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-500" />
+                    Let AI discover my competitors
+                  </span>
+                </label>
+                
+                {autoDiscoverCompetitors && (
+                  <div className="ml-6">
+                    <input
+                      type="text"
+                      value={industryKeywords}
+                      onChange={(e) => setIndustryKeywords(e.target.value)}
+                      placeholder="Industry keywords (optional): e.g., hiking boots, outdoor gear, sustainable fashion"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Add keywords to help AI find more relevant competitors
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Skip option */}
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => {
+                    setAutoDiscoverCompetitors(false)
+                    setCompetitors([])
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Skip competitor analysis
+                </button>
               </div>
             </div>
 
             <button
               onClick={() => setStep(2)}
               disabled={pageUrls.filter(p => p.url).length === 0 || !contactEmail}
-              className="w-full mt-6 bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               Continue to Questions →
             </button>
@@ -304,7 +505,7 @@ export default function HealthCheck() {
             <Loader className="w-16 h-16 text-blue-600 animate-spin mx-auto mb-6" />
             <h2 className="text-2xl font-bold mb-4">Analyzing Your Content...</h2>
             <p className="text-gray-600 mb-6">
-              We're checking your pages for AI visibility, structure, and optimization
+              {analyzingStep || "We're checking your pages for AI visibility, structure, and optimization"}
             </p>
             <div className="max-w-md mx-auto bg-gray-100 rounded-lg p-4 text-left">
               <div className="space-y-2 text-sm">
@@ -316,6 +517,12 @@ export default function HealthCheck() {
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   <span>Checking schema markup...</span>
                 </div>
+                {(competitors.length > 0 || autoDiscoverCompetitors) && (
+                  <div className="flex items-center gap-2">
+                    <Loader className="w-4 h-4 text-purple-500 animate-spin" />
+                    <span>Analyzing competitors...</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <Loader className="w-4 h-4 text-blue-500 animate-spin" />
                   <span>Testing AI visibility...</span>
@@ -342,10 +549,102 @@ export default function HealthCheck() {
                 {getScoreLabel(result.score)}
               </div>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Your content has significant room for improvement. The recommendations below will help
-                AI engines better understand and cite your pages.
+                {result.score >= 70 
+                  ? "Great job! Your content is well-optimized for AI visibility."
+                  : result.score >= 40 
+                    ? "Your content has room for improvement. Follow the recommendations below."
+                    : "Your content needs significant improvement. The recommendations below will help AI engines better understand and cite your pages."}
               </p>
             </div>
+
+            {/* Competitor Comparison */}
+            {result.competitor_comparison && result.competitor_comparison.competitors.length > 0 && (
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-8 shadow-lg border border-purple-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <Trophy className="w-8 h-8 text-purple-600" />
+                  <div>
+                    <h3 className="text-2xl font-bold">Competitor Comparison</h3>
+                    <p className="text-gray-600">
+                      You rank #{result.competitor_comparison.ranking} of {result.competitor_comparison.total_analyzed} sites analyzed
+                    </p>
+                  </div>
+                </div>
+
+                {/* Insights */}
+                <div className="bg-white rounded-xl p-4 mb-6">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                    Key Insights
+                  </h4>
+                  <div className="space-y-2">
+                    {result.competitor_comparison.insights.map((insight, index) => (
+                      <p key={index} className="text-gray-700">{insight}</p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Competitor Cards */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  {result.competitor_comparison.competitors.map((comp, index) => (
+                    <div key={index} className="bg-white rounded-xl p-4 shadow-sm">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h5 className="font-semibold truncate" title={comp.name}>
+                            {comp.name}
+                          </h5>
+                          {comp.ai_discovered && (
+                            <span className="text-xs text-purple-600 flex items-center gap-1">
+                              <Sparkles className="w-3 h-3" /> AI discovered
+                            </span>
+                          )}
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(comp.status)}`}>
+                          {comp.status === 'ahead' ? `+${comp.difference}` : comp.status === 'behind' ? `${comp.difference}` : 'Tied'}
+                        </span>
+                      </div>
+                      
+                      <div className={`text-3xl font-bold mb-2 ${getScoreColor(comp.score)}`}>
+                        {comp.score}
+                      </div>
+                      
+                      <div className="text-xs space-y-1 text-gray-600">
+                        <div className="flex items-center gap-1">
+                          {comp.has_schema ? (
+                            <CheckCircle className="w-3 h-3 text-green-500" />
+                          ) : (
+                            <AlertCircle className="w-3 h-3 text-gray-300" />
+                          )}
+                          Schema markup
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {comp.has_faq ? (
+                            <CheckCircle className="w-3 h-3 text-green-500" />
+                          ) : (
+                            <AlertCircle className="w-3 h-3 text-gray-300" />
+                          )}
+                          FAQ content
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Opportunities */}
+                {result.competitor_comparison.opportunities.length > 0 && (
+                  <div className="mt-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-4 text-white">
+                    <h4 className="font-semibold mb-2">💡 Opportunities from Competitors</h4>
+                    <ul className="space-y-1 text-sm">
+                      {result.competitor_comparison.opportunities.map((opp, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <span className="text-purple-200">→</span>
+                          {opp}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Issues */}
             <div className="bg-white rounded-2xl p-8 shadow-lg">
@@ -381,7 +680,7 @@ export default function HealthCheck() {
 
             {/* Recommendations */}
             <div className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl p-8 shadow-lg text-white">
-              <h3 className="text-2xl font-bold mb-6">🎯 Top 5 Recommendations</h3>
+              <h3 className="text-2xl font-bold mb-6">🎯 Top Recommendations</h3>
               <ol className="space-y-4">
                 {result.recommendations.map((rec, index) => (
                   <li key={index} className="flex items-start gap-4">

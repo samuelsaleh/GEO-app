@@ -1,4 +1,4 @@
-# ✨ Creed - Complete Feature List
+# ✨ Dwight - Complete Feature List
 
 ## 📱 Frontend Features
 

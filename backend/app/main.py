@@ -1,35 +1,80 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import health_check, schema_generator, waitlist
+from contextlib import asynccontextmanager
+import logging
+
+from app.api import health_check, schema_generator, waitlist, contact
+from app.config import settings
+from app.database import init_db
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG if settings.debug else logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup and shutdown events"""
+    logger.info("🚀 Starting Dwight API...")
+    init_db()
+    logger.info("✅ Database initialized")
+    yield
+    logger.info("👋 Shutting down Dwight API...")
+
 
 app = FastAPI(
-    title="Creed API",
+    title="Dwight API",
     description="AI Search Visibility & Optimization Platform API",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://creed.app"],  # Update with your domain
+    allow_origins=[
+        settings.frontend_url,
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://dwight.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(health_check.router, prefix="/api/health-check", tags=["health-check"])
-app.include_router(schema_generator.router, prefix="/api/schema", tags=["schema"])
-app.include_router(waitlist.router, prefix="/api/waitlist", tags=["waitlist"])
+app.include_router(health_check.router, prefix="/api/health-check", tags=["Health Check"])
+app.include_router(schema_generator.router, prefix="/api/schema", tags=["Schema Generator"])
+app.include_router(waitlist.router, prefix="/api/waitlist", tags=["Waitlist"])
+app.include_router(contact.router, prefix="/api/contact", tags=["Contact"])
+
 
 @app.get("/")
 async def root():
+    """Root endpoint with API information"""
     return {
-        "message": "Creed API - AI Search Visibility Platform",
+        "name": "Dwight API",
+        "description": "AI Search Visibility & Optimization Platform",
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
+        "endpoints": {
+            "health_check": "/api/health-check/analyze",
+            "schema_generator": "/api/schema/generate",
+            "waitlist": "/api/waitlist/join",
+            "contact": "/api/contact/submit"
+        }
     }
+
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "dwight-api",
+        "version": "1.0.0"
+    }

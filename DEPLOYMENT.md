@@ -1,6 +1,6 @@
-# 🚀 Deployment Guide - Creed
+# 🚀 Deployment Guide - Dwight
 
-This guide explains how to deploy your Creed platform to production.
+This guide explains how to deploy your Dwight platform to production.
 
 ---
 

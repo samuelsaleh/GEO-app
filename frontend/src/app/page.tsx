@@ -37,7 +37,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                Creed
+                Dwight
               </h1>
             </div>
             <div className="flex gap-6">
@@ -74,7 +74,7 @@ export default function Home() {
 
           <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
             While your competitors get recommended by AI assistants, are you being left behind?
-            Creed helps you optimize for generative AI search engines like ChatGPT, Bing Chat, and Google Gemini.
+            Dwight helps you optimize for generative AI search engines like ChatGPT, Bing Chat, and Google Gemini.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -246,7 +246,7 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-cyan-600">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Get Early Access to Creed
+            Get Early Access to Dwight
           </h2>
           <p className="text-xl text-blue-100 mb-8">
             Join our waitlist for exclusive early-bird pricing and free tools
@@ -282,7 +282,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-2xl font-bold mb-4">Creed</h3>
+              <h3 className="text-2xl font-bold mb-4">Dwight</h3>
               <p className="text-slate-400">
                 AI Search Visibility & Optimization
               </p>
@@ -310,7 +310,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400">
-            <p>&copy; 2025 Creed. All rights reserved.</p>
+            <p>&copy; 2025 Dwight. All rights reserved.</p>
           </div>
         </div>
       </footer>

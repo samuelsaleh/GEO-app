@@ -1,4 +1,4 @@
-# 🎉 Creed v1.0 - Complete Platform Summary
+# 🎉 Dwight v1.0 - Complete Platform Summary
 
 ## 🚀 What You Have Now
 

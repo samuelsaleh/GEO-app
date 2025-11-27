@@ -41,4 +41,18 @@ export const waitlistAPI = {
   },
 }
 
+// Contact API
+export const contactAPI = {
+  submit: async (data: {
+    name: string
+    email: string
+    company?: string
+    service: string
+    message: string
+  }) => {
+    const response = await api.post('/api/contact/submit', data)
+    return response.data
+  },
+}
+
 export default api

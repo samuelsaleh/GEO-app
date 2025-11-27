@@ -1,4 +1,4 @@
-# Creed - AI Search Visibility & Optimization Platform
+# Dwight - AI Search Visibility & Optimization Platform
 
 **Ensure your brand is visible in ChatGPT, Bing Chat, and other AI answer engines**
 
@@ -6,7 +6,7 @@
 
 ## 🎯 Overview
 
-Creed helps businesses optimize their content for generative AI search engines. As users increasingly turn to AI assistants like ChatGPT, Bing Chat, and Google Gemini for answers, traditional SEO isn't enough. Creed provides the tools and services to ensure your brand gets mentioned, cited, and recommended by AI.
+Dwight helps businesses optimize their content for generative AI search engines. As users increasingly turn to AI assistants like ChatGPT, Bing Chat, and Google Gemini for answers, traditional SEO isn't enough. Dwight provides the tools and services to ensure your brand gets mentioned, cited, and recommended by AI.
 
 ### Core Services
 
@@ -183,7 +183,7 @@ Proprietary - All rights reserved
 
 ## 📞 Contact
 
-For inquiries about Creed services:
+For inquiries about Dwight services:
 - Website: http://localhost:3000 (development)
 - Email: hello@creed.app
 - Admin Dashboard: http://localhost:3000/admin

@@ -151,7 +151,7 @@ ${JSON.stringify(schema, null, 2)}
             <Link href="/" className="flex items-center gap-2">
               <ArrowLeft className="w-5 h-5" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                Creed
+                Dwight
               </h1>
             </Link>
           </div>
