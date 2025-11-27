@@ -101,24 +101,24 @@ export default function Home() {
 
   const faqs = [
     {
-      question: "What's included in the 30% off Black Friday offer?",
-      answer: "The 30% discount applies to all annual plans when you pay for 12 months upfront. This includes access to all features in your chosen tier, with the discount applied to the total annual cost."
+      question: "What exactly does the GEO Health Check analyze?",
+      answer: "We check 6 key areas: content structure (headings, word count), schema markup, citability (how quotable your content is), authority signals, freshness indicators, and technical accessibility. You get a score out of 100 with specific fixes."
     },
     {
-      question: "How long is the offer available?",
-      answer: "The Black Friday offer is available until November 30th at 00:00 UTC. After this date, regular pricing will apply to all new subscriptions."
+      question: "Do I need technical skills to use Dwight?",
+      answer: "Not at all. Just paste your URL and we do the analysis. The schema generator gives you copy-paste code. If you can edit your website, you can implement our recommendations."
     },
     {
-      question: "Do I need to pay the full year upfront?",
-      answer: "Yes, the 30% discount is only available when you pay for the full year upfront. Monthly billing is available at regular prices."
+      question: "How is this different from regular SEO tools?",
+      answer: "Traditional SEO focuses on Google rankings. We focus on how AI assistants like ChatGPT and Perplexity understand and recommend your brand. Different algorithms, different optimization."
     },
     {
-      question: "Can I upgrade my current plan to get the discount?",
-      answer: "Yes! Existing customers can upgrade their plan during the Black Friday period and receive the 30% discount on the difference for their upgraded tier."
+      question: "How quickly will I see results?",
+      answer: "Schema changes can be picked up by AI within days. Content improvements take longer — usually 2-4 weeks to see changes in how AI responds about your brand."
     },
     {
-      question: "What happens after the first year?",
-      answer: "After your first year, your subscription will renew at the standard annual rate unless you choose to cancel. We'll notify you before renewal."
+      question: "Is there really a free plan?",
+      answer: "Yes. You get 3 health checks and 5 schema generations per month, forever free. No credit card required. Upgrade only when you need unlimited access."
     }
   ]
 
@@ -519,9 +519,9 @@ export default function Home() {
       <section className="py-24 bg-cream-100">
         <div className="max-w-3xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="font-display text-4xl font-bold mb-4 text-ink-900">FAQs</h2>
+            <h2 className="font-display text-4xl font-bold mb-4 text-ink-900">Questions?</h2>
             <p className="text-ink-500">
-              Get answers to the most common questions about AI search and Dwight.
+              Here's what people usually ask before signing up.
             </p>
           </div>
 
@@ -537,17 +537,16 @@ export default function Home() {
       <section className="py-20 bg-ink-900">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="font-display text-4xl font-bold text-white mb-6">
-            Take control of your AI visibility.
+            Your competitors are invisible to AI. Are you?
           </h2>
           <p className="text-xl text-ink-400 mb-10">
-            Start measuring and improving your brand's visibility across AI systems today — 
-            and secure 30% off your annual plan when you pay upfront.
+            Run your first health check in 30 seconds. No signup required.
           </p>
           <Link
-            href="/pricing"
+            href="/tools/health-check"
             className="inline-block btn-claude text-white px-10 py-4 rounded-lg font-bold text-lg"
           >
-            Get 30% Off Now
+            Check Your Site Free
           </Link>
         </div>
       </section>
@@ -559,7 +558,7 @@ export default function Home() {
             <div>
               <h3 className="font-display text-2xl font-bold mb-4 text-gradient-claude">Dwight</h3>
               <p className="text-ink-400">
-                AI search analytics for marketing teams
+                Make your brand visible to AI
               </p>
             </div>
             <div>

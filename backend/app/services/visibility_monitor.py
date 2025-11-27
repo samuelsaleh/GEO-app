@@ -143,6 +143,38 @@ class VisibilityMonitor:
             logger.error(f"Error testing prompt: {e}")
             return self._mock_result(prompt, brand, competitors)
     
+    def _normalize_for_matching(self, text: str) -> str:
+        """Normalize text for fuzzy brand matching."""
+        # Convert to lowercase
+        text = text.lower()
+        # Remove common separators and make uniform
+        text = text.replace('-', ' ').replace('_', ' ').replace('.', ' ')
+        # Remove extra whitespace
+        text = ' '.join(text.split())
+        return text
+    
+    def _brand_in_text(self, brand: str, text: str) -> bool:
+        """Check if brand is mentioned in text with fuzzy matching."""
+        # Normalize both for comparison
+        brand_normalized = self._normalize_for_matching(brand)
+        text_normalized = self._normalize_for_matching(text)
+        
+        # Direct match after normalization
+        if brand_normalized in text_normalized:
+            return True
+        
+        # Also check original lowercase (in case normalization breaks something)
+        if brand.lower() in text.lower():
+            return True
+        
+        # Check without spaces (e.g., "BasicFit" matches "Basic Fit")
+        brand_no_space = brand_normalized.replace(' ', '')
+        text_no_space = text_normalized.replace(' ', '')
+        if brand_no_space in text_no_space:
+            return True
+        
+        return False
+    
     def _analyze_response(
         self,
         prompt: str,
@@ -156,8 +188,8 @@ class VisibilityMonitor:
         response_lower = response.lower()
         brand_lower = brand.lower()
         
-        # Check if brand is mentioned
-        brand_mentioned = brand_lower in response_lower
+        # Check if brand is mentioned (with fuzzy matching)
+        brand_mentioned = self._brand_in_text(brand, response)
         
         # Find position (1st, 2nd, 3rd mention among all brands)
         position = None
@@ -166,8 +198,11 @@ class VisibilityMonitor:
             all_brands = [brand] + competitors
             mentions = []
             
+            response_normalized = self._normalize_for_matching(response)
+            
             for b in all_brands:
-                idx = response_lower.find(b.lower())
+                b_normalized = self._normalize_for_matching(b)
+                idx = response_normalized.find(b_normalized)
                 if idx != -1:
                     mentions.append((b, idx))
             
@@ -175,15 +210,16 @@ class VisibilityMonitor:
             mentions.sort(key=lambda x: x[1])
             
             # Find our brand's position
+            brand_normalized = self._normalize_for_matching(brand)
             for i, (b, _) in enumerate(mentions):
-                if b.lower() == brand_lower:
+                if self._normalize_for_matching(b) == brand_normalized:
                     position = i + 1
                     break
         
-        # Check which competitors are mentioned
+        # Check which competitors are mentioned (with fuzzy matching)
         competitors_mentioned = [
             c for c in competitors 
-            if c.lower() in response_lower
+            if self._brand_in_text(c, response)
         ]
         
         # Simple sentiment analysis

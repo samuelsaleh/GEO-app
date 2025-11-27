@@ -78,28 +78,28 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 export default function PricingPage() {
   const faqs = [
     {
-      question: "What's included in the 30% off Black Friday offer?",
-      answer: "The 30% discount applies to all annual plans when you pay for 12 months upfront. This includes access to all features in your chosen tier, with the discount applied to the total annual cost."
+      question: "What do I actually get?",
+      answer: "Two tools: GEO Health Check (scans your site for AI visibility issues) and Schema Generator (creates structured data markup). Free plan has limits, paid plans are unlimited."
     },
     {
-      question: "How long is the offer available?",
-      answer: "The Black Friday offer is available until November 30th at 00:00 UTC. After this date, regular pricing will apply to all new subscriptions."
+      question: "Why is this so cheap compared to competitors?",
+      answer: "We built focused tools, not a bloated platform. No enterprise sales team, no fancy offices. We pass those savings to you. €19/month gets you everything most businesses need."
     },
     {
-      question: "Do I need to pay the full year upfront?",
-      answer: "Yes, the 30% discount is only available when you pay for the full year upfront. Monthly billing is available at regular prices."
+      question: "Can I try before I buy?",
+      answer: "Absolutely. The free plan gives you 3 health checks and 5 schema generations per month, forever. No credit card required. Upgrade only if you need more."
     },
     {
-      question: "Can I upgrade my current plan to get the discount?",
-      answer: "Yes! Existing customers can upgrade their plan during the Black Friday period and receive the 30% discount on the difference for their upgraded tier."
+      question: "How does the 30% Black Friday discount work?",
+      answer: "Pay for 12 months upfront and save 30%. That's €228/year for Starter instead of €348. The discount applies automatically at checkout."
     },
     {
-      question: "What happens after the first year?",
-      answer: "After your first year, your subscription will renew at the standard annual rate unless you choose to cancel. We'll notify you before renewal."
+      question: "What if I need help implementing the recommendations?",
+      answer: "All reports include step-by-step instructions. The schema generator gives you copy-paste code. If you're still stuck, email us — we actually respond."
     },
     {
-      question: "Is the offer available worldwide?",
-      answer: "Yes, the Black Friday offer is available to customers worldwide. Pricing is displayed in EUR but we accept payments from all countries."
+      question: "Do you offer refunds?",
+      answer: "Yes. If you're not happy within 14 days, we'll refund you in full. No questions, no hassle."
     }
   ]
 
@@ -142,11 +142,14 @@ export default function PricingPage() {
       <section className="pt-16 pb-8 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-claude-100 rounded-full">
-            <span className="text-claude-600 font-semibold text-sm">Save 30% on annual plans</span>
+            <span className="text-claude-600 font-semibold text-sm">Black Friday: 30% off annual</span>
           </div>
           <h1 className="font-display text-5xl font-bold mb-6 text-ink-900">
-            Black Friday prices to help you win AI search
+            No hidden fees. No enterprise pricing.
           </h1>
+          <p className="text-xl text-ink-500">
+            Start free, upgrade when you need more. Cancel anytime.
+          </p>
         </div>
       </section>
 
@@ -292,29 +295,29 @@ export default function PricingPage() {
       <section className="py-16 bg-gradient-to-br from-claude-500 to-claude-600">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-sm font-semibold mb-6">
-            Limited offer!
+            Black Friday ends soon
           </div>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
-            Start tracking your AI visibility today.
+            Lock in the lowest price of the year.
           </h2>
           <p className="text-lg text-claude-100 mb-8 max-w-2xl mx-auto">
-            Get 30% off Dwight annual plans — when you pay for 12 months upfront. Get ahead while others are still catching up.
+            €19/month is already cheap. €13/month with annual billing is basically free. Don't wait.
           </p>
           
           <div className="mb-8">
-            <p className="text-claude-100 mb-4 text-sm">Offer ends in</p>
+            <p className="text-claude-100 mb-4 text-sm">Sale ends in</p>
             <CountdownTimer />
           </div>
 
           <Link
-            href="/contact"
+            href="/tools/health-check"
             className="inline-block bg-white text-claude-600 px-10 py-4 rounded-lg hover:bg-cream-100 transition font-bold text-lg shadow-lg"
           >
-            Claim Your 30% Off
+            Try Free First
           </Link>
           
           <p className="text-claude-200 text-sm mt-6">
-            Ends November 30 at 00:00 UTC. Offer valid only for annual plans, 12 months paid upfront.
+            No credit card required. Upgrade anytime.
           </p>
         </div>
       </section>
@@ -443,17 +446,16 @@ export default function PricingPage() {
       <section className="py-20 bg-ink-900">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="font-display text-4xl font-bold text-white mb-6">
-            Take control of your AI visibility.
+            Still not sure? Start free.
           </h2>
           <p className="text-xl text-ink-400 mb-10">
-            Start measuring and improving your brand's visibility across AI systems today — 
-            and secure 30% off your annual plan when you pay upfront.
+            Run 3 health checks on us. See what you're missing. Then decide.
           </p>
           <Link
-            href="/contact"
+            href="/tools/health-check"
             className="inline-block btn-claude text-white px-10 py-4 rounded-lg font-bold text-lg"
           >
-            Get 30% Off Now
+            Run Free Health Check
           </Link>
         </div>
       </section>
