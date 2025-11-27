@@ -5,27 +5,18 @@ from typing import List, Dict, Any, Optional
 import re
 import json
 import logging
-from app.config import settings
+from app.services.ai_service import ai_service
 
 logger = logging.getLogger(__name__)
 
 
 class CompetitorAnalyzer:
-    """Analyze and discover competitors"""
+    """Analyze and discover competitors using multi-provider AI"""
     
     def __init__(self):
-        self.openai_client = None
-        self._init_ai_client()
-    
-    def _init_ai_client(self):
-        """Initialize OpenAI client if available"""
-        if settings.openai_api_key:
-            try:
-                from openai import OpenAI
-                self.openai_client = OpenAI(api_key=settings.openai_api_key)
-                logger.info("OpenAI client initialized for competitor analysis")
-            except Exception as e:
-                logger.warning(f"Failed to initialize OpenAI: {e}")
+        # Uses the multi-provider AI service (Claude, GPT-4o, Gemini)
+        self.ai = ai_service
+        logger.info(f"CompetitorAnalyzer using providers: {self.ai.get_available_providers()}")
     
     async def discover_competitors(
         self, 
@@ -34,79 +25,29 @@ class CompetitorAnalyzer:
         industry_keywords: Optional[List[str]] = None
     ) -> List[Dict[str, str]]:
         """
-        Use AI to discover potential competitors based on website content
+        Use AI to discover potential competitors based on website content.
+        
+        Uses multi-provider AI (Claude, GPT-4o, Gemini) with automatic fallback.
         
         Returns list of competitor suggestions with name and URL
         """
-        if not self.openai_client:
-            logger.info("No AI client available, returning empty competitor list")
+        if not self.ai.is_available:
+            logger.info("No AI providers available, returning empty competitor list")
             return []
         
         # First, analyze the user's website to understand their business
         business_context = await self._extract_business_context(website_url)
         
-        prompt = f"""Based on this business information, identify the top 3 direct competitors:
-
-Company: {company_name}
-Website: {website_url}
-Business Context: {business_context}
-{f"Industry Keywords: {', '.join(industry_keywords)}" if industry_keywords else ""}
-
-Return ONLY a JSON array with exactly 3 competitors. Each should have:
-- "name": company name
-- "url": their main website URL (must be a real, valid URL)
-- "reason": brief reason why they're a competitor
-
-Example format:
-[
-  {{"name": "Competitor A", "url": "https://competitora.com", "reason": "Direct competitor in same market"}},
-  {{"name": "Competitor B", "url": "https://competitorb.com", "reason": "Similar product offering"}},
-  {{"name": "Competitor C", "url": "https://competitorc.com", "reason": "Targets same audience"}}
-]
-
-Return ONLY valid JSON, no other text."""
-
-        try:
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a competitive analysis expert. Always return valid JSON only."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=500,
-                temperature=0.3
-            )
-            
-            result = response.choices[0].message.content.strip()
-            
-            # Clean up response - remove markdown code blocks if present
-            if result.startswith("```"):
-                result = re.sub(r'^```(?:json)?\n?', '', result)
-                result = re.sub(r'\n?```$', '', result)
-            
-            competitors = json.loads(result)
-            
-            # Validate URLs
-            validated = []
-            for comp in competitors[:3]:
-                if comp.get("url") and comp.get("name"):
-                    # Basic URL validation
-                    url = comp["url"]
-                    if not url.startswith(("http://", "https://")):
-                        url = f"https://{url}"
-                    validated.append({
-                        "name": comp["name"],
-                        "url": url,
-                        "reason": comp.get("reason", "Identified as competitor"),
-                        "ai_discovered": True
-                    })
-            
-            logger.info(f"Discovered {len(validated)} competitors for {company_name}")
-            return validated
-            
-        except Exception as e:
-            logger.error(f"Failed to discover competitors: {e}")
-            return []
+        # Use the multi-provider AI service
+        competitors = await self.ai.analyze_competitors(
+            company_name=company_name,
+            website_url=website_url,
+            business_context=business_context,
+            industry_keywords=industry_keywords
+        )
+        
+        logger.info(f"Discovered {len(competitors)} competitors for {company_name}")
+        return competitors
     
     async def _extract_business_context(self, url: str) -> str:
         """Extract business context from a website"""

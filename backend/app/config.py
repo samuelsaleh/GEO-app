@@ -22,9 +22,13 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     from_email: str = ""
     
-    # AI APIs
-    openai_api_key: str = ""
-    anthropic_api_key: str = ""
+    # AI APIs - Best models from each provider
+    openai_api_key: str = ""           # For GPT-4o
+    anthropic_api_key: str = ""        # For Claude Opus 4.5 / Sonnet
+    google_api_key: str = ""           # For Gemini Pro
+    
+    # AI Provider preference (which to try first)
+    ai_provider_priority: str = "anthropic,openai,google"  # comma-separated
     
     # Security
     secret_key: str = "dev-secret-key-change-in-production"

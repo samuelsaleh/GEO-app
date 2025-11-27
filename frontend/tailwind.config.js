@@ -8,70 +8,41 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Soft Rose - #F08787
-        rose: {
-          50: '#FDF5F5',
-          100: '#FCEAEA',
-          200: '#F8D4D4',
-          300: '#F4B3B3',
-          400: '#F08787', // Main color
-          500: '#E06B6B',
-          600: '#C85555',
-          700: '#A84444',
-          800: '#8B3838',
-          900: '#6B2B2B',
+        // Claude Orange/Terracotta
+        claude: {
+          50: '#FDF8F6',
+          100: '#F9EDE8',
+          200: '#F5DDD3',
+          300: '#ECC4B3',
+          400: '#DFA084',
+          500: '#D97757', // Claude's signature orange
+          600: '#C96442',
+          700: '#A84E33',
+          800: '#8A422E',
+          900: '#723A2A',
         },
-        // Soft Peach - #FFC7A7
-        peach: {
-          50: '#FFFAF7',
-          100: '#FFF3EC',
-          200: '#FFE5D6',
-          300: '#FFC7A7', // Main color
-          400: '#FFB08A',
-          500: '#F5956B',
-          600: '#E07A50',
-          700: '#C4633C',
-          800: '#A35030',
-          900: '#7D3E26',
+        // Warm cream backgrounds
+        cream: {
+          50: '#FDFCFB',
+          100: '#FAF8F6',
+          200: '#F5F0EB',
+          300: '#EDE5DC',
+          400: '#E0D3C5',
+          500: '#D4C4B0',
         },
-        // Butter Cream - #FEE2AD
-        butter: {
-          50: '#FFFDF7',
-          100: '#FFFBEF',
-          200: '#FEF3D8',
-          300: '#FEE2AD', // Main color
-          400: '#FDD580',
-          500: '#F5C450',
-          600: '#E0AC30',
-          700: '#C49420',
-          800: '#A07818',
-          900: '#7D5E14',
-        },
-        // Light Lemon - #F8FAB4
-        lemon: {
-          50: '#FEFEF5',
-          100: '#FDFDE8',
-          200: '#FBFCD4',
-          300: '#F8FAB4', // Main color
-          400: '#F2F590',
-          500: '#E8EC6C',
-          600: '#D4D850',
-          700: '#B8BC38',
-          800: '#96992D',
-          900: '#747724',
-        },
-        // Dark accent for text/contrast
-        warmgray: {
-          50: '#FAF9F7',
-          100: '#F5F3F0',
-          200: '#E8E4DE',
-          300: '#D4CEC4',
-          400: '#B5ADA0',
-          500: '#8B8178',
-          600: '#6B6259',
-          700: '#524A43',
-          800: '#3D3732',
-          900: '#2A2622',
+        // Claude's warm dark tones
+        ink: {
+          50: '#F8F6F4',
+          100: '#EDE8E3',
+          200: '#DDD5CC',
+          300: '#C4B8AA',
+          400: '#A69686',
+          500: '#8C7B6A',
+          600: '#756556',
+          700: '#5F5147',
+          800: '#4A3F38',
+          900: '#3D342E',
+          950: '#1F1A17',
         },
       },
       fontFamily: {

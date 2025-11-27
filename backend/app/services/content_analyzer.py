@@ -1,10 +1,10 @@
 """Content analyzer service for AI visibility analysis"""
 import httpx
 from bs4 import BeautifulSoup
-from app.models.health_check import PageAnalysis
+from app.models.health_check import PageAnalysis, CategoryScore
 from app.config import settings
 from app.services.geo_scoring import geo_scorer, GEOScore
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import re
 import json
 import logging
