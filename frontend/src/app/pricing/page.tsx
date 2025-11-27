@@ -329,74 +329,32 @@ export default function PricingPage() {
               <thead>
                 <tr className="border-b-2 border-cream-300">
                   <th className="text-left p-4 font-bold text-ink-900">Feature</th>
-                  <th className="text-center p-4 font-bold text-ink-600">Starter</th>
-                  <th className="text-center p-4 font-bold text-claude-500">Pro</th>
-                  <th className="text-center p-4 font-bold text-ink-600">Enterprise</th>
+                  <th className="text-center p-4 font-bold text-ink-600">Free</th>
+                  <th className="text-center p-4 font-bold text-claude-500">Starter</th>
+                  <th className="text-center p-4 font-bold text-ink-600">Pro</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-cream-200">
                 <tr>
-                  <td className="p-4 text-ink-600">Prompts tracked</td>
-                  <td className="p-4 text-center text-ink-600">25</td>
-                  <td className="p-4 text-center font-semibold text-ink-900">100</td>
-                  <td className="p-4 text-center text-ink-600">300+</td>
+                  <td className="p-4 text-ink-600">GEO Health Checks</td>
+                  <td className="p-4 text-center text-ink-600">3/month</td>
+                  <td className="p-4 text-center font-semibold text-ink-900">Unlimited</td>
+                  <td className="p-4 text-center text-ink-600">Unlimited</td>
                 </tr>
                 <tr className="bg-cream-50">
-                  <td className="p-4 text-ink-600">AI answers analyzed/month</td>
-                  <td className="p-4 text-center text-ink-600">2,250</td>
-                  <td className="p-4 text-center font-semibold text-ink-900">9,000</td>
-                  <td className="p-4 text-center text-ink-600">27,000+</td>
+                  <td className="p-4 text-ink-600">Schema Generator</td>
+                  <td className="p-4 text-center text-ink-600">5/month</td>
+                  <td className="p-4 text-center font-semibold text-ink-900">Unlimited</td>
+                  <td className="p-4 text-center text-ink-600">Unlimited</td>
                 </tr>
                 <tr>
-                  <td className="p-4 text-ink-600">ChatGPT, Perplexity, AIO</td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
+                  <td className="p-4 text-ink-600">Visibility reports</td>
+                  <td className="p-4 text-center text-ink-600">Basic</td>
+                  <td className="p-4 text-center font-semibold text-ink-900">Detailed</td>
+                  <td className="p-4 text-center text-ink-600">Detailed</td>
                 </tr>
                 <tr className="bg-cream-50">
-                  <td className="p-4 text-ink-600">Daily analysis</td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-4 text-ink-600">Unlimited countries</td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr className="bg-cream-50">
-                  <td className="p-4 text-ink-600">Unlimited seats</td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-4 text-ink-600">Slack support</td>
+                  <td className="p-4 text-ink-600">Export as PDF</td>
                   <td className="p-4 text-center text-ink-300">—</td>
                   <td className="p-4 text-center">
                     <Check className="w-5 h-5 text-claude-500 mx-auto" />
@@ -405,13 +363,27 @@ export default function PricingPage() {
                     <Check className="w-5 h-5 text-claude-500 mx-auto" />
                   </td>
                 </tr>
-                <tr className="bg-cream-50">
-                  <td className="p-4 text-ink-600">Dedicated Account Rep</td>
+                <tr>
+                  <td className="p-4 text-ink-600">White-label reports</td>
                   <td className="p-4 text-center text-ink-300">—</td>
                   <td className="p-4 text-center text-ink-300">—</td>
                   <td className="p-4 text-center">
                     <Check className="w-5 h-5 text-claude-500 mx-auto" />
                   </td>
+                </tr>
+                <tr className="bg-cream-50">
+                  <td className="p-4 text-ink-600">API access</td>
+                  <td className="p-4 text-center text-ink-300">—</td>
+                  <td className="p-4 text-center text-ink-300">—</td>
+                  <td className="p-4 text-center">
+                    <Check className="w-5 h-5 text-claude-500 mx-auto" />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="p-4 text-ink-600">Team seats</td>
+                  <td className="p-4 text-center text-ink-600">1</td>
+                  <td className="p-4 text-center font-semibold text-ink-900">1</td>
+                  <td className="p-4 text-center text-ink-600">Up to 5</td>
                 </tr>
               </tbody>
             </table>
@@ -422,43 +394,29 @@ export default function PricingPage() {
       {/* Key Features */}
       <section className="py-20 bg-cream-100">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="font-display text-3xl font-bold text-center mb-12 text-ink-900">Key Features</h2>
+          <h2 className="font-display text-3xl font-bold text-center mb-12 text-ink-900">What You Get</h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="card-elevated p-6">
-              <h3 className="font-display text-lg font-bold mb-2 text-ink-900">Set up Prompts</h3>
-              <p className="text-ink-500 text-sm">
-                Prompts are the foundation of your AI search strategy. Uncover and organize the prompts that matter most.
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="card-elevated p-8">
+              <div className="w-12 h-12 bg-claude-100 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-claude-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">GEO Health Check</h3>
+              <p className="text-ink-500 leading-relaxed">
+                Get a complete analysis of your website's AI visibility. See how well AI systems can understand your content, find issues, and get actionable recommendations to improve.
               </p>
             </div>
-            <div className="card-elevated p-6">
-              <h3 className="font-display text-lg font-bold mb-2 text-ink-900">Use Data to Pick Winners</h3>
-              <p className="text-ink-500 text-sm">
-                Leverage AI-suggested prompts and search volumes to focus on the biggest opportunities.
-              </p>
-            </div>
-            <div className="card-elevated p-6">
-              <h3 className="font-display text-lg font-bold mb-2 text-ink-900">Add Brands</h3>
-              <p className="text-ink-500 text-sm">
-                See how you rank against the players that matter in your market.
-              </p>
-            </div>
-            <div className="card-elevated p-6">
-              <h3 className="font-display text-lg font-bold mb-2 text-ink-900">Choose AI Models</h3>
-              <p className="text-ink-500 text-sm">
-                Track rankings across the models that drive the most traffic and visibility.
-              </p>
-            </div>
-            <div className="card-elevated p-6">
-              <h3 className="font-display text-lg font-bold mb-2 text-ink-900">Find Key Sources</h3>
-              <p className="text-ink-500 text-sm">
-                Spot the citations shaping your visibility and refine your GEO strategy.
-              </p>
-            </div>
-            <div className="card-elevated p-6">
-              <h3 className="font-display text-lg font-bold mb-2 text-ink-900">Act on Insights</h3>
-              <p className="text-ink-500 text-sm">
-                Use recommendations to capture high-impact opportunities and boost your ranking.
+            <div className="card-elevated p-8">
+              <div className="w-12 h-12 bg-claude-100 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-claude-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              </div>
+              <h3 className="font-display text-xl font-bold mb-3 text-ink-900">Schema Generator</h3>
+              <p className="text-ink-500 leading-relaxed">
+                Generate structured data markup for your pages. Help AI systems understand your business, products, and content better with properly formatted schema.org JSON-LD.
               </p>
             </div>
           </div>
