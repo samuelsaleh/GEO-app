@@ -491,210 +491,440 @@ export default function ReportTemplate() {
             </div>
           </div>
 
-          {/* How Each Score is Calculated */}
+          {/* How Each Score is Calculated + Your Interpretation */}
           <div className="p-12 border-t-4 border-blue-200 print:break-after-page">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">🧮 How We Calculate Each Score</h2>
-            <p className="text-gray-500 mb-8">A transparent breakdown of our scoring methodology</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">🧮 Your Score Breakdown & What It Means</h2>
+            <p className="text-gray-500 mb-8">Understanding your scores and how to improve them</p>
 
             <div className="space-y-8">
               {/* Structure Score */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">📐 Structure Score</h3>
-                  <span className="text-sm font-semibold text-gray-500">Max: 25 points</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-gray-900">{data.scores.structure}</span>
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-500">25</span>
+                  </div>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  Measures how well-organized your content is. AI systems need clear structure to understand your content.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3">Point Breakdown:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Single H1 tag (main headline)</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">3+ H2 subheadings</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Good heading hierarchy (H2 → H3)</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Content depth (800+ words)</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">5+ internal links</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                  </ul>
+                
+                {/* User's Score Interpretation */}
+                <div className={`rounded-lg p-4 mb-4 ${
+                  parseInt(data.scores.structure) >= 20 ? 'bg-green-50 border border-green-200' :
+                  parseInt(data.scores.structure) >= 15 ? 'bg-yellow-50 border border-yellow-200' :
+                  'bg-red-50 border border-red-200'
+                }`}>
+                  <h4 className={`font-semibold mb-2 ${
+                    parseInt(data.scores.structure) >= 20 ? 'text-green-800' :
+                    parseInt(data.scores.structure) >= 15 ? 'text-yellow-800' :
+                    'text-red-800'
+                  }`}>
+                    {parseInt(data.scores.structure) >= 20 ? '✅ Great structure!' :
+                     parseInt(data.scores.structure) >= 15 ? '⚠️ Decent, but room for improvement' :
+                     '❌ Needs significant work'}
+                  </h4>
+                  <p className={`text-sm ${
+                    parseInt(data.scores.structure) >= 20 ? 'text-green-700' :
+                    parseInt(data.scores.structure) >= 15 ? 'text-yellow-700' :
+                    'text-red-700'
+                  }`}>
+                    {parseInt(data.scores.structure) >= 20 
+                      ? 'Your content is well-organized with clear headings and good depth. AI can easily navigate and understand your page.'
+                      : parseInt(data.scores.structure) >= 15
+                      ? `You scored ${data.scores.structure}/25. Your page has basic structure but is missing some elements. Having ${data.findings.h1Count} H1 tags (should be 1) and ${data.findings.wordCount} words affects your score.`
+                      : `You scored ${data.scores.structure}/25. Your page structure needs work. Issues found: ${data.findings.h1Count} H1 tags (should be 1), which confuses AI about your main topic.`
+                    }
+                  </p>
                 </div>
+
+                <details className="group">
+                  <summary className="cursor-pointer text-sm font-semibold text-claude-600 hover:text-claude-700">
+                    How this score is calculated →
+                  </summary>
+                  <div className="mt-3 bg-gray-50 rounded-lg p-4">
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Single H1 tag (main headline)</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">3+ H2 subheadings</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Good heading hierarchy (H2 → H3)</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Content depth (800+ words)</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">5+ internal links</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                    </ul>
+                  </div>
+                </details>
               </div>
 
               {/* Schema Score */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">🏷️ Schema Score</h3>
-                  <span className="text-sm font-semibold text-gray-500">Max: 20 points</span>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Structured data (JSON-LD) is <strong>critical</strong> for AI visibility. This is often the #1 factor for getting recommended.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3">Point Breakdown:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Has any structured data</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">High-value schema types (Product, Article, etc.)</span>
-                      <span className="font-semibold text-gray-800">up to 10 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">FAQPage schema (AI favorite!)</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                  </ul>
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
-                    <strong>Tip:</strong> FAQPage schema is worth 10 points total (base + bonus). Adding it is one of the easiest ways to boost your score.
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-gray-900">{data.scores.schema}</span>
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-500">20</span>
                   </div>
                 </div>
+                
+                {/* User's Score Interpretation */}
+                <div className={`rounded-lg p-4 mb-4 ${
+                  parseInt(data.scores.schema) >= 15 ? 'bg-green-50 border border-green-200' :
+                  parseInt(data.scores.schema) >= 5 ? 'bg-yellow-50 border border-yellow-200' :
+                  'bg-red-50 border border-red-200'
+                }`}>
+                  <h4 className={`font-semibold mb-2 ${
+                    parseInt(data.scores.schema) >= 15 ? 'text-green-800' :
+                    parseInt(data.scores.schema) >= 5 ? 'text-yellow-800' :
+                    'text-red-800'
+                  }`}>
+                    {parseInt(data.scores.schema) >= 15 ? '✅ Excellent schema markup!' :
+                     parseInt(data.scores.schema) >= 5 ? '⚠️ Some schema, but missing key types' :
+                     '❌ No schema detected - BIG opportunity!'}
+                  </h4>
+                  <p className={`text-sm ${
+                    parseInt(data.scores.schema) >= 15 ? 'text-green-700' :
+                    parseInt(data.scores.schema) >= 5 ? 'text-yellow-700' :
+                    'text-red-700'
+                  }`}>
+                    {parseInt(data.scores.schema) >= 15 
+                      ? 'Your page has rich structured data that helps AI understand your content. This gives you a major advantage over competitors without schema.'
+                      : parseInt(data.scores.schema) >= 5
+                      ? `You have basic schema (${data.scores.schema}/20), but you're missing high-value types like FAQPage. Adding FAQ schema alone could add 10+ points.`
+                      : `You scored ${data.scores.schema}/20. This is your #1 priority! Without schema markup, AI struggles to understand what your page offers. Adding schema could boost your total score by 15-20 points.`
+                    }
+                  </p>
+                  {parseInt(data.scores.schema) < 15 && (
+                    <div className="mt-3 p-2 bg-white rounded border border-dashed border-gray-300">
+                      <span className="text-xs font-semibold text-gray-600">💡 Quick Win:</span>
+                      <span className="text-xs text-gray-600 ml-1">Use our Schema Generator tool to create JSON-LD markup for your page.</span>
+                    </div>
+                  )}
+                </div>
+
+                <details className="group">
+                  <summary className="cursor-pointer text-sm font-semibold text-claude-600 hover:text-claude-700">
+                    How this score is calculated →
+                  </summary>
+                  <div className="mt-3 bg-gray-50 rounded-lg p-4">
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Has any structured data</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">High-value schema types (Product, Article, etc.)</span>
+                        <span className="font-semibold text-gray-800">up to 10 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">FAQPage schema (AI favorite!)</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                    </ul>
+                  </div>
+                </details>
               </div>
 
               {/* Citability Score */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">💬 Citability Score</h3>
-                  <span className="text-sm font-semibold text-gray-500">Max: 20 points</span>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  How easily can AI quote your content? AI engines prefer content that&apos;s easy to extract and cite in their answers.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3">Point Breakdown:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">FAQ section on page</span>
-                      <span className="font-semibold text-gray-800">7 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Excellent readability (70%+ score)</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Optimal sentence length (10-20 words)</span>
-                      <span className="font-semibold text-gray-800">4 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Good content structure</span>
-                      <span className="font-semibold text-gray-800">4 pts</span>
-                    </li>
-                  </ul>
-                  <div className="mt-4 p-3 bg-green-50 rounded-lg text-sm text-green-800">
-                    <strong>Why FAQs matter:</strong> When users ask questions, AI can directly quote your Q&A format. It&apos;s the most &quot;citable&quot; content format.
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-gray-900">{data.scores.citability}</span>
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-500">20</span>
                   </div>
                 </div>
+                
+                {/* User's Score Interpretation */}
+                <div className={`rounded-lg p-4 mb-4 ${
+                  parseInt(data.scores.citability) >= 15 ? 'bg-green-50 border border-green-200' :
+                  parseInt(data.scores.citability) >= 10 ? 'bg-yellow-50 border border-yellow-200' :
+                  'bg-red-50 border border-red-200'
+                }`}>
+                  <h4 className={`font-semibold mb-2 ${
+                    parseInt(data.scores.citability) >= 15 ? 'text-green-800' :
+                    parseInt(data.scores.citability) >= 10 ? 'text-yellow-800' :
+                    'text-red-800'
+                  }`}>
+                    {parseInt(data.scores.citability) >= 15 ? '✅ Highly citable content!' :
+                     parseInt(data.scores.citability) >= 10 ? '⚠️ Readable but could be more quotable' :
+                     '❌ AI will struggle to quote your content'}
+                  </h4>
+                  <p className={`text-sm ${
+                    parseInt(data.scores.citability) >= 15 ? 'text-green-700' :
+                    parseInt(data.scores.citability) >= 10 ? 'text-yellow-700' :
+                    'text-red-700'
+                  }`}>
+                    {parseInt(data.scores.citability) >= 15 
+                      ? 'Your content is easy for AI to extract and quote. The clear writing style and structure make it ideal for AI citations.'
+                      : parseInt(data.scores.citability) >= 10
+                      ? `You scored ${data.scores.citability}/20. Your ${data.findings.readabilityScore} readability is ${parseInt(data.findings.readabilityScore) >= 70 ? 'excellent' : 'good'}, but ${data.findings.hasFaq === 'No' ? 'adding an FAQ section would significantly boost this score.' : 'improving sentence structure would help.'}`
+                      : `You scored ${data.scores.citability}/20. ${data.findings.hasFaq === 'No' ? 'No FAQ section was found - this is a missed opportunity since AI loves to quote Q&A content.' : ''} Focus on clear, quotable statements.`
+                    }
+                  </p>
+                </div>
+
+                <details className="group">
+                  <summary className="cursor-pointer text-sm font-semibold text-claude-600 hover:text-claude-700">
+                    How this score is calculated →
+                  </summary>
+                  <div className="mt-3 bg-gray-50 rounded-lg p-4">
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">FAQ section on page</span>
+                        <span className="font-semibold text-gray-800">7 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Excellent readability (70%+ score)</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Optimal sentence length (10-20 words)</span>
+                        <span className="font-semibold text-gray-800">4 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Good content structure</span>
+                        <span className="font-semibold text-gray-800">4 pts</span>
+                      </li>
+                    </ul>
+                  </div>
+                </details>
               </div>
 
               {/* Authority Score */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">🏆 Authority Score</h3>
-                  <span className="text-sm font-semibold text-gray-500">Max: 15 points</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-gray-900">{data.scores.authority}</span>
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-500">15</span>
+                  </div>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  E-E-A-T signals: Experience, Expertise, Authoritativeness, Trustworthiness. AI engines look for proof you&apos;re a credible source.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3">Point Breakdown:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Author information present</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">3+ external references/citations</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Organization schema</span>
-                      <span className="font-semibold text-gray-800">3 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Open Graph tags</span>
-                      <span className="font-semibold text-gray-800">2 pts</span>
-                    </li>
-                  </ul>
+                
+                {/* User's Score Interpretation */}
+                <div className={`rounded-lg p-4 mb-4 ${
+                  parseInt(data.scores.authority) >= 12 ? 'bg-green-50 border border-green-200' :
+                  parseInt(data.scores.authority) >= 7 ? 'bg-yellow-50 border border-yellow-200' :
+                  'bg-red-50 border border-red-200'
+                }`}>
+                  <h4 className={`font-semibold mb-2 ${
+                    parseInt(data.scores.authority) >= 12 ? 'text-green-800' :
+                    parseInt(data.scores.authority) >= 7 ? 'text-yellow-800' :
+                    'text-red-800'
+                  }`}>
+                    {parseInt(data.scores.authority) >= 12 ? '✅ Strong authority signals!' :
+                     parseInt(data.scores.authority) >= 7 ? '⚠️ Some credibility, but could be stronger' :
+                     '❌ Weak authority signals'}
+                  </h4>
+                  <p className={`text-sm ${
+                    parseInt(data.scores.authority) >= 12 ? 'text-green-700' :
+                    parseInt(data.scores.authority) >= 7 ? 'text-yellow-700' :
+                    'text-red-700'
+                  }`}>
+                    {parseInt(data.scores.authority) >= 12 
+                      ? 'Your page shows strong E-E-A-T signals (Experience, Expertise, Authority, Trust). AI recognizes your content as credible.'
+                      : parseInt(data.scores.authority) >= 7
+                      ? `You scored ${data.scores.authority}/15. Adding author information, citing external sources, and including Organization schema would strengthen your credibility.`
+                      : `You scored ${data.scores.authority}/15. AI may not trust your content. Add author bios, cite reputable sources, and add Organization schema to establish credibility.`
+                    }
+                  </p>
                 </div>
+
+                <details className="group">
+                  <summary className="cursor-pointer text-sm font-semibold text-claude-600 hover:text-claude-700">
+                    How this score is calculated →
+                  </summary>
+                  <div className="mt-3 bg-gray-50 rounded-lg p-4">
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Author information present</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">3+ external references/citations</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Organization schema</span>
+                        <span className="font-semibold text-gray-800">3 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Open Graph tags</span>
+                        <span className="font-semibold text-gray-800">2 pts</span>
+                      </li>
+                    </ul>
+                  </div>
+                </details>
               </div>
 
               {/* Freshness Score */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">📅 Freshness Score</h3>
-                  <span className="text-sm font-semibold text-gray-500">Max: 10 points</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-gray-900">{data.scores.freshness}</span>
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-500">10</span>
+                  </div>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  AI prefers up-to-date content. Fresh content signals that information is current and reliable.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3">Point Breakdown:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Publication/modified date in schema</span>
-                      <span className="font-semibold text-gray-800">5 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Content mentions recent dates (2024, 2025)</span>
-                      <span className="font-semibold text-gray-800">3 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Last-Modified HTTP header</span>
-                      <span className="font-semibold text-gray-800">2 pts</span>
-                    </li>
-                  </ul>
+                
+                {/* User's Score Interpretation */}
+                <div className={`rounded-lg p-4 mb-4 ${
+                  parseInt(data.scores.freshness) >= 7 ? 'bg-green-50 border border-green-200' :
+                  parseInt(data.scores.freshness) >= 4 ? 'bg-yellow-50 border border-yellow-200' :
+                  'bg-red-50 border border-red-200'
+                }`}>
+                  <h4 className={`font-semibold mb-2 ${
+                    parseInt(data.scores.freshness) >= 7 ? 'text-green-800' :
+                    parseInt(data.scores.freshness) >= 4 ? 'text-yellow-800' :
+                    'text-red-800'
+                  }`}>
+                    {parseInt(data.scores.freshness) >= 7 ? '✅ Content appears up-to-date!' :
+                     parseInt(data.scores.freshness) >= 4 ? '⚠️ Some freshness signals present' :
+                     '❌ Content may appear outdated'}
+                  </h4>
+                  <p className={`text-sm ${
+                    parseInt(data.scores.freshness) >= 7 ? 'text-green-700' :
+                    parseInt(data.scores.freshness) >= 4 ? 'text-yellow-700' :
+                    'text-red-700'
+                  }`}>
+                    {parseInt(data.scores.freshness) >= 7 
+                      ? 'Your content includes publication dates and recent references. AI trusts that this information is current.'
+                      : parseInt(data.scores.freshness) >= 4
+                      ? `You scored ${data.scores.freshness}/10. Adding datePublished and dateModified in your schema would help AI know your content is current.`
+                      : `You scored ${data.scores.freshness}/10. Without date signals, AI might assume your content is outdated. Add publication dates and update references to recent years.`
+                    }
+                  </p>
                 </div>
+
+                <details className="group">
+                  <summary className="cursor-pointer text-sm font-semibold text-claude-600 hover:text-claude-700">
+                    How this score is calculated →
+                  </summary>
+                  <div className="mt-3 bg-gray-50 rounded-lg p-4">
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Publication/modified date in schema</span>
+                        <span className="font-semibold text-gray-800">5 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Content mentions recent dates (2024, 2025)</span>
+                        <span className="font-semibold text-gray-800">3 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Last-Modified HTTP header</span>
+                        <span className="font-semibold text-gray-800">2 pts</span>
+                      </li>
+                    </ul>
+                  </div>
+                </details>
               </div>
 
               {/* Accessibility Score */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">♿ Accessibility Score</h3>
-                  <span className="text-sm font-semibold text-gray-500">Max: 10 points</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-gray-900">{data.scores.accessibility}</span>
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-500">10</span>
+                  </div>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  Can AI crawlers access and parse your content? Technical factors that affect AI&apos;s ability to read your pages.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3">Point Breakdown:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Optimal meta description (120-160 chars)</span>
-                      <span className="font-semibold text-gray-800">3 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Images have alt text (80%+)</span>
-                      <span className="font-semibold text-gray-800">3 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Optimal title length (30-60 chars)</span>
-                      <span className="font-semibold text-gray-800">2 pts</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className="text-gray-600">Canonical URL set</span>
-                      <span className="font-semibold text-gray-800">2 pts</span>
-                    </li>
-                  </ul>
+                
+                {/* User's Score Interpretation */}
+                <div className={`rounded-lg p-4 mb-4 ${
+                  parseInt(data.scores.accessibility) >= 7 ? 'bg-green-50 border border-green-200' :
+                  parseInt(data.scores.accessibility) >= 4 ? 'bg-yellow-50 border border-yellow-200' :
+                  'bg-red-50 border border-red-200'
+                }`}>
+                  <h4 className={`font-semibold mb-2 ${
+                    parseInt(data.scores.accessibility) >= 7 ? 'text-green-800' :
+                    parseInt(data.scores.accessibility) >= 4 ? 'text-yellow-800' :
+                    'text-red-800'
+                  }`}>
+                    {parseInt(data.scores.accessibility) >= 7 ? '✅ Good technical accessibility!' :
+                     parseInt(data.scores.accessibility) >= 4 ? '⚠️ Basic accessibility, some gaps' :
+                     '❌ Technical issues blocking AI'}
+                  </h4>
+                  <p className={`text-sm ${
+                    parseInt(data.scores.accessibility) >= 7 ? 'text-green-700' :
+                    parseInt(data.scores.accessibility) >= 4 ? 'text-yellow-700' :
+                    'text-red-700'
+                  }`}>
+                    {parseInt(data.scores.accessibility) >= 7 
+                      ? 'AI crawlers can easily access and parse your content. Your technical foundation is solid.'
+                      : parseInt(data.scores.accessibility) >= 4
+                      ? `You scored ${data.scores.accessibility}/10. ${data.findings.hasMetaDesc === 'No' ? 'Missing meta description is the biggest issue here.' : 'Check image alt texts and ensure canonical URLs are set.'}`
+                      : `You scored ${data.scores.accessibility}/10. ${data.findings.hasMetaDesc === 'No' ? 'No meta description found - this is critical for AI to understand your page summary.' : ''} These technical issues prevent AI from properly understanding your content.`
+                    }
+                  </p>
                 </div>
+
+                <details className="group">
+                  <summary className="cursor-pointer text-sm font-semibold text-claude-600 hover:text-claude-700">
+                    How this score is calculated →
+                  </summary>
+                  <div className="mt-3 bg-gray-50 rounded-lg p-4">
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Optimal meta description (120-160 chars)</span>
+                        <span className="font-semibold text-gray-800">3 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Images have alt text (80%+)</span>
+                        <span className="font-semibold text-gray-800">3 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Optimal title length (30-60 chars)</span>
+                        <span className="font-semibold text-gray-800">2 pts</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-gray-600">Canonical URL set</span>
+                        <span className="font-semibold text-gray-800">2 pts</span>
+                      </li>
+                    </ul>
+                  </div>
+                </details>
               </div>
             </div>
 
-            {/* Grade Explanation */}
+            {/* Overall Interpretation */}
             <div className="mt-8 bg-gradient-to-r from-claude-50 to-white rounded-xl p-6 border-l-4 border-claude-500">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">📊 How Grades Work</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">📊 Your Overall Score: {data.scores.overall}/100 (Grade {data.scores.grade})</h3>
+              
+              <div className={`p-4 rounded-lg mb-4 ${
+                parseInt(data.scores.overall) >= 70 ? 'bg-green-100' :
+                parseInt(data.scores.overall) >= 50 ? 'bg-yellow-100' :
+                'bg-red-100'
+              }`}>
+                <p className={`font-medium ${
+                  parseInt(data.scores.overall) >= 70 ? 'text-green-800' :
+                  parseInt(data.scores.overall) >= 50 ? 'text-yellow-800' :
+                  'text-red-800'
+                }`}>
+                  {parseInt(data.scores.overall) >= 70 
+                    ? '🎉 Your site is competitive for AI recommendations. Focus on maintaining and incrementally improving your score.'
+                    : parseInt(data.scores.overall) >= 50
+                    ? '⚡ Your site has potential but needs work. With the fixes above, you could reach 70+ points and become competitive.'
+                    : `🚨 Your site is at risk of being overlooked by AI assistants. The good news: implementing schema and FAQ content could boost your score by 20-30 points quickly.`
+                  }
+                </p>
+              </div>
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
                 <div className="bg-white rounded-lg p-3">
                   <div className="text-2xl font-bold text-green-500">A+</div>
@@ -721,9 +951,6 @@ export default function ReportTemplate() {
                   <div className="text-sm text-gray-500">Below 50</div>
                 </div>
               </div>
-              <p className="mt-4 text-gray-600 text-sm">
-                <strong>Your goal:</strong> Aim for 70+ points (Grade B or above) to have a competitive chance of being recommended by AI assistants.
-              </p>
             </div>
           </div>
 
