@@ -184,6 +184,73 @@ class MultiProviderAI:
         logger.error("All AI providers failed")
         return None
     
+    async def generate_with_model(
+        self,
+        prompt: str,
+        system_prompt: str = "You are a helpful assistant.",
+        model: str = "gpt-4o",
+        provider: str = "openai",
+        max_tokens: int = 1000,
+        temperature: float = 0.3
+    ) -> Optional[str]:
+        """
+        Generate response using a specific model.
+        
+        Args:
+            prompt: The user prompt
+            system_prompt: System instructions
+            model: Specific model to use
+            provider: Provider name (openai, anthropic, google)
+            max_tokens: Max response length
+            temperature: Creativity (0-1)
+        """
+        if provider not in self.providers:
+            logger.warning(f"Provider {provider} not available")
+            return None
+        
+        try:
+            if provider == "anthropic":
+                client = self.providers["anthropic"]["client"]
+                response = client.messages.create(
+                    model=model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                return response.content[0].text
+                
+            elif provider == "openai":
+                client = self.providers["openai"]["client"]
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=max_tokens,
+                    temperature=temperature
+                )
+                return response.choices[0].message.content
+                
+            elif provider == "google":
+                genai = self.providers["google"]["client"]
+                model_obj = genai.GenerativeModel(model)
+                response = model_obj.generate_content(
+                    f"{system_prompt}\n\n{prompt}",
+                    generation_config=genai.types.GenerationConfig(
+                        max_output_tokens=max_tokens,
+                        temperature=temperature
+                    )
+                )
+                return response.text
+                
+        except Exception as e:
+            logger.error(f"Error with {provider}/{model}: {e}")
+            return None
+        
+        return None
+    
     async def _call_anthropic(
         self,
         provider: Dict,

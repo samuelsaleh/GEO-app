@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import logging
 
-from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult
+from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult, MultiModelResult, AI_MODELS
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -38,6 +38,81 @@ class QuickCheckRequest(BaseModel):
     website_url: str
     competitors: List[str] = []
     industry: str = "default"
+
+
+class MultiModelRequest(BaseModel):
+    """Request to test across multiple AI models"""
+    prompt: str
+    brand: str
+    competitors: List[str] = []
+    models: Optional[List[str]] = None  # None = all models
+
+
+@router.get("/models")
+async def get_available_models():
+    """Get list of available AI models for testing"""
+    return {
+        "models": AI_MODELS,
+        "total": len(AI_MODELS),
+        "providers": ["openai", "anthropic", "google"]
+    }
+
+
+@router.post("/test-multi-model")
+async def test_across_models(request: MultiModelRequest):
+    """
+    Test a single prompt across ALL AI models.
+    
+    Returns results from each model showing:
+    - If your brand was mentioned
+    - Position in the response
+    - Sentiment
+    - Competitors mentioned
+    - Preview of the response
+    
+    Example:
+    ```json
+    {
+        "prompt": "What are the best jewelry brands?",
+        "brand": "Love Lab",
+        "competitors": ["Cartier", "Tiffany", "Bulgari"]
+    }
+    ```
+    """
+    try:
+        result = await visibility_monitor.test_across_models(
+            prompt=request.prompt,
+            brand=request.brand,
+            competitors=request.competitors,
+            models_to_test=request.models
+        )
+        
+        # Add model icons for frontend
+        model_icons = {m["id"]: m["icon"] for m in AI_MODELS}
+        
+        return {
+            "prompt": result.prompt,
+            "brand": result.brand,
+            "models_tested": result.models_tested,
+            "models_mentioning": result.models_mentioning,
+            "mention_rate": result.mention_rate,
+            "results": [
+                {
+                    **r.dict(),
+                    "icon": model_icons.get(r.model_id, "🤖")
+                }
+                for r in result.results
+            ],
+            "summary": result.summary,
+            "chart_data": {
+                "labels": [r.model_name for r in result.results],
+                "mentioned": [1 if r.brand_mentioned else 0 for r in result.results],
+                "providers": [r.provider for r in result.results]
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error testing across models: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/test-prompt", response_model=PromptResult)

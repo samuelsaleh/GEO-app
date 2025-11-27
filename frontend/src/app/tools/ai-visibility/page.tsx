@@ -13,6 +13,34 @@ interface PromptResult {
   competitors_mentioned: string[]
 }
 
+interface ModelResult {
+  model_id: string
+  model_name: string
+  provider: string
+  brand_mentioned: boolean
+  position: number | null
+  sentiment: string
+  competitors_mentioned: string[]
+  response_preview: string
+  full_response: string
+  icon: string
+}
+
+interface MultiModelResponse {
+  prompt: string
+  brand: string
+  models_tested: number
+  models_mentioning: number
+  mention_rate: number
+  results: ModelResult[]
+  summary: any
+  chart_data: {
+    labels: string[]
+    mentioned: number[]
+    providers: string[]
+  }
+}
+
 interface VisibilityReport {
   brand: string
   visibility_score: string
@@ -36,9 +64,11 @@ export default function AIVisibilityTool() {
   const [loadingPrompt, setLoadingPrompt] = useState<number | null>(null)
   const [results, setResults] = useState<PromptResult[]>([])
   const [report, setReport] = useState<VisibilityReport | null>(null)
-  const [mode, setMode] = useState<'single' | 'bulk'>('single')
+  const [mode, setMode] = useState<'single' | 'multi' | 'bulk'>('multi')
   const [singlePrompt, setSinglePrompt] = useState('')
   const [singleResult, setSingleResult] = useState<PromptResult | null>(null)
+  const [multiModelResult, setMultiModelResult] = useState<MultiModelResponse | null>(null)
+  const [expandedModel, setExpandedModel] = useState<string | null>(null)
 
   const addPrompt = () => {
     setPrompts([...prompts, ''])
@@ -93,6 +123,51 @@ export default function AIVisibilityTool() {
       console.error('Error testing prompt:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Test across all AI models
+  const testMultiModel = async () => {
+    if (!brand || !singlePrompt) return
+    
+    setLoading(true)
+    setMultiModelResult(null)
+    
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/visibility/test-multi-model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: singlePrompt,
+          brand: brand,
+          competitors: competitors.filter(c => c.trim())
+        })
+      })
+      
+      const data = await response.json()
+      setMultiModelResult(data)
+    } catch (error) {
+      console.error('Error testing across models:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getProviderColor = (provider: string) => {
+    switch (provider) {
+      case 'openai': return 'bg-green-500'
+      case 'anthropic': return 'bg-orange-500'
+      case 'google': return 'bg-blue-500'
+      default: return 'bg-gray-500'
+    }
+  }
+
+  const getProviderBgColor = (provider: string) => {
+    switch (provider) {
+      case 'openai': return 'bg-green-50 border-green-200'
+      case 'anthropic': return 'bg-orange-50 border-orange-200'
+      case 'google': return 'bg-blue-50 border-blue-200'
+      default: return 'bg-gray-50 border-gray-200'
     }
   }
 
@@ -188,24 +263,34 @@ export default function AIVisibilityTool() {
         <div className="flex justify-center mb-8">
           <div className="bg-cream-200 rounded-full p-1 flex gap-1">
             <button
+              onClick={() => setMode('multi')}
+              className={`px-5 py-2 rounded-full font-medium transition text-sm ${
+                mode === 'multi' 
+                  ? 'bg-white shadow text-ink-900' 
+                  : 'text-ink-500 hover:text-ink-700'
+              }`}
+            >
+              🤖 All AI Models
+            </button>
+            <button
               onClick={() => setMode('single')}
-              className={`px-6 py-2 rounded-full font-medium transition ${
+              className={`px-5 py-2 rounded-full font-medium transition text-sm ${
                 mode === 'single' 
                   ? 'bg-white shadow text-ink-900' 
                   : 'text-ink-500 hover:text-ink-700'
               }`}
             >
-              Test Single Prompt
+              Single Model
             </button>
             <button
               onClick={() => setMode('bulk')}
-              className={`px-6 py-2 rounded-full font-medium transition ${
+              className={`px-5 py-2 rounded-full font-medium transition text-sm ${
                 mode === 'bulk' 
                   ? 'bg-white shadow text-ink-900' 
                   : 'text-ink-500 hover:text-ink-700'
               }`}
             >
-              Full Visibility Report
+              Full Report
             </button>
           </div>
         </div>
@@ -223,6 +308,166 @@ export default function AIVisibilityTool() {
             className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
           />
         </div>
+
+        {/* Multi-Model Mode */}
+        {mode === 'multi' && (
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <h2 className="font-display text-xl font-bold mb-4 text-ink-900 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-500" />
+              Test Across 6 AI Models
+            </h2>
+            <p className="text-ink-500 mb-4">
+              See how ChatGPT, Claude, and Gemini respond to the same question
+            </p>
+            
+            <div className="flex gap-4 mb-6">
+              <input
+                type="text"
+                value={singlePrompt}
+                onChange={(e) => setSinglePrompt(e.target.value)}
+                placeholder="e.g., What are the best jewelry brands for engagement rings?"
+                className="flex-1 px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <button
+                onClick={testMultiModel}
+                disabled={!brand || !singlePrompt || loading}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                Test All Models
+              </button>
+            </div>
+
+            {/* Competitors */}
+            <div className="border-t border-cream-200 pt-4">
+              <h3 className="font-semibold text-ink-700 mb-3">Track Competitors (optional)</h3>
+              <div className="flex flex-wrap gap-2">
+                {competitors.map((comp, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={comp}
+                      onChange={(e) => updateCompetitor(i, e.target.value)}
+                      placeholder="Competitor name"
+                      className="px-3 py-2 border border-cream-300 rounded-lg text-sm w-40"
+                    />
+                    {competitors.length > 1 && (
+                      <button onClick={() => removeCompetitor(i)} className="text-red-500 hover:text-red-700">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  onClick={addCompetitor}
+                  className="px-3 py-2 border border-dashed border-cream-400 rounded-lg text-ink-500 hover:border-purple-500 hover:text-purple-500 text-sm"
+                >
+                  + Add
+                </button>
+              </div>
+            </div>
+
+            {/* Multi-Model Results */}
+            {multiModelResult && (
+              <div className="mt-8 border-t border-cream-200 pt-6">
+                {/* Summary Card */}
+                <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display text-xl font-bold text-ink-900">
+                      Results: "{multiModelResult.prompt}"
+                    </h3>
+                    <div className={`text-3xl font-bold ${
+                      multiModelResult.mention_rate >= 50 ? 'text-green-600' :
+                      multiModelResult.mention_rate >= 20 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {multiModelResult.mention_rate.toFixed(0)}%
+                    </div>
+                  </div>
+                  <p className="text-ink-600">
+                    <strong>{multiModelResult.brand}</strong> mentioned in{' '}
+                    <strong>{multiModelResult.models_mentioning}</strong> of{' '}
+                    <strong>{multiModelResult.models_tested}</strong> AI models
+                  </p>
+                </div>
+
+                {/* Model Grid */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {multiModelResult.results.map((result, i) => (
+                    <div
+                      key={i}
+                      className={`rounded-xl border-2 p-4 transition cursor-pointer ${
+                        result.brand_mentioned 
+                          ? 'border-green-300 bg-green-50' 
+                          : 'border-red-200 bg-red-50'
+                      } ${expandedModel === result.model_id ? 'ring-2 ring-purple-500' : ''}`}
+                      onClick={() => setExpandedModel(
+                        expandedModel === result.model_id ? null : result.model_id
+                      )}
+                    >
+                      {/* Model Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{result.icon}</span>
+                          <div>
+                            <div className="font-semibold text-ink-900">{result.model_name}</div>
+                            <div className={`text-xs px-2 py-0.5 rounded-full inline-block ${getProviderColor(result.provider)} text-white`}>
+                              {result.provider}
+                            </div>
+                          </div>
+                        </div>
+                        {result.brand_mentioned ? (
+                          <CheckCircle className="w-6 h-6 text-green-600" />
+                        ) : (
+                          <XCircle className="w-6 h-6 text-red-500" />
+                        )}
+                      </div>
+
+                      {/* Status */}
+                      <div className={`text-sm font-medium mb-2 ${
+                        result.brand_mentioned ? 'text-green-700' : 'text-red-600'
+                      }`}>
+                        {result.brand_mentioned 
+                          ? `✓ Mentioned${result.position ? ` (Position #${result.position})` : ''}`
+                          : '✗ Not mentioned'
+                        }
+                      </div>
+
+                      {/* Competitors */}
+                      {result.competitors_mentioned.length > 0 && (
+                        <div className="text-xs text-ink-500">
+                          Competitors: {result.competitors_mentioned.join(', ')}
+                        </div>
+                      )}
+
+                      {/* Expanded Response */}
+                      {expandedModel === result.model_id && (
+                        <div className="mt-3 pt-3 border-t border-cream-300">
+                          <div className="text-xs text-ink-400 mb-1">AI Response:</div>
+                          <p className="text-sm text-ink-600 leading-relaxed">
+                            {result.response_preview}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Provider Summary */}
+                <div className="mt-6 grid grid-cols-3 gap-4">
+                  {Object.entries(multiModelResult.summary.by_provider || {}).map(([provider, stats]: [string, any]) => (
+                    <div key={provider} className={`rounded-xl p-4 border ${getProviderBgColor(provider)}`}>
+                      <div className="font-semibold text-ink-900 capitalize mb-1">{provider}</div>
+                      <div className="text-2xl font-bold">
+                        {stats.mentioned}/{stats.tested}
+                      </div>
+                      <div className="text-xs text-ink-500">models mention you</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Single Prompt Mode */}
         {mode === 'single' && (

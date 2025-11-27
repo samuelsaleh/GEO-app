@@ -48,6 +48,41 @@ class VisibilityReport(BaseModel):
     timestamp: datetime = datetime.now()
 
 
+class ModelResult(BaseModel):
+    """Result from a specific AI model"""
+    model_id: str
+    model_name: str
+    provider: str
+    brand_mentioned: bool
+    position: Optional[int] = None
+    sentiment: str = "neutral"
+    competitors_mentioned: List[str] = []
+    response_preview: str = ""  # First 300 chars
+    full_response: str = ""
+
+
+class MultiModelResult(BaseModel):
+    """Results from testing across multiple models"""
+    prompt: str
+    brand: str
+    models_tested: int
+    models_mentioning: int
+    mention_rate: float
+    results: List[ModelResult]
+    summary: Dict[str, Any]
+
+
+# Available AI models to test
+AI_MODELS = [
+    {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai", "icon": "🤖"},
+    {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai", "icon": "🤖"},
+    {"id": "claude-sonnet", "name": "Claude Sonnet", "provider": "anthropic", "icon": "🧠"},
+    {"id": "claude-haiku", "name": "Claude Haiku", "provider": "anthropic", "icon": "🧠"},
+    {"id": "gemini-pro", "name": "Gemini Pro", "provider": "google", "icon": "💎"},
+    {"id": "gemini-flash", "name": "Gemini Flash", "provider": "google", "icon": "⚡"},
+]
+
+
 class VisibilityMonitor:
     """
     Monitor brand visibility across AI models.
@@ -62,6 +97,7 @@ class VisibilityMonitor:
     
     def __init__(self):
         self.ai_service = ai_service
+        self.models = AI_MODELS
         
     async def test_prompt(
         self,
@@ -221,6 +257,147 @@ class VisibilityMonitor:
             competitors_mentioned=[],
             citations=[]
         )
+    
+    async def test_across_models(
+        self,
+        prompt: str,
+        brand: str,
+        competitors: List[str] = [],
+        models_to_test: List[str] = None
+    ) -> MultiModelResult:
+        """
+        Test a single prompt across multiple AI models.
+        
+        Returns results from each model showing if brand is mentioned.
+        """
+        if models_to_test is None:
+            models_to_test = [m["id"] for m in self.models]
+        
+        results: List[ModelResult] = []
+        
+        for model_info in self.models:
+            if model_info["id"] not in models_to_test:
+                continue
+                
+            try:
+                # Call the specific model
+                response = await self._call_specific_model(
+                    prompt=prompt,
+                    model_id=model_info["id"],
+                    provider=model_info["provider"]
+                )
+                
+                if response:
+                    # Analyze the response
+                    analysis = self._analyze_response(
+                        prompt=prompt,
+                        response=response,
+                        brand=brand,
+                        competitors=competitors,
+                        model=model_info["id"]
+                    )
+                    
+                    results.append(ModelResult(
+                        model_id=model_info["id"],
+                        model_name=model_info["name"],
+                        provider=model_info["provider"],
+                        brand_mentioned=analysis.brand_mentioned,
+                        position=analysis.position,
+                        sentiment=analysis.sentiment,
+                        competitors_mentioned=analysis.competitors_mentioned,
+                        response_preview=response[:300] + "..." if len(response) > 300 else response,
+                        full_response=response
+                    ))
+                else:
+                    results.append(ModelResult(
+                        model_id=model_info["id"],
+                        model_name=model_info["name"],
+                        provider=model_info["provider"],
+                        brand_mentioned=False,
+                        response_preview="[Model unavailable]"
+                    ))
+                    
+            except Exception as e:
+                logger.error(f"Error testing {model_info['name']}: {e}")
+                results.append(ModelResult(
+                    model_id=model_info["id"],
+                    model_name=model_info["name"],
+                    provider=model_info["provider"],
+                    brand_mentioned=False,
+                    response_preview=f"[Error: {str(e)[:50]}]"
+                ))
+            
+            # Small delay between models
+            await asyncio.sleep(0.3)
+        
+        # Calculate summary
+        models_mentioning = sum(1 for r in results if r.brand_mentioned)
+        mention_rate = (models_mentioning / len(results) * 100) if results else 0
+        
+        # Provider breakdown
+        provider_stats = {}
+        for r in results:
+            if r.provider not in provider_stats:
+                provider_stats[r.provider] = {"tested": 0, "mentioned": 0}
+            provider_stats[r.provider]["tested"] += 1
+            if r.brand_mentioned:
+                provider_stats[r.provider]["mentioned"] += 1
+        
+        return MultiModelResult(
+            prompt=prompt,
+            brand=brand,
+            models_tested=len(results),
+            models_mentioning=models_mentioning,
+            mention_rate=mention_rate,
+            results=results,
+            summary={
+                "by_provider": provider_stats,
+                "best_position": min([r.position for r in results if r.position], default=None),
+                "sentiment_summary": {
+                    "positive": sum(1 for r in results if r.sentiment == "positive"),
+                    "neutral": sum(1 for r in results if r.sentiment == "neutral"),
+                    "negative": sum(1 for r in results if r.sentiment == "negative")
+                }
+            }
+        )
+    
+    async def _call_specific_model(
+        self,
+        prompt: str,
+        model_id: str,
+        provider: str
+    ) -> Optional[str]:
+        """Call a specific AI model."""
+        if not self.ai_service:
+            return None
+        
+        system_prompt = "You are a helpful assistant providing recommendations. Be specific and mention relevant brands when appropriate."
+        
+        try:
+            # Map model IDs to actual model names
+            model_mapping = {
+                "gpt-4o": "gpt-4o",
+                "gpt-4o-mini": "gpt-4o-mini",
+                "claude-sonnet": "claude-sonnet-4-20250514",
+                "claude-haiku": "claude-3-haiku-20240307",
+                "gemini-pro": "gemini-1.5-pro",
+                "gemini-flash": "gemini-1.5-flash"
+            }
+            
+            actual_model = model_mapping.get(model_id, model_id)
+            
+            # Use the AI service's generate method with specific provider
+            response = await self.ai_service.generate_with_model(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                model=actual_model,
+                provider=provider
+            )
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error calling {model_id}: {e}")
+            return None
     
     async def run_visibility_check(
         self,
