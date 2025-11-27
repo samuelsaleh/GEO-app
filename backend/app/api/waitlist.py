@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 import json
 import os
+from app.services.email_service import email_service
 
 router = APIRouter()
 
@@ -10,7 +11,7 @@ class WaitlistEntry(BaseModel):
     email: EmailStr
 
 @router.post("/join")
-async def join_waitlist(entry: WaitlistEntry):
+async def join_waitlist(entry: WaitlistEntry, background_tasks: BackgroundTasks):
     """Add email to waitlist"""
     try:
         # For now, just save to a JSON file (later: save to database)
@@ -39,12 +40,18 @@ async def join_waitlist(entry: WaitlistEntry):
         with open(waitlist_file, 'w') as f:
             json.dump(waitlist, f, indent=2)
 
-        # TODO: Send confirmation email
+        # Send confirmation email in background
+        position = len(waitlist)
+        background_tasks.add_task(
+            email_service.send_waitlist_confirmation,
+            entry.email,
+            position
+        )
 
         return {
             "success": True,
             "message": "Successfully joined the waitlist!",
-            "position": len(waitlist)
+            "position": position
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

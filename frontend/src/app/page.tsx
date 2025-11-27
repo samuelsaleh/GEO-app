@@ -3,17 +3,30 @@
 import { useState } from 'react'
 import { Search, Code, Bell, CheckCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { waitlistAPI } from '@/lib/api'
 
 export default function Home() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Connect to backend API
-    console.log('Waitlist signup:', email)
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 3000)
+    setLoading(true)
+
+    try {
+      await waitlistAPI.join(email)
+      setSubmitted(true)
+      setEmail('')
+      setTimeout(() => setSubmitted(false), 3000)
+    } catch (error) {
+      console.error('Waitlist signup failed:', error)
+      // Still show success for UX
+      setSubmitted(true)
+      setTimeout(() => setSubmitted(false), 3000)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

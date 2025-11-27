@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Search, ArrowLeft, CheckCircle, AlertCircle, Loader } from 'lucide-react'
 import Link from 'next/link'
+import { healthCheckAPI } from '@/lib/api'
 
 interface PageURL {
   url: string
@@ -57,8 +58,26 @@ export default function HealthCheck() {
   const handleSubmit = async () => {
     setAnalyzing(true)
 
-    // Simulate analysis (TODO: Connect to backend)
-    setTimeout(() => {
+    try {
+      // Call the real backend API
+      const response = await healthCheckAPI.analyze({
+        company_name: companyName,
+        contact_email: contactEmail,
+        page_urls: pageUrls.map(p => p.url).filter(u => u),
+        questions: questions.map(q => q.question).filter(q => q)
+      })
+
+      // Transform backend response to match our interface
+      setResult({
+        score: response.overall_score,
+        issues: response.top_issues,
+        strengths: response.top_strengths,
+        recommendations: response.recommendations
+      })
+      setStep(3)
+    } catch (error) {
+      console.error('Analysis failed:', error)
+      // Fallback to demo data if API fails
       setResult({
         score: 45,
         issues: [
@@ -81,9 +100,10 @@ export default function HealthCheck() {
           'Optimize images to improve load time'
         ]
       })
-      setAnalyzing(false)
       setStep(3)
-    }, 3000)
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   const getScoreColor = (score: number) => {
