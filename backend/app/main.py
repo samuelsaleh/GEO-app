@@ -45,7 +45,9 @@ app.add_middleware(
         "http://127.0.0.1:3001",
         "http://127.0.0.1:3002",
         "http://127.0.0.1:3003",
-        "https://dwight.app"
+        "https://dwight.app",
+        "https://geo-nine-nu.vercel.app",
+        "https://geo-git-main-sams-projects-0418526d.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
