@@ -155,7 +155,7 @@ export default function AIVisibilityTool() {
     setSingleResult(null)
     
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const apiUrl = 'https://geo-app-production-339e.up.railway.app'
       const response = await fetch(`${apiUrl}/api/visibility/test-prompt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -184,7 +184,7 @@ export default function AIVisibilityTool() {
     setMultiModelResult(null)
     
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const apiUrl = 'https://geo-app-production-339e.up.railway.app'
       const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -231,7 +231,7 @@ export default function AIVisibilityTool() {
     setTestProgress('Generating smart questions for your brand...')
     
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const apiUrl = 'https://geo-app-production-339e.up.railway.app'
       const response = await fetch(`${apiUrl}/api/visibility/comprehensive-test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -277,7 +277,7 @@ export default function AIVisibilityTool() {
       const validPrompts = prompts.filter(p => p.trim())
       const validCompetitors = competitors.filter(c => c.trim())
       
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const apiUrl = 'https://geo-app-production-339e.up.railway.app'
       const response = await fetch(`${apiUrl}/api/visibility/check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
