@@ -155,7 +155,8 @@ export default function AIVisibilityTool() {
     setSingleResult(null)
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/visibility/test-prompt', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const response = await fetch(`${apiUrl}/api/visibility/test-prompt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -183,7 +184,8 @@ export default function AIVisibilityTool() {
     setMultiModelResult(null)
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/visibility/test-multi-model', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -229,7 +231,8 @@ export default function AIVisibilityTool() {
     setTestProgress('Generating smart questions for your brand...')
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/visibility/comprehensive-test', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const response = await fetch(`${apiUrl}/api/visibility/comprehensive-test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -274,7 +277,8 @@ export default function AIVisibilityTool() {
       const validPrompts = prompts.filter(p => p.trim())
       const validCompetitors = competitors.filter(c => c.trim())
       
-      const response = await fetch('http://127.0.0.1:8000/api/visibility/check', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const response = await fetch(`${apiUrl}/api/visibility/check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
