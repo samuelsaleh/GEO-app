@@ -85,8 +85,10 @@ interface CompetitorScore {
 }
 
 // =============================================================================
-// FIXED CATEGORIES (5 required + 2 custom)
+// FIXED CATEGORIES - Based on 7 GEO Strategies
 // =============================================================================
+// Each category tests a key aspect of Generative Engine Optimization (GEO)
+// Reference: The 7 GEO Strategies for AI Search Visibility
 
 const FIXED_CATEGORIES = [
   {
@@ -94,37 +96,66 @@ const FIXED_CATEGORIES = [
     label: '🎯 Recommendation',
     shortLabel: 'Recommend',
     description: 'When users ask AI for advice',
+    geoStrategy: 'Strategy #1: Turn Questions Into Content',
+    geoTip: 'Create FAQ content that mirrors real user questions',
   },
   {
     id: 'best_of',
     label: '🏆 Best Of',
     shortLabel: 'Best Of',
     description: 'When users search for the best option',
+    geoStrategy: 'Strategy #3: Topical Authority',
+    geoTip: 'Build content clusters to establish expertise',
   },
   {
     id: 'comparison',
     label: '⚖️ Comparison',
     shortLabel: 'Compare',
-    description: 'When users compare options',
+    description: 'Direct comparison with competitors (includes your brand)',
+    geoStrategy: 'Strategy #2: AI-Friendly Structure',
+    geoTip: 'Add comparison tables and structured data',
+  },
+  {
+    id: 'alternatives',
+    label: '🔄 Alternatives',
+    shortLabel: 'Alternatives',
+    description: 'Does AI suggest you when comparing competitors?',
+    geoStrategy: 'Strategy #4: Brand Mentions AI Trusts',
+    geoTip: 'Get cited on authoritative industry sites',
   },
   {
     id: 'problem_solution',
     label: '🔧 Problem/Solution',
     shortLabel: 'Solution',
     description: 'When users need to solve a problem',
+    geoStrategy: 'Strategy #1: Turn Questions Into Content',
+    geoTip: 'Publish how-to guides with step-by-step solutions',
   },
   {
     id: 'reputation',
     label: '⭐ Reputation',
     shortLabel: 'Reputation',
     description: 'When users check reviews/quality',
+    geoStrategy: 'Strategy #4: Brand Mentions AI Trusts',
+    geoTip: 'Build reviews across trusted platforms',
   }
 ]
 
-// Generate SMART prompts based on business profile
+// =============================================================================
+// SMART PROMPT GENERATION - 6 Categories
+// =============================================================================
+// 
+// Strategy:
+// - 5 categories are UNBIASED (don't mention brand) → test organic visibility
+// - 1 category (Comparison) INCLUDES brand → test competitive positioning
+// 
+// This gives you TWO signals:
+// 1. Does AI naturally recommend you? (organic visibility)
+// 2. How does AI describe you vs competitors? (positioning)
+// =============================================================================
 const generateSmartPrompts = (profile: BrandProfile): Record<string, string> => {
   const { 
-    brand_name, 
+    brand_name,
     industry, 
     business_type,
     is_local_business, 
@@ -140,7 +171,18 @@ const generateSmartPrompts = (profile: BrandProfile): Record<string, string> => 
   const country = location?.country || ''
   const style = cuisine_or_style || segment || industry
   const mainProduct = products_services?.[0] || industry
-  const topCompetitor = competitors?.[0]?.name || 'competitors'
+  const year = new Date().getFullYear()
+  
+  // Build competitor list for prompts
+  const competitorNames = competitors?.slice(0, 3).map(c => c.name).filter(Boolean) || []
+  const competitorList = competitorNames.length > 0 
+    ? competitorNames.join(', ') 
+    : `leading ${industry || 'options'}`
+  
+  // Build ALL brands list (including user's brand) for comparison
+  const allBrands = brand_name 
+    ? [brand_name, ...competitorNames].slice(0, 4).join(', ')
+    : competitorList
   
   // For LOCAL businesses (restaurants, hotels, stores, etc.)
   if (is_local_business && city) {
@@ -149,9 +191,10 @@ const generateSmartPrompts = (profile: BrandProfile): Record<string, string> => 
     return {
       recommendation: `What ${style} ${localType} do you recommend in ${city}?`,
       best_of: `What is the best ${style} ${localType} in ${city}${country ? `, ${country}` : ''}?`,
-      comparison: `Compare ${style} ${localType}s in ${city}. Which are the top options?`,
-      problem_solution: `I'm looking for a great ${style} experience in ${city}. Where should I go?`,
-      reputation: `Is ${brand_name} in ${city} worth visiting? What are people saying about it?`
+      comparison: `Compare ${allBrands} for ${style} in ${city}. What are the pros and cons of each?`,
+      alternatives: `I've heard of ${competitorList} in ${city}. Are there other ${style} ${localType}s I should consider?`,
+      problem_solution: `I'm visiting ${city} and want a great ${style} experience. Where should I go?`,
+      reputation: `Which ${style} ${localType}s in ${city} have the best reputation and reviews?`
     }
   }
   
@@ -161,23 +204,25 @@ const generateSmartPrompts = (profile: BrandProfile): Record<string, string> => 
       industry?.toLowerCase().includes('technology')) {
     return {
       recommendation: `What ${mainProduct} do you recommend for ${target_audience || 'businesses'}?`,
-      best_of: `What is the best ${mainProduct} solution in ${new Date().getFullYear()}?`,
-      comparison: `Compare ${brand_name} vs ${topCompetitor}. Which is better for ${target_audience || 'my needs'}?`,
-      problem_solution: `I need ${mainProduct} for my team. What should I consider and which tools are best?`,
-      reputation: `Is ${brand_name} reliable? What do users think about their ${mainProduct}?`
+      best_of: `What is the best ${mainProduct} solution in ${year}?`,
+      comparison: `Compare ${allBrands}. Which ${mainProduct} tool is best and why?`,
+      alternatives: `I'm considering ${competitorList}. Are there better ${mainProduct} alternatives I should know about?`,
+      problem_solution: `I need ${mainProduct} for my team. What are the top options and what should I consider?`,
+      reputation: `Which ${mainProduct} tools have the best reputation for reliability and support?`
     }
   }
   
-  // For E-COMMERCE / Retail
+  // For E-COMMERCE / Retail / Fashion
   if (industry?.toLowerCase().includes('retail') || 
       industry?.toLowerCase().includes('commerce') ||
       industry?.toLowerCase().includes('fashion')) {
     return {
       recommendation: `What ${style} brands do you recommend for ${target_audience || 'quality products'}?`,
-      best_of: `What are the best ${mainProduct} brands to buy from?`,
-      comparison: `How does ${brand_name} compare to ${topCompetitor}? Which offers better value?`,
+      best_of: `What are the best ${mainProduct} brands to buy from in ${year}?`,
+      comparison: `Compare ${allBrands}. Which offers the best value for ${mainProduct}?`,
+      alternatives: `I like ${competitorList}. What similar ${style} brands should I also check out?`,
       problem_solution: `I'm looking for high-quality ${mainProduct}. What brands should I consider?`,
-      reputation: `Is ${brand_name} a reputable brand? How is their quality and service?`
+      reputation: `Which ${style} brands have the best reputation for quality and customer service?`
     }
   }
   
@@ -187,20 +232,22 @@ const generateSmartPrompts = (profile: BrandProfile): Record<string, string> => 
       industry?.toLowerCase().includes('agency')) {
     return {
       recommendation: `What ${mainProduct} provider do you recommend for ${target_audience || 'businesses'}?`,
-      best_of: `Who are the best ${mainProduct} companies to work with?`,
-      comparison: `Compare ${brand_name} with other ${mainProduct} providers. What are the pros and cons?`,
-      problem_solution: `I need help with ${mainProduct}. Which companies are known for excellent results?`,
-      reputation: `What's the reputation of ${brand_name}? Do they deliver good results?`
+      best_of: `Who are the best ${mainProduct} companies to work with in ${year}?`,
+      comparison: `Compare ${allBrands}. What are the pros and cons of each ${mainProduct} provider?`,
+      alternatives: `I know about ${competitorList}. Are there other ${mainProduct} providers worth considering?`,
+      problem_solution: `I need help with ${mainProduct}. Which companies deliver the best results?`,
+      reputation: `Which ${mainProduct} providers have the strongest reputation and client reviews?`
     }
   }
   
-  // DEFAULT - Generic but still personalized
+  // DEFAULT - Works for any industry
   return {
-    recommendation: `What ${segment || industry || 'options'} do you recommend? I'm looking for something like ${brand_name}.`,
-    best_of: `What is the best ${mainProduct} in the market? How does ${brand_name} compare?`,
-    comparison: `Compare different ${industry || 'options'} in this space. Where does ${brand_name} fit?`,
-    problem_solution: `I'm looking for ${mainProduct}. What should I know and what are the best options?`,
-    reputation: `Is ${brand_name} a good choice? What do people say about them?`
+    recommendation: `What ${segment || industry || 'options'} do you recommend?`,
+    best_of: `What is the best ${mainProduct} in the market right now?`,
+    comparison: `Compare ${allBrands}. What are the key differences and which is best?`,
+    alternatives: `I'm looking at ${competitorList}. Are there better alternatives I should consider?`,
+    problem_solution: `I'm looking for ${mainProduct}. What are my best options and what should I consider?`,
+    reputation: `Which ${industry || mainProduct} brands have the best reputation?`
   }
 }
 
@@ -684,14 +731,14 @@ export default function AIVisibilityTool() {
   // =============================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
+    <div className="min-h-screen bg-[#FAF8F6]">
       {/* Navigation */}
-      <nav className="border-b border-slate-200 sticky top-0 z-50 bg-white/80 backdrop-blur-sm">
+      <nav className="border-b border-[#2D2520]/10 sticky top-0 z-50 glass-nav">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/tools" className="flex items-center gap-2">
-              <ArrowLeft className="w-5 h-5 text-slate-500" />
-              <h1 className="text-xl font-bold text-purple-600">Creed</h1>
+            <Link href="/tools" className="flex items-center gap-3">
+              <ArrowLeft className="w-5 h-5 text-[#6B5D52]" />
+              <h1 className="text-xl font-display font-medium text-[#2D2520]">Dwight</h1>
             </Link>
             
             {/* Step Indicator */}
@@ -704,13 +751,13 @@ export default function AIVisibilityTool() {
                 
                 return (
                   <div key={key} className="flex items-center">
-                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition
-                      ${isActive ? 'bg-purple-100 text-purple-700' : 
-                        isPast ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>
+                    <div className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition
+                      ${isActive ? 'bg-[#D97757]/10 text-[#D97757]' : 
+                        isPast ? 'bg-green-100 text-green-700' : 'bg-[#F5F0EB] text-[#6B5D52]'}`}>
                       {isPast ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-                      <span className="hidden lg:inline">{info.title}</span>
+                      <span className="hidden lg:inline font-body">{info.title}</span>
                     </div>
-                    {idx < 3 && <ArrowRight className="w-4 h-4 text-slate-300 mx-1" />}
+                    {idx < 3 && <ArrowRight className="w-4 h-4 text-[#6B5D52]/40 mx-1" />}
                   </div>
                 )
               })}
@@ -728,22 +775,22 @@ export default function AIVisibilityTool() {
           <div className="space-y-8">
             {/* Header */}
             <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Eye className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 bg-[#D97757]/10 flex items-center justify-center mx-auto mb-6">
+                <Eye className="w-8 h-8 text-[#D97757]" />
               </div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-3">
+              <h1 className="text-4xl font-display font-medium text-[#2D2520] mb-3">
                 AI Visibility Score
               </h1>
-              <p className="text-lg text-slate-500 max-w-xl mx-auto">
+              <p className="text-lg text-[#6B5D52] max-w-xl mx-auto font-body font-light">
                 See how visible your brand is when people ask AI for recommendations
               </p>
             </div>
 
             {/* Input Form */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+            <div className="bg-white border border-[#2D2520]/10 p-8">
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="label-elegant block mb-2">
                     Brand Name
                   </label>
                   <input
@@ -751,12 +798,12 @@ export default function AIVisibilityTool() {
                     value={brandName}
                     onChange={(e) => setBrandName(e.target.value)}
                     placeholder="e.g., viagogo, Nike, HubSpot"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+                    className="w-full px-4 py-3 border border-[#2D2520]/20 bg-white focus:border-[#D97757] text-lg font-body"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="label-elegant block mb-2">
                     Website URL
                   </label>
                   <input
@@ -764,25 +811,25 @@ export default function AIVisibilityTool() {
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="e.g., viagogo.com"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+                    className="w-full px-4 py-3 border border-[#2D2520]/20 bg-white focus:border-[#D97757] text-lg font-body"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Email <span className="text-slate-400 font-normal">(to receive your report)</span>
+                  <label className="label-elegant block mb-2">
+                    Email <span className="text-[#6B5D52] font-normal">(to receive your report)</span>
                   </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@company.com"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+                    className="w-full px-4 py-3 border border-[#2D2520]/20 bg-white focus:border-[#D97757] text-lg font-body"
                   />
                 </div>
                 
                 {analyzeError && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
+                  <div className="bg-red-50 border border-red-200 p-4 text-red-700 font-body">
                     {analyzeError}
                   </div>
                 )}
@@ -790,7 +837,7 @@ export default function AIVisibilityTool() {
                 <button
                   onClick={analyzeBrand}
                   disabled={!brandName || !websiteUrl || analyzing}
-                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg transition-all"
+                  className="w-full py-4 btn-claude disabled:bg-[#6B5D52]/30 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
                 >
                   {analyzing ? (
                     <>
@@ -809,10 +856,10 @@ export default function AIVisibilityTool() {
               {/* Progress indicator during analysis */}
               {analyzing && (
                 <div className="mt-6 space-y-3">
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500 rounded-full animate-pulse" style={{ width: '60%' }} />
+                  <div className="h-2 bg-[#F5F0EB] overflow-hidden">
+                    <div className="h-full bg-[#D97757] animate-pulse" style={{ width: '60%' }} />
                   </div>
-                  <p className="text-sm text-slate-500 text-center">
+                  <p className="text-sm text-[#6B5D52] text-center font-body">
                     Crawling website, extracting business context...
                   </p>
                 </div>
@@ -820,17 +867,17 @@ export default function AIVisibilityTool() {
             </div>
             
             {/* How it works */}
-            <div className="bg-slate-50 rounded-2xl p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">How we score your visibility</h3>
+            <div className="bg-[#F5F0EB] p-6">
+              <h3 className="font-display font-medium text-[#2D2520] mb-4">How we score your visibility</h3>
               <div className="grid md:grid-cols-5 gap-4">
                 {FIXED_CATEGORIES.map((cat, i) => (
                   <div key={cat.id} className="text-center">
                     <div className="text-2xl mb-2">{cat.label.split(' ')[0]}</div>
-                    <p className="text-xs text-slate-600">{cat.shortLabel}</p>
+                    <p className="text-xs text-[#6B5D52] font-body">{cat.shortLabel}</p>
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-slate-500 mt-4 text-center">
+              <p className="text-sm text-[#6B5D52] mt-4 text-center font-body">
                 We test your brand + 2 competitors across 5 key query types
               </p>
             </div>
@@ -845,12 +892,12 @@ export default function AIVisibilityTool() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Review Your Profile</h2>
-                <p className="text-slate-500">We analyzed your website. Adjust if needed.</p>
+                <h2 className="text-2xl font-display font-medium text-[#2D2520]">Review Your Profile</h2>
+                <p className="text-[#6B5D52] font-body font-light">We analyzed your website. Adjust if needed.</p>
               </div>
               <button
                 onClick={() => setStep('input')}
-                className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                className="text-sm text-[#D97757] hover:text-[#C96442] flex items-center gap-1 font-body"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back
@@ -858,40 +905,40 @@ export default function AIVisibilityTool() {
             </div>
 
             {/* Profile Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 space-y-6">
+            <div className="bg-white border border-[#2D2520]/10 p-6 space-y-6">
               {/* Brand Info */}
               <div className="flex items-start gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                <div className="w-14 h-14 bg-[#D97757] flex items-center justify-center text-white font-display font-medium text-xl">
                   {profile.brand_name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-slate-900">{profile.brand_name}</h3>
-                  <p className="text-slate-500 text-sm">{profile.website_url}</p>
+                  <h3 className="text-xl font-display font-medium text-[#2D2520]">{profile.brand_name}</h3>
+                  <p className="text-[#6B5D52] text-sm font-body">{profile.website_url}</p>
                 </div>
               </div>
               
               {/* Industry */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Industry / Category</label>
+                <label className="label-elegant block mb-2">Industry / Category</label>
                 {editingIndustry ? (
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={tempIndustry}
                       onChange={(e) => setTempIndustry(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="flex-1 px-3 py-2 border border-[#2D2520]/20 focus:border-[#D97757] font-body"
                       placeholder="e.g., ticket resale platform"
                     />
                     <button
                       onClick={updateIndustry}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                      className="px-4 py-2 bg-[#D97757] text-white hover:bg-[#C96442]"
                     >
                       <Check className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg font-medium">
+                    <span className="px-4 py-2 bg-[#D97757]/10 text-[#D97757] font-body font-medium">
                       {profile.industry}
                     </span>
                     <button
@@ -899,20 +946,20 @@ export default function AIVisibilityTool() {
                         setTempIndustry(profile.industry)
                         setEditingIndustry(true)
                       }}
-                      className="p-2 text-slate-400 hover:text-purple-600"
+                      className="p-2 text-[#6B5D52] hover:text-[#D97757]"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                   </div>
                 )}
-                <p className="text-xs text-slate-500 mt-1">This will be used in the test prompts</p>
+                <p className="text-xs text-[#6B5D52] mt-1 font-body">This will be used in the test prompts</p>
               </div>
               
               {/* Competitors */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label className="label-elegant block mb-2">
                   Competitors to Compare
-                  <span className="font-normal text-slate-400 ml-2">(select up to 5 - top ones will be tested)</span>
+                  <span className="font-normal text-[#6B5D52] ml-2">(select up to 5 - top ones will be tested)</span>
                 </label>
                 
                 {/* Add competitor input - at the top so user-added appear first */}
@@ -920,7 +967,7 @@ export default function AIVisibilityTool() {
                   <input
                     type="text"
                     placeholder="Add your own competitor..."
-                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 px-3 py-2 border border-[#2D2520]/20 text-sm focus:border-[#D97757] font-body"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         addCompetitor((e.target as HTMLInputElement).value)
@@ -936,7 +983,7 @@ export default function AIVisibilityTool() {
                         input.value = ''
                       }
                     }}
-                    className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition"
+                    className="px-4 py-2 bg-[#D97757]/10 text-[#D97757] hover:bg-[#D97757]/20 transition"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -964,10 +1011,10 @@ export default function AIVisibilityTool() {
                     return (
                       <div
                         key={i}
-                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition
+                        className={`flex items-center justify-between p-3 cursor-pointer transition
                           ${isSelected 
-                            ? 'bg-purple-100 border-2 border-purple-400' 
-                            : 'bg-slate-50 border border-slate-200 hover:border-purple-300'}`}
+                            ? 'bg-[#D97757]/10 border-2 border-[#D97757]' 
+                            : 'bg-[#F5F0EB] border border-[#2D2520]/10 hover:border-[#D97757]/50'}`}
                         onClick={() => {
                           if (!isSelected) {
                             // Move this competitor to position 0 (top)
@@ -980,44 +1027,44 @@ export default function AIVisibilityTool() {
                       >
                         <div className="flex items-center gap-3">
                           {isSelected ? (
-                            <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                            <div className="w-6 h-6 bg-[#D97757] text-white flex items-center justify-center text-xs font-bold font-body">
                               {i + 1}
                             </div>
                           ) : (
-                            <div className="w-6 h-6 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center text-xs">
+                            <div className="w-6 h-6 bg-[#2D2520]/10 text-[#6B5D52] flex items-center justify-center text-xs font-body">
                               +
                             </div>
                           )}
                           <div>
-                            <span className={`font-medium ${isSelected ? 'text-purple-900' : 'text-slate-700'}`}>
+                            <span className={`font-body font-medium ${isSelected ? 'text-[#2D2520]' : 'text-[#4A3F38]'}`}>
                               {comp.name}
                             </span>
                             <div className="flex gap-1 mt-0.5">
                               {!comp.auto_detected && (
-                                <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded">Your pick</span>
+                                <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 font-body">Your pick</span>
                               )}
                               {comp.auto_detected && isLocal && (
-                                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🏠 Local</span>
+                                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 font-body">🏠 Local</span>
                               )}
                               {comp.auto_detected && isInternational && (
-                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">🌍 International</span>
+                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 font-body">🌍 International</span>
                               )}
                               {comp.auto_detected && !isLocal && !isInternational && (
-                                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">AI found</span>
+                                <span className="text-xs bg-[#F5F0EB] text-[#6B5D52] px-2 py-0.5 font-body">AI found</span>
                               )}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {!isSelected && (
-                            <span className="text-xs text-slate-400">Click to add</span>
+                            <span className="text-xs text-[#6B5D52] font-body">Click to add</span>
                           )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               removeCompetitor(i)
                             }}
-                            className="text-slate-400 hover:text-red-500 p-1"
+                            className="text-[#6B5D52] hover:text-red-500 p-1"
                           >
                             <XCircle className="w-4 h-4" />
                           </button>
@@ -1027,7 +1074,7 @@ export default function AIVisibilityTool() {
                   })}
                 </div>
                 
-                <p className="text-xs text-slate-500 bg-purple-50 p-2 rounded-lg">
+                <p className="text-xs text-[#6B5D52] bg-[#D97757]/10 p-2 font-body">
                   💡 <strong>How it works:</strong> We find 3 local competitors (same city/region) + 2 international competitors (global players). 
                   Add your own to prioritize them! Click any competitor to move it up for comparison.
                 </p>
@@ -1037,7 +1084,7 @@ export default function AIVisibilityTool() {
             {/* Next Button */}
             <button
               onClick={() => setStep('prompts')}
-              className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 flex items-center justify-center gap-3 shadow-lg"
+              className="w-full py-4 btn-claude flex items-center justify-center gap-3"
             >
               Looks Good, Review Prompts
               <ArrowRight className="w-5 h-5" />
@@ -1053,12 +1100,12 @@ export default function AIVisibilityTool() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Review Test Prompts</h2>
-                <p className="text-slate-500">5 categories for consistent scoring</p>
+                <h2 className="text-2xl font-display font-medium text-[#2D2520]">Review Test Prompts</h2>
+                <p className="text-[#6B5D52] font-body font-light">5 categories for consistent scoring</p>
               </div>
               <button
                 onClick={() => setStep('profile')}
-                className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                className="text-sm text-[#D97757] hover:text-[#C96442] flex items-center gap-1 font-body"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back
@@ -1068,11 +1115,11 @@ export default function AIVisibilityTool() {
             {/* Fixed Categories */}
             <div className="space-y-4">
               {FIXED_CATEGORIES.map((category) => (
-                <div key={category.id} className="bg-white rounded-xl shadow-lg border border-slate-200 p-5">
+                <div key={category.id} className="bg-white border border-[#2D2520]/10 p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-slate-900">{category.label}</h3>
-                      <p className="text-sm text-slate-500">{category.description}</p>
+                      <h3 className="font-display font-medium text-[#2D2520]">{category.label}</h3>
+                      <p className="text-sm text-[#6B5D52] font-body">{category.description}</p>
                     </div>
                   </div>
                   <input
@@ -1083,18 +1130,18 @@ export default function AIVisibilityTool() {
                       [category.id]: e.target.value
                     })}
                     placeholder={category.description}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-[#2D2520]/20 focus:border-[#D97757] font-body"
                   />
                 </div>
               ))}
             </div>
 
             {/* Test Info & Button */}
-            <div className="bg-purple-50 rounded-2xl p-6 border border-purple-100">
+            <div className="bg-[#D97757]/10 p-6 border border-[#D97757]/20">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="font-semibold text-purple-900">Ready to test</p>
-                  <p className="text-sm text-purple-700">
+                  <p className="font-display font-medium text-[#2D2520]">Ready to test</p>
+                  <p className="text-sm text-[#6B5D52] font-body">
                     Testing <strong>{profile.brand_name}</strong> + 2 competitors across 5 categories
                   </p>
                 </div>
@@ -1105,7 +1152,7 @@ export default function AIVisibilityTool() {
               </div>
               <button
                 onClick={runTests}
-                className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 flex items-center justify-center gap-3 shadow-lg"
+                className="w-full py-4 btn-claude flex items-center justify-center gap-3"
               >
                 <Sparkles className="w-5 h-5" />
                 Run Visibility Test
@@ -1119,11 +1166,11 @@ export default function AIVisibilityTool() {
         {/* ================================================================= */}
         {step === 'testing' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+            <div className="bg-white border border-[#2D2520]/10 p-8">
               <div className="text-center mb-8">
-                <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Testing Visibility</h2>
-                <p className="text-slate-500">
+                <Loader className="w-12 h-12 text-[#D97757] animate-spin mx-auto mb-4" />
+                <h2 className="text-2xl font-display font-medium text-[#2D2520] mb-2">Testing Visibility</h2>
+                <p className="text-[#6B5D52] font-body">
                   {testProgress.phase === 'user' 
                     ? `Testing your brand: category ${testProgress.current} of ${testProgress.total}...`
                     : `Testing competitors: ${testProgress.current} of ${testProgress.total}...`
@@ -1131,9 +1178,9 @@ export default function AIVisibilityTool() {
                 </p>
               </div>
               
-              <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-6">
+              <div className="h-3 bg-[#F5F0EB] overflow-hidden mb-6">
                 <div 
-                  className="h-full bg-purple-500 rounded-full transition-all duration-500"
+                  className="h-full bg-[#D97757] transition-all duration-500"
                   style={{ 
                     width: testProgress.phase === 'user'
                       ? `${(testProgress.current / testProgress.total) * 70}%`
@@ -1145,9 +1192,9 @@ export default function AIVisibilityTool() {
               {/* Show results as they come in */}
               <div className="space-y-3">
                 {categoryResults.map((result, idx) => (
-                  <div key={idx} className={`flex items-center justify-between p-3 rounded-lg border ${getCategoryColor(result.status)}`}>
-                    <span className="font-medium">{result.categoryLabel}</span>
-                    <span className="font-bold">{result.score}%</span>
+                  <div key={idx} className={`flex items-center justify-between p-3 border ${getCategoryColor(result.status)}`}>
+                    <span className="font-body font-medium">{result.categoryLabel}</span>
+                    <span className="font-body font-bold">{result.score}%</span>
                   </div>
                 ))}
               </div>
@@ -1163,12 +1210,12 @@ export default function AIVisibilityTool() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Your AI Visibility Report</h2>
-                <p className="text-slate-500">{profile.brand_name} vs {competitorScores.length} competitors</p>
+                <h2 className="text-2xl font-display font-medium text-[#2D2520]">Your AI Visibility Report</h2>
+                <p className="text-[#6B5D52] font-body">{profile.brand_name} vs {competitorScores.length} competitors</p>
               </div>
               <button
                 onClick={() => setStep('prompts')}
-                className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                className="text-sm text-[#D97757] hover:text-[#C96442] flex items-center gap-1 font-body"
               >
                 <RefreshCw className="w-4 h-4" />
                 Test Again
@@ -1176,28 +1223,28 @@ export default function AIVisibilityTool() {
             </div>
 
             {/* Overall Score Card */}
-            <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-8 text-white">
+            <div className="bg-[#2D2520] p-8 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-200 text-sm mb-1">Overall Visibility Score</p>
+                  <p className="text-white/60 text-sm mb-1 font-body uppercase tracking-wider">Overall Visibility Score</p>
                   <div className="flex items-baseline gap-3">
-                    <span className="text-6xl font-bold">{getOverallScore()}%</span>
-                    <span className={`text-3xl font-bold px-3 py-1 rounded-lg bg-white/20`}>
+                    <span className="text-6xl font-display font-medium">{getOverallScore()}%</span>
+                    <span className={`text-3xl font-display font-medium px-3 py-1 bg-[#D97757]`}>
                       {getGrade(getOverallScore()).grade}
                     </span>
                   </div>
-                  <p className="text-purple-200 mt-2">{getGrade(getOverallScore()).label}</p>
+                  <p className="text-[#D97757] mt-2 font-body">{getGrade(getOverallScore()).label}</p>
                 </div>
                 <div className="text-right">
-                  <Award className="w-16 h-16 text-purple-300" />
+                  <Award className="w-16 h-16 text-[#D97757]/50" />
                 </div>
               </div>
             </div>
 
             {/* COMPETITIVE COMPARISON CHART */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-purple-600" />
+            <div className="bg-white border border-[#2D2520]/10 p-6">
+              <h3 className="font-display font-medium text-[#2D2520] mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#D97757]" />
                 Competitive Comparison
               </h3>
               
@@ -1206,13 +1253,13 @@ export default function AIVisibilityTool() {
                 {/* Legend */}
                 <div className="flex flex-wrap gap-4 justify-center">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: BRAND_COLORS.user }} />
-                    <span className="text-sm font-medium">{profile.brand_name} (You)</span>
+                    <div className="w-4 h-4" style={{ backgroundColor: BRAND_COLORS.user }} />
+                    <span className="text-sm font-body font-medium">{profile.brand_name} (You)</span>
                   </div>
                   {competitorScores.map((comp, i) => (
                     <div key={comp.name} className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded" style={{ backgroundColor: getCompetitorColor(i) }} />
-                      <span className="text-sm font-medium">{comp.name}</span>
+                      <div className="w-4 h-4" style={{ backgroundColor: getCompetitorColor(i) }} />
+                      <span className="text-sm font-body font-medium">{comp.name}</span>
                     </div>
                   ))}
                 </div>
@@ -1225,18 +1272,18 @@ export default function AIVisibilityTool() {
                     return (
                       <div key={cat.id} className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="font-medium text-slate-700">{cat.shortLabel}</span>
+                          <span className="font-body font-medium text-[#4A3F38]">{cat.shortLabel}</span>
                         </div>
                         <div className="space-y-1">
                           {/* User bar */}
                           <div className="flex items-center gap-2">
-                            <div className="w-24 text-xs text-slate-500 truncate">{profile.brand_name}</div>
-                            <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="w-24 text-xs text-[#6B5D52] truncate font-body">{profile.brand_name}</div>
+                            <div className="flex-1 h-5 bg-[#F5F0EB] overflow-hidden">
                               <div 
-                                className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                                className="h-full transition-all duration-500 flex items-center justify-end pr-2"
                                 style={{ width: `${Math.max(userScore, 5)}%`, backgroundColor: BRAND_COLORS.user }}
                               >
-                                <span className="text-xs font-bold text-white">{userScore}%</span>
+                                <span className="text-xs font-bold text-white font-body">{userScore}%</span>
                               </div>
                             </div>
                           </div>
@@ -1245,13 +1292,13 @@ export default function AIVisibilityTool() {
                             const compScore = comp.categoryScores[cat.id] || 0
                             return (
                               <div key={comp.name} className="flex items-center gap-2">
-                                <div className="w-24 text-xs text-slate-500 truncate">{comp.name}</div>
-                                <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="w-24 text-xs text-[#6B5D52] truncate font-body">{comp.name}</div>
+                                <div className="flex-1 h-5 bg-[#F5F0EB] overflow-hidden">
                                   <div 
-                                    className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                                    className="h-full transition-all duration-500 flex items-center justify-end pr-2"
                                     style={{ width: `${Math.max(compScore, 5)}%`, backgroundColor: getCompetitorColor(i) }}
                                   >
-                                    <span className="text-xs font-bold text-white">{compScore}%</span>
+                                    <span className="text-xs font-bold text-white font-body">{compScore}%</span>
                                   </div>
                                 </div>
                               </div>
@@ -1266,39 +1313,39 @@ export default function AIVisibilityTool() {
             </div>
 
             {/* RANKING TABLE */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-purple-600" />
+            <div className="bg-white border border-[#2D2520]/10 p-6">
+              <h3 className="font-display font-medium text-[#2D2520] mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-[#D97757]" />
                 Overall Ranking
               </h3>
               <div className="space-y-2">
                 {getRanking().map((item, idx) => (
                   <div 
                     key={item.name}
-                    className={`flex items-center justify-between p-4 rounded-xl border-2 ${
+                    className={`flex items-center justify-between p-4 border-2 ${
                       item.isUser 
-                        ? 'bg-purple-50 border-purple-300' 
-                        : 'bg-slate-50 border-slate-200'
+                        ? 'bg-[#D97757]/10 border-[#D97757]' 
+                        : 'bg-[#F5F0EB] border-[#2D2520]/10'
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                        idx === 0 ? 'bg-yellow-400 text-yellow-900' :
-                        idx === 1 ? 'bg-slate-300 text-slate-700' :
-                        idx === 2 ? 'bg-orange-300 text-orange-900' :
-                        'bg-slate-200 text-slate-600'
+                      <div className={`w-10 h-10 flex items-center justify-center font-body font-bold text-lg ${
+                        idx === 0 ? 'bg-[#D97757] text-white' :
+                        idx === 1 ? 'bg-[#4A3F38] text-white' :
+                        idx === 2 ? 'bg-[#6B5D52] text-white' :
+                        'bg-[#F5F0EB] text-[#6B5D52]'
                       }`}>
                         #{idx + 1}
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-body font-semibold text-[#2D2520]">
                           {item.name}
-                          {item.isUser && <span className="ml-2 text-xs bg-purple-600 text-white px-2 py-0.5 rounded">YOU</span>}
+                          {item.isUser && <span className="ml-2 text-xs bg-[#D97757] text-white px-2 py-0.5 font-body">YOU</span>}
                         </p>
-                        <p className="text-sm text-slate-500">Grade {getGrade(item.score).grade}</p>
+                        <p className="text-sm text-[#6B5D52] font-body">Grade {getGrade(item.score).grade}</p>
                       </div>
                     </div>
-                    <div className={`text-2xl font-bold ${getGrade(item.score).color}`}>
+                    <div className={`text-2xl font-display font-medium ${getGrade(item.score).color}`}>
                       {item.score}%
                     </div>
                   </div>
@@ -1307,22 +1354,22 @@ export default function AIVisibilityTool() {
             </div>
 
             {/* Score Interpretation */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <div className="bg-white border border-[#2D2520]/10 p-6">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Lightbulb className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-[#D97757]/10 flex items-center justify-center flex-shrink-0">
+                  <Lightbulb className="w-5 h-5 text-[#D97757]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 mb-2">What This Means</h3>
-                  <p className="text-slate-600">{getScoreInterpretation(getOverallScore())}</p>
+                  <h3 className="font-display font-medium text-[#2D2520] mb-2">What This Means</h3>
+                  <p className="text-[#4A3F38] font-body">{getScoreInterpretation(getOverallScore())}</p>
                 </div>
               </div>
             </div>
 
             {/* Category Breakdown */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-purple-600" />
+            <div className="bg-white border border-[#2D2520]/10 p-6">
+              <h3 className="font-display font-medium text-[#2D2520] mb-4 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-[#D97757]" />
                 Category Breakdown
               </h3>
               
@@ -1330,8 +1377,8 @@ export default function AIVisibilityTool() {
                 {categoryResults.map((result) => (
                   <div 
                     key={result.category}
-                    className={`border rounded-xl overflow-hidden cursor-pointer transition ${
-                      expandedCategory === result.category ? 'border-purple-300' : 'border-slate-200'
+                    className={`border overflow-hidden cursor-pointer transition ${
+                      expandedCategory === result.category ? 'border-[#D97757]' : 'border-[#2D2520]/10'
                     }`}
                     onClick={() => setExpandedCategory(
                       expandedCategory === result.category ? null : result.category
@@ -1341,15 +1388,15 @@ export default function AIVisibilityTool() {
                       <div className="flex items-center gap-3">
                         {getStatusIcon(result.status)}
                         <div>
-                          <p className="font-medium text-slate-900">{result.categoryLabel}</p>
-                          <p className="text-sm text-slate-500">{result.prompt}</p>
+                          <p className="font-body font-medium text-[#2D2520]">{result.categoryLabel}</p>
+                          <p className="text-sm text-[#6B5D52] font-body">{result.prompt}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getCategoryColor(result.status)}`}>
+                        <div className={`px-3 py-1 text-sm font-body font-semibold ${getCategoryColor(result.status)}`}>
                           {result.score}%
                         </div>
-                        <ArrowRight className={`w-4 h-4 text-slate-400 transition ${
+                        <ArrowRight className={`w-4 h-4 text-[#6B5D52] transition ${
                           expandedCategory === result.category ? 'rotate-90' : ''
                         }`} />
                       </div>
@@ -1357,29 +1404,29 @@ export default function AIVisibilityTool() {
                     
                     {/* Expanded Details */}
                     {expandedCategory === result.category && (
-                      <div className="px-4 pb-4 border-t border-slate-100 pt-4">
-                        <p className="text-sm text-slate-600 mb-3">{result.insight}</p>
+                      <div className="px-4 pb-4 border-t border-[#2D2520]/10 pt-4">
+                        <p className="text-sm text-[#4A3F38] mb-3 font-body">{result.insight}</p>
                         
                         {/* Model Results */}
                         <div className="grid grid-cols-2 gap-2">
                           {result.results.map((modelResult, idx) => (
                             <div 
                               key={idx}
-                              className={`p-3 rounded-lg text-sm ${
+                              className={`p-3 text-sm ${
                                 modelResult.brand_mentioned 
                                   ? 'bg-green-50 border border-green-200' 
                                   : 'bg-red-50 border border-red-200'
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium">{modelResult.icon} {modelResult.model_name}</span>
+                                <span className="font-body font-medium">{modelResult.icon} {modelResult.model_name}</span>
                                 {modelResult.brand_mentioned ? (
                                   <CheckCircle className="w-4 h-4 text-green-600" />
                                 ) : (
                                   <XCircle className="w-4 h-4 text-red-500" />
                                 )}
                               </div>
-                              <p className="text-xs text-slate-600 line-clamp-2">
+                              <p className="text-xs text-[#6B5D52] line-clamp-2 font-body">
                                 {modelResult.response_preview}
                               </p>
                             </div>
@@ -1395,59 +1442,59 @@ export default function AIVisibilityTool() {
             {/* Strengths & Weaknesses */}
             <div className="grid md:grid-cols-2 gap-4">
               {/* Strengths */}
-              <div className="bg-green-50 rounded-2xl p-6 border border-green-200">
-                <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+              <div className="bg-green-50 p-6 border border-green-200">
+                <h3 className="font-display font-medium text-green-900 mb-3 flex items-center gap-2">
                   <CheckCircle className="w-5 h-5" />
                   Your Strengths
                 </h3>
                 {getStrengths().length > 0 ? (
                   <ul className="space-y-2">
                     {getStrengths().map(s => (
-                      <li key={s.category} className="text-sm text-green-800 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                      <li key={s.category} className="text-sm text-green-800 flex items-center gap-2 font-body">
+                        <span className="w-1.5 h-1.5 bg-green-500" />
                         {s.categoryLabel} ({s.score}%)
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-green-700">No strong categories yet. Focus on improving visibility across all areas.</p>
+                  <p className="text-sm text-green-700 font-body">No strong categories yet. Focus on improving visibility across all areas.</p>
                 )}
               </div>
               
               {/* Weaknesses */}
-              <div className="bg-red-50 rounded-2xl p-6 border border-red-200">
-                <h3 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
+              <div className="bg-red-50 p-6 border border-red-200">
+                <h3 className="font-display font-medium text-red-900 mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" />
                   Areas to Improve
                 </h3>
                 {getWeaknesses().length > 0 ? (
                   <ul className="space-y-2">
                     {getWeaknesses().map(w => (
-                      <li key={w.category} className="text-sm text-red-800 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                      <li key={w.category} className="text-sm text-red-800 flex items-center gap-2 font-body">
+                        <span className="w-1.5 h-1.5 bg-red-500" />
                         {w.categoryLabel} ({w.score}%)
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-red-700">Great job! No critical weaknesses detected.</p>
+                  <p className="text-sm text-red-700 font-body">Great job! No critical weaknesses detected.</p>
                 )}
               </div>
             </div>
 
             {/* Recommendations */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-600" />
+            <div className="bg-white border border-[#2D2520]/10 p-6">
+              <h3 className="font-display font-medium text-[#2D2520] mb-4 flex items-center gap-2">
+                <Target className="w-5 h-5 text-[#D97757]" />
                 Recommended Actions
               </h3>
               <div className="space-y-3">
                 {getRecommendations().map((rec, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                    <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-[#F5F0EB]">
+                    <div className="w-6 h-6 bg-[#D97757] text-white flex items-center justify-center flex-shrink-0 text-sm font-body font-bold">
                       {idx + 1}
                     </div>
-                    <p className="text-slate-700">{rec}</p>
+                    <p className="text-[#4A3F38] font-body">{rec}</p>
                   </div>
                 ))}
               </div>

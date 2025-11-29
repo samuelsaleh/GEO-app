@@ -604,35 +604,49 @@ class VisibilityMonitor:
         brand: str,
         competitors: List[str] = [],
         industry: str = "default",
-        count: int = 5
+        count: int = 6
     ) -> List[Dict[str, str]]:
         """
         Generate smart prompts based on brand and competitors using AI.
         Returns prompts with categories.
+        
+        6-Category Framework:
+        - 5 categories are UNBIASED (test organic visibility)
+        - 1 category (Comparison) INCLUDES all brands (test positioning)
         """
+        # Build brand lists
+        comp_list = ', '.join(competitors[:3]) if competitors else f'leading {industry} options'
+        all_brands = ', '.join([brand] + competitors[:3]) if brand else comp_list
+        
         # First try to generate with AI
         if self.ai_service:
             try:
-                prompt = f"""Generate {count} search prompts that a potential customer might ask an AI assistant when looking for products/services like {brand} offers.
+                prompt = f"""Generate {count} search prompts to test AI visibility for a brand in the "{industry}" industry.
 
-Brand: {brand}
-Industry: {industry}
-Competitors: {', '.join(competitors) if competitors else 'unknown'}
+Brand being tested: {brand}
+Competitors: {comp_list}
 
-Generate prompts in these categories:
-1. General recommendation (e.g., "Best X brands")
-2. Comparison (e.g., "X vs Y")  
-3. Purchase intent (e.g., "Where to buy X")
-4. Review/reputation (e.g., "Is X good?")
-5. Specific feature (e.g., "Best X for Y")
+Generate prompts in these 6 categories:
+
+1. RECOMMENDATION (NO brand mention) - "What {industry} do you recommend?"
+2. BEST OF (NO brand mention) - "What is the best {industry} in 2024?"
+3. COMPARISON (INCLUDE ALL brands: {all_brands}) - "Compare {all_brands}. Which is best?"
+4. ALTERNATIVES (Competitors only) - "I'm considering {comp_list}. Are there better alternatives?"
+5. PROBLEM/SOLUTION (NO brand mention) - "I need {industry}. What are my options?"
+6. REPUTATION (NO brand mention) - "Which {industry} brands have the best reputation?"
+
+IMPORTANT:
+- Only the COMPARISON category should mention the brand "{brand}"
+- All other categories should be neutral to test organic visibility
+- Make prompts sound like real user queries
 
 Return as JSON array with objects containing "prompt" and "category" fields.
-Example: [{{"prompt": "Best jewelry brands", "category": "recommendation"}}]"""
+Example: [{{"prompt": "What are the best jewelry brands?", "category": "recommendation"}}]"""
 
                 response = await self.ai_service.generate(
                     prompt=prompt,
-                    system_prompt="You are a marketing expert. Generate realistic search prompts. Return only valid JSON array.",
-                    max_tokens=500
+                    system_prompt="You are a marketing expert. Generate realistic search prompts following the 6-category framework exactly. Return only valid JSON array.",
+                    max_tokens=800
                 )
                 
                 if response:
@@ -657,40 +671,56 @@ Example: [{{"prompt": "Best jewelry brands", "category": "recommendation"}}]"""
         brand: str,
         competitors: List[str],
         industry: str,
-        count: int = 5
+        count: int = 6
     ) -> List[Dict[str, str]]:
-        """Generate template-based prompts as fallback."""
+        """
+        Generate template-based prompts as fallback.
         
-        comp = competitors[0] if competitors else "competitors"
+        6-Category Framework:
+        - 5 categories are UNBIASED (test organic visibility)
+        - 1 category (Comparison) INCLUDES all brands (test positioning)
+        """
+        
+        # Build competitor list (without brand)
+        comp_list = ", ".join(competitors[:3]) if competitors else f"leading {industry} options"
+        
+        # Build ALL brands list (including user's brand) for comparison
+        all_brands = ", ".join([brand] + competitors[:3]) if brand else comp_list
+        
+        year = 2024
         
         templates = {
             "jewelry": [
                 {"prompt": "What are the best luxury jewelry brands?", "category": "recommendation"},
-                {"prompt": f"Is {brand} a good jewelry brand?", "category": "reputation"},
-                {"prompt": f"{brand} vs {comp} - which is better for engagement rings?", "category": "comparison"},
-                {"prompt": "Where to buy high-quality diamond jewelry online?", "category": "purchase"},
-                {"prompt": "Best sustainable and ethical jewelry brands", "category": "feature"},
+                {"prompt": "What are the top jewelry brands for engagement rings in 2024?", "category": "best_of"},
+                {"prompt": f"Compare {all_brands}. What are the pros and cons of each jewelry brand?", "category": "comparison"},
+                {"prompt": f"I like {comp_list}. Are there other luxury jewelry brands I should consider?", "category": "alternatives"},
+                {"prompt": "I want to buy a quality engagement ring. What brands should I look at?", "category": "problem_solution"},
+                {"prompt": "Which jewelry brands have the best reputation for quality and craftsmanship?", "category": "reputation"},
             ],
             "saas": [
-                {"prompt": f"Best {industry} software for small businesses", "category": "recommendation"},
-                {"prompt": f"Is {brand} worth it?", "category": "reputation"},
-                {"prompt": f"{brand} vs {comp} comparison", "category": "comparison"},
-                {"prompt": f"Where to get {industry} tools?", "category": "purchase"},
-                {"prompt": f"Best {industry} software with good customer support", "category": "feature"},
+                {"prompt": f"What {industry} software do you recommend for small businesses?", "category": "recommendation"},
+                {"prompt": f"What is the best {industry} solution in {year}?", "category": "best_of"},
+                {"prompt": f"Compare {all_brands}. Which {industry} tool is best and why?", "category": "comparison"},
+                {"prompt": f"I'm considering {comp_list}. Are there better {industry} alternatives?", "category": "alternatives"},
+                {"prompt": f"I need {industry} for my team. What are my options?", "category": "problem_solution"},
+                {"prompt": f"Which {industry} tools have the best reputation for reliability?", "category": "reputation"},
             ],
             "ecommerce": [
-                {"prompt": f"Best online stores for {industry}", "category": "recommendation"},
-                {"prompt": f"Is {brand} legit and trustworthy?", "category": "reputation"},
-                {"prompt": f"{brand} vs {comp} - better deals?", "category": "comparison"},
-                {"prompt": f"Where to buy {industry} products online?", "category": "purchase"},
-                {"prompt": f"Best {industry} sites with fast shipping", "category": "feature"},
+                {"prompt": f"What are the best online stores for {industry}?", "category": "recommendation"},
+                {"prompt": f"What are the top {industry} sites in {year}?", "category": "best_of"},
+                {"prompt": f"Compare {all_brands}. Which offers the best value?", "category": "comparison"},
+                {"prompt": f"I know about {comp_list}. Are there other {industry} sites I should check?", "category": "alternatives"},
+                {"prompt": f"I want to buy {industry} products online. Where should I shop?", "category": "problem_solution"},
+                {"prompt": f"Which {industry} stores are most trustworthy?", "category": "reputation"},
             ],
             "default": [
-                {"prompt": f"Best {industry} brands or companies", "category": "recommendation"},
-                {"prompt": f"Is {brand} good? Reviews and reputation", "category": "reputation"},
-                {"prompt": f"{brand} vs {comp} comparison", "category": "comparison"},
-                {"prompt": f"Where to find {industry} services?", "category": "purchase"},
-                {"prompt": f"Top rated {industry} with best quality", "category": "feature"},
+                {"prompt": f"What {industry} brands do you recommend?", "category": "recommendation"},
+                {"prompt": f"What is the best {industry} option in the market right now?", "category": "best_of"},
+                {"prompt": f"Compare {all_brands}. What are the key differences?", "category": "comparison"},
+                {"prompt": f"I'm looking at {comp_list}. Are there better alternatives?", "category": "alternatives"},
+                {"prompt": f"I'm looking for {industry}. What are my best options?", "category": "problem_solution"},
+                {"prompt": f"Which {industry} brands have the best reputation?", "category": "reputation"},
             ]
         }
         
