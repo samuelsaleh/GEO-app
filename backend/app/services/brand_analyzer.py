@@ -87,17 +87,27 @@ class BrandAnalyzer:
         # Step 5: Organize prompts into topic clusters
         clusters = self._organize_into_clusters(prompts)
         
-        # Build the profile
+        # Build the profile with detailed segment info
         profile = BrandProfile(
             brand_name=brand_name,
             website_url=website_url,
+            # Basic info
             industry=business_info.get("industry", "general"),
             products_services=business_info.get("products_services", []),
             value_proposition=business_info.get("value_proposition", ""),
             target_audience=business_info.get("target_audience", ""),
+            # Specific segment info - shows we understand them!
+            segment=business_info.get("segment", ""),
+            positioning=business_info.get("positioning", ""),
+            price_tier=business_info.get("price_tier", "mid-range"),
+            brand_personality=business_info.get("brand_personality", []),
+            differentiators=business_info.get("differentiators", []),
+            brand_summary=business_info.get("brand_summary", ""),
+            # Competitors and prompts
             competitors=competitors,
             suggested_prompts=prompts,
             topic_clusters=clusters,
+            # Metadata
             analyzed_at=datetime.now(),
             confidence_score=business_info.get("confidence", 0.7)
         )
@@ -203,13 +213,15 @@ class BrandAnalyzer:
         industry_hint: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Use AI to analyze the website content and extract business information.
+        Use AI to analyze the website content and extract detailed business information.
+        Focus on showing the customer we REALLY understand their business.
         """
         if not self.ai.is_available:
             logger.warning("AI not available, using fallback analysis")
             return self._fallback_analysis(brand_name, website_context, industry_hint)
         
-        prompt = f"""Analyze this website and extract business information.
+        prompt = f"""Analyze this website and extract DETAILED business information. 
+Be VERY SPECIFIC - we want to show the brand that we deeply understand their business.
 
 Website: {website_context.get('url', '')}
 Brand Name: {brand_name}
@@ -224,25 +236,50 @@ Website Content:
 
 Extract and return JSON with:
 {{
-    "industry": "specific category (e.g., 'luxury jewelry', 'B2B SaaS CRM', 'fitness equipment')",
-    "products_services": ["list", "of", "3-5", "main", "offerings"],
+    "industry": "broad category (e.g., 'fashion', 'technology', 'jewelry')",
+    "segment": "SPECIFIC niche within the industry - be precise! (e.g., 'French casual basics for modern women', 'sustainable premium denim', 'minimalist Scandinavian furniture')",
+    "positioning": "market position (e.g., 'Affordable luxury', 'Premium minimalist', 'Sustainable premium', 'Accessible designer')",
+    "price_tier": "budget | mid-range | premium | luxury",
+    "brand_personality": ["3-5 personality traits", "e.g. minimalist", "effortless", "Parisian", "timeless"],
+    "differentiators": ["2-3 things that make them unique", "e.g. 'French heritage'", "'Organic cotton focus'"],
+    "products_services": ["list", "of", "3-5", "main", "product categories"],
     "value_proposition": "one sentence describing their unique value",
-    "target_audience": "who are their ideal customers",
-    "keywords": ["5-7", "relevant", "keywords", "for", "their", "business"],
+    "target_audience": "specific description of ideal customer (e.g., 'Urban millennials seeking effortless everyday style')",
+    "brand_summary": "One compelling sentence that shows we GET this brand (e.g., 'Premium French basics brand known for effortless minimalist style and quality materials')",
+    "keywords": ["5-7", "relevant", "keywords"],
     "confidence": 0.8
 }}
 
-Be specific about the industry - don't just say "retail" or "technology", be precise like "sustainable fashion e-commerce" or "project management SaaS for agencies".
+IMPORTANT: 
+- The "segment" should be VERY specific - not just "fashion" but "French casual unisex basics"
+- The "brand_summary" should sound like you're describing them to a friend
+- Be precise about the price_tier based on the brand positioning
 
 Return ONLY valid JSON, no markdown or explanation."""
 
         try:
-            response = await self.ai.generate(
-                prompt=prompt,
-                system_prompt="You are a business analyst expert. Extract precise business information from websites. Return only valid JSON.",
-                max_tokens=600,
-                temperature=0.3
-            )
+            # Use Claude first for best analysis
+            response = None
+            available = self.ai.get_available_providers()
+            
+            if "anthropic" in available:
+                logger.info("Using Claude for brand analysis")
+                response = await self.ai.generate_with_model(
+                    prompt=prompt,
+                    system_prompt="You are a brand strategist expert who deeply understands brand positioning and market segments. Extract precise, insightful business information. Return only valid JSON.",
+                    model="claude-3-5-sonnet-20241022",
+                    provider="anthropic",
+                    max_tokens=800,
+                    temperature=0.3
+                )
+            
+            if not response:
+                response = await self.ai.generate(
+                    prompt=prompt,
+                    system_prompt="You are a brand strategist expert. Extract precise business information from websites. Return only valid JSON.",
+                    max_tokens=800,
+                    temperature=0.3
+                )
             
             if response:
                 # Clean and parse JSON
@@ -265,11 +302,18 @@ Return ONLY valid JSON, no markdown or explanation."""
         industry_hint: Optional[str] = None
     ) -> Dict[str, Any]:
         """Fallback when AI is unavailable"""
+        industry = industry_hint or "general"
         return {
-            "industry": industry_hint or "general",
+            "industry": industry,
+            "segment": f"{brand_name} in {industry}",
+            "positioning": "Quality brand",
+            "price_tier": "mid-range",
+            "brand_personality": ["quality", "reliable"],
+            "differentiators": [f"{brand_name} unique approach"],
             "products_services": [f"{brand_name} products"],
             "value_proposition": website_context.get("meta_description", f"{brand_name} - Quality products and services"),
             "target_audience": "customers looking for quality",
+            "brand_summary": f"{brand_name} offers quality {industry} products",
             "keywords": [brand_name.lower()],
             "confidence": 0.3
         }

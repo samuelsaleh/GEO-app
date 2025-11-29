@@ -41,11 +41,21 @@ class BrandProfile(BaseModel):
     brand_name: str
     website_url: str
     
-    # Extracted from website
-    industry: str  # e.g., "luxury jewelry", "B2B SaaS", "fitness equipment"
+    # Extracted from website - BASIC
+    industry: str  # e.g., "fashion", "technology", "jewelry"
     products_services: List[str]  # Main offerings (3-5 items)
     value_proposition: str  # One sentence USP
     target_audience: str  # Who are their customers
+    
+    # SPECIFIC SEGMENT INFO - Show we understand the customer!
+    segment: str = ""  # Specific niche (e.g., "French casual basics for urban millennials")
+    positioning: str = ""  # Market position (e.g., "Affordable luxury", "Premium minimalist")
+    price_tier: str = ""  # "budget" | "mid-range" | "premium" | "luxury"
+    brand_personality: List[str] = []  # Style traits (e.g., ["minimalist", "effortless", "Parisian"])
+    differentiators: List[str] = []  # What makes them unique
+    
+    # One-line summary that shows we GET them
+    brand_summary: str = ""  # e.g., "Premium French basics brand known for effortless minimalist style"
     
     # Auto-detected competitors
     competitors: List[CompetitorInfo] = []
