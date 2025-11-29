@@ -452,11 +452,11 @@ async def _send_paid_report_email(
         
         # Build rankings HTML
         rankings_html = ""
-        for r in rankings[:10]:
+        for idx, r in enumerate(rankings[:10]):
             is_user = "background: #f3e8ff; font-weight: bold;" if r.get("is_user") else ""
             rankings_html += f"""
             <tr style="{is_user}">
-                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">#{rankings.index(r) + 1}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">#{idx + 1}</td>
                 <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">{r['brand']} {'(You)' if r.get('is_user') else ''}</td>
                 <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">{r['score']}%</td>
                 <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">{r['grade']}</td>

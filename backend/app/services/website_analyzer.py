@@ -225,12 +225,14 @@ Focus on what makes this specific brand unique, not generic category info."""
             # Parse JSON from response
             import json
             
-            # Try to extract JSON from response
-            json_match = re.search(r'\{[^{}]*\}', response, re.DOTALL)
-            if json_match:
-                data = json.loads(json_match.group())
-            else:
-                data = json.loads(response)
+            # Clean response - strip markdown code blocks if present
+            cleaned = response.strip()
+            if cleaned.startswith("```"):
+                cleaned = re.sub(r'^```(?:json)?\n?', '', cleaned)
+                cleaned = re.sub(r'\n?```$', '', cleaned)
+            
+            # Parse the cleaned JSON
+            data = json.loads(cleaned)
             
             return BrandContext(
                 brand_name=brand_name,
