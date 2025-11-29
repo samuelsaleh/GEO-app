@@ -1019,8 +1019,8 @@ export default function AIVisibilityTool() {
                             }}
                             className="text-slate-400 hover:text-red-500 p-1"
                           >
-                          <XCircle className="w-4 h-4" />
-                        </button>
+                            <XCircle className="w-4 h-4" />
+                          </button>
                       </div>
                     </div>
                   ))}
