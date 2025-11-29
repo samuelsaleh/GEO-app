@@ -37,11 +37,21 @@ class SpeedTestService:
     Now with smart, context-aware prompt generation.
     """
     
-    # Best models from each provider
+    # Best models from each provider (use short IDs for consistency with visibility_monitor)
     MODELS = [
         {"id": "gpt-4o", "provider": "openai", "name": "GPT-4o", "icon": "🤖"},
-        {"id": "claude-sonnet-4-20250514", "provider": "anthropic", "name": "Claude Sonnet 4", "icon": "🧠"},
+        {"id": "claude-sonnet-4", "provider": "anthropic", "name": "Claude Sonnet 4", "icon": "🧠"},
     ]
+    
+    # Map short IDs to actual API model names
+    MODEL_ID_MAPPING = {
+        "gpt-4o": "gpt-4o",
+        "gpt-4o-mini": "gpt-4o-mini",
+        "claude-sonnet-4": "claude-sonnet-4-20250514",
+        "claude-3.5-sonnet": "claude-3-5-sonnet-20241022",
+        "gemini-2.0-flash": "gemini-2.0-flash",
+        "gemini-1.5-flash": "gemini-1.5-flash",
+    }
 
     def __init__(self):
         self.ai_service = ai_service
@@ -305,10 +315,13 @@ class SpeedTestService:
             if context_str:
                 full_prompt = f"Context:\n{context_str}\n\nQuestion: {prompt}"
             
+            # Map short ID to actual API model name
+            actual_model = self.MODEL_ID_MAPPING.get(model["id"], model["id"])
+            
             response = await self.ai_service.generate_with_model(
                 prompt=full_prompt,
                 system_prompt=system_prompt,
-                model=model["id"],
+                model=actual_model,
                 provider=model["provider"],
                 max_tokens=600,
                 temperature=0.3

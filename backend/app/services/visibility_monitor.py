@@ -424,10 +424,14 @@ class VisibilityMonitor:
         system_prompt = "You are a helpful assistant providing recommendations. Be specific and mention relevant brands when appropriate."
         
         try:
-            # Map model IDs to actual model names
+            # Map short IDs to actual API model names
             model_mapping = {
                 "gpt-4o": "gpt-4o",
-                "claude-sonnet-4": "claude-sonnet-4-20250514"
+                "gpt-4o-mini": "gpt-4o-mini",
+                "claude-sonnet-4": "claude-sonnet-4-20250514",
+                "claude-3.5-sonnet": "claude-3-5-sonnet-20241022",
+                "gemini-2.0-flash": "gemini-2.0-flash",
+                "gemini-1.5-flash": "gemini-1.5-flash",
             }
             
             actual_model = model_mapping.get(model_id, model_id)
