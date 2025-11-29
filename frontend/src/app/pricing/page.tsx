@@ -79,7 +79,7 @@ export default function PricingPage() {
   const faqs = [
     {
       question: "What do I actually get?",
-      answer: "Two tools: GEO Audit (scans your site for AI visibility issues) and Schema Generator (creates structured data markup). Free plan has limits, paid plans are unlimited."
+      answer: "Three tiers: Quick Check (free, 3 prompts, 1 AI model), Competitive Test (€97, 10 prompts, 2 AI models, rank vs 10 competitors), and Full Audit (€2,400, includes everything plus implementation roadmap and strategy call)."
     },
     {
       question: "Why is this so cheap compared to competitors?",
@@ -87,7 +87,7 @@ export default function PricingPage() {
     },
     {
       question: "Can I try before I buy?",
-      answer: "Absolutely. The free plan gives you 3 GEO Audits and 5 schema generations per month, forever. No credit card required. Upgrade only if you need more."
+      answer: "Absolutely. The free Quick Check lets you test 3 prompts on 1 AI model — see your visibility score instantly. No credit card required. Upgrade to the €97 Competitive Test to see full rankings vs competitors."
     },
     {
       question: "How does the 30% Black Friday discount work?",
@@ -153,64 +153,64 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* AI Visibility Testing - One-Time Services */}
+      {/* GEO Score Testing - One-Time Services */}
       <section className="pb-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 mb-4 px-5 py-2 border border-purple-200 bg-purple-50">
-              <span className="text-purple-600 text-sm tracking-wider uppercase font-medium">AI Visibility Testing</span>
+            <div className="inline-flex items-center gap-2 mb-4 px-5 py-2 border border-claude-200 bg-claude-50">
+              <span className="text-claude-600 text-sm tracking-wider uppercase font-medium">GEO Score Testing</span>
             </div>
-            <h2 className="font-display text-3xl font-medium text-ink-900">See How AI Recommends Your Brand</h2>
-            <p className="text-ink-600 mt-3">One-time competitive analysis across multiple AI models</p>
+            <h2 className="font-display text-3xl font-medium text-ink-900">Measure Your AI Search Visibility</h2>
+            <p className="text-ink-600 mt-3">See how ChatGPT, Claude, and Gemini recommend your brand</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Free Quick Check */}
-            <div className="card-elevated p-10 border border-cream-300 hover:border-purple-300 transition flex flex-col">
+            <div className="card-elevated p-10 border border-cream-300 hover:border-claude-300 transition flex flex-col">
               <h3 className="font-display text-2xl text-ink-900 mb-3">Quick Check</h3>
               <div className="flex items-baseline gap-2 mb-3">
                 <span className="text-5xl font-display font-medium text-ink-900">FREE</span>
               </div>
               <p className="text-ink-500 mb-8 text-sm tracking-wider uppercase font-medium">One-time</p>
               <p className="text-ink-600 mb-8 leading-relaxed">
-                See if AI knows your brand. Get your visibility score in 2 minutes.
+                Get your GEO Score in 30 seconds. See if AI recommends your brand.
               </p>
               
               <Link
                 href="/tools/ai-visibility"
-                className="block w-full text-center uppercase text-sm tracking-wider font-medium border border-purple-500 text-purple-500 px-6 py-4 mb-8 hover:bg-purple-500 hover:text-white transition-all duration-300"
+                className="block w-full text-center uppercase text-sm tracking-wider font-medium border border-claude-500 text-claude-500 px-6 py-4 mb-8 hover:bg-claude-500 hover:text-white transition-all duration-300"
               >
-                Try Free Now
+                Get Free GEO Score
               </Link>
 
               <ul className="space-y-4 text-sm flex-1">
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">5 category visibility test</span>
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">3 strategic prompts tested</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">2 AI models (GPT-4o + Claude)</span>
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">1 AI model (Claude Sonnet)</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">Compare vs 2 competitors</span>
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Basic visibility score</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">Visual comparison chart</span>
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Letter grade (A-F)</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
                   <span className="text-ink-700">Email report</span>
                 </li>
               </ul>
             </div>
 
             {/* Competitive Test - €97 */}
-            <div className="card-elevated p-10 border-2 border-purple-500 relative flex flex-col">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-5 py-1.5 text-xs tracking-wider uppercase font-semibold whitespace-nowrap">
-                Most Value
+            <div className="card-elevated p-10 border-2 border-claude-500 relative flex flex-col">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-claude-500 text-white px-5 py-1.5 text-xs tracking-wider uppercase font-semibold whitespace-nowrap">
+                Most Popular
               </div>
               <h3 className="font-display text-2xl text-ink-900 mb-3">Competitive Test</h3>
               <div className="flex items-baseline gap-2 mb-3">
@@ -223,80 +223,80 @@ export default function PricingPage() {
               
               <Link
                 href="/contact"
-                className="block w-full text-center uppercase text-sm tracking-wider font-medium bg-purple-500 text-white px-6 py-4 mb-8 hover:bg-purple-600 transition-all duration-300"
+                className="block w-full text-center uppercase text-sm tracking-wider font-medium bg-claude-500 text-white px-6 py-4 mb-8 hover:bg-claude-600 transition-all duration-300"
               >
-                Get Full Report
+                Get Competitive Test
               </Link>
 
               <ul className="space-y-4 text-sm flex-1">
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">5 categories × 10 prompts</span>
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">10 strategic prompts tested</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700"><strong>All 6 AI models</strong></span>
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700"><strong>2 AI models (GPT-4o + Claude)</strong></span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
                   <span className="text-ink-700"><strong>Rank vs 10 competitors</strong></span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">Detailed category insights</span>
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Full rankings & insights</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
                   <span className="text-ink-700">Actionable recommendations</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">PDF report</span>
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">PDF report emailed</span>
                 </li>
               </ul>
             </div>
 
             {/* Full Audit - €2,400 */}
-            <div className="card-elevated p-10 border border-cream-300 hover:border-purple-300 transition flex flex-col">
+            <div className="card-elevated p-10 border border-cream-300 hover:border-claude-300 transition flex flex-col">
               <h3 className="font-display text-2xl text-ink-900 mb-3">Full Audit</h3>
               <div className="flex items-baseline gap-2 mb-3">
                 <span className="text-5xl font-display font-medium text-ink-900">€2,400</span>
               </div>
-              <p className="text-ink-500 mb-8 text-sm tracking-wider uppercase font-medium">One-time</p>
+              <p className="text-ink-500 mb-8 text-sm tracking-wider uppercase font-medium">Includes €97 test</p>
               <p className="text-ink-600 mb-8 leading-relaxed">
                 Complete audit with implementation roadmap and 1-hour strategy call.
               </p>
               
               <Link
                 href="/contact"
-                className="block w-full text-center uppercase text-sm tracking-wider font-medium bg-purple-500 text-white px-6 py-4 mb-8 hover:bg-purple-600 transition-all duration-300"
+                className="block w-full text-center uppercase text-sm tracking-wider font-medium bg-claude-500 text-white px-6 py-4 mb-8 hover:bg-claude-600 transition-all duration-300"
               >
-                Book Audit
+                Book Full Audit
               </Link>
 
               <ul className="space-y-4 text-sm flex-1">
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
                   <span className="text-ink-700">Everything in Competitive Test</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700"><strong>4 AI platforms tested</strong></span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
                   <span className="text-ink-700"><strong>20+ competitor analysis</strong></span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
                   <span className="text-ink-700"><strong>Implementation roadmap</strong></span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
                   <span className="text-ink-700"><strong>1-hour strategy call</strong></span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">Content optimization guide</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
                   <span className="text-ink-700">30-day email support</span>
                 </li>
               </ul>
@@ -494,25 +494,25 @@ export default function PricingPage() {
       <section className="py-20 bg-claude-500">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="inline-block border border-white/30 text-white px-5 py-2 text-xs tracking-wider uppercase font-medium mb-8">
-            Black Friday ends soon
+            GEO is the New SEO
           </div>
           <h2 className="font-display text-4xl md:text-5xl font-medium text-white mb-8">
-            Lock in the lowest price of the year.
+            Know your GEO Score before your competitors do.
           </h2>
           <p className="text-lg text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
-            €19/month is already cheap. €13/month with annual billing is basically free. Don't wait.
+            AI search is growing 40% monthly. Early GEO adopters will dominate the new search landscape.
           </p>
           
           <div className="mb-10">
-            <p className="text-white/70 mb-5 text-sm tracking-wider uppercase font-medium">Sale ends in</p>
+            <p className="text-white/70 mb-5 text-sm tracking-wider uppercase font-medium">Black Friday sale ends in</p>
             <CountdownTimer />
           </div>
 
           <Link
-            href="/tools/health-check"
+            href="/tools/ai-visibility"
             className="inline-block bg-white text-claude-600 px-12 py-4 hover:bg-cream-100 transition text-sm tracking-wider uppercase font-medium"
           >
-            Try Free First
+            Get Free GEO Score
           </Link>
           
           <p className="text-white/60 text-sm tracking-wider uppercase mt-8">
@@ -645,16 +645,16 @@ export default function PricingPage() {
       <section className="py-24 bg-ink-900">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="font-display text-4xl md:text-5xl font-medium text-white mb-8">
-            Still not sure? Start free.
+            What's your GEO Score?
           </h2>
           <p className="text-lg text-ink-400 mb-12">
-            Run 3 health checks on us. See what you're missing. Then decide.
+            Test your brand across 6 AI models in 60 seconds. Free, no signup required.
           </p>
           <Link
-            href="/tools/health-check"
+            href="/tools/ai-visibility"
             className="inline-block bg-claude-500 text-white px-12 py-4 hover:bg-claude-600 transition text-sm tracking-wider uppercase font-medium"
           >
-            Run Free GEO Audit
+            Get Free GEO Score
           </Link>
         </div>
       </section>
@@ -665,7 +665,7 @@ export default function PricingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="flex items-center gap-3">
               <span className="font-display text-2xl">dwight</span>
-              <span className="text-ink-500">— AI search analytics for marketing teams</span>
+              <span className="text-ink-500">— GEO tools for modern brands</span>
             </div>
             <div className="flex gap-8 text-ink-400 text-sm">
               <Link href="/" className="hover:text-white transition-colors">Home</Link>

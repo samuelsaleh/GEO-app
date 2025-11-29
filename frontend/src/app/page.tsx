@@ -171,7 +171,7 @@ export default function Home() {
           <div className="inline-flex items-center gap-2 mb-8 px-5 py-2 border border-claude-200 animate-fade-in-up">
             <Sparkles className="w-4 h-4 text-claude-500" />
             <span className="text-claude-600 text-sm tracking-wider uppercase font-medium">
-              Black Friday — Save 30%
+              Generative Engine Optimization
             </span>
           </div>
 
@@ -184,8 +184,8 @@ export default function Home() {
           </h1>
 
           <p className="text-lg text-ink-600 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200 leading-relaxed">
-            Millions now ask ChatGPT and Perplexity for recommendations instead of Google. 
-            Dwight shows you exactly how AI describes your brand — and how to make it better.
+            Millions now ask ChatGPT, Perplexity, and Gemini for recommendations instead of Google. 
+            Dwight measures your GEO Score — and shows you exactly how to improve it.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 justify-center mb-20 animate-fade-in-up animate-delay-300">
@@ -209,8 +209,8 @@ export default function Home() {
             <div className="card-elevated p-8 md:p-10">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="font-display text-2xl text-ink-900">Your Brand's Dashboard</h3>
-                  <p className="text-ink-500 text-sm tracking-wider uppercase mt-2">Last 7 days • All Models</p>
+                  <h3 className="font-display text-2xl text-ink-900">Your GEO Dashboard</h3>
+                  <p className="text-ink-500 text-sm tracking-wider uppercase mt-2">6 AI Models • Real-time</p>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="flex items-center gap-1 text-green-600 font-medium">
@@ -223,45 +223,45 @@ export default function Home() {
               
               <div className="grid grid-cols-3 gap-6 mb-8">
                 <div className="bg-cream-100 p-6">
-                  <div className="text-3xl font-display font-medium text-claude-500">3/14</div>
-                  <div className="text-ink-500 text-sm tracking-wider uppercase mt-2">Visibility Rank</div>
+                  <div className="text-3xl font-display font-medium text-claude-500">72%</div>
+                  <div className="text-ink-500 text-sm tracking-wider uppercase mt-2">GEO Score</div>
                 </div>
                 <div className="bg-cream-100 p-6">
-                  <div className="text-3xl font-display font-medium text-green-600">2/14</div>
-                  <div className="text-ink-500 text-sm tracking-wider uppercase mt-2">Sentiment</div>
+                  <div className="text-3xl font-display font-medium text-green-600">B+</div>
+                  <div className="text-ink-500 text-sm tracking-wider uppercase mt-2">Grade</div>
                 </div>
                 <div className="bg-cream-100 p-6">
-                  <div className="text-3xl font-display font-medium text-blue-600">5/14</div>
-                  <div className="text-ink-500 text-sm tracking-wider uppercase mt-2">Position</div>
+                  <div className="text-3xl font-display font-medium text-blue-600">#3</div>
+                  <div className="text-ink-500 text-sm tracking-wider uppercase mt-2">vs Competitors</div>
                 </div>
               </div>
 
               <div className="bg-cream-50 p-6">
                 <div className="flex items-center justify-between text-sm mb-4">
-                  <span className="text-ink-500 tracking-wider uppercase font-medium">Competitor Comparison</span>
-                  <span className="text-ink-500">April 2025</span>
+                  <span className="text-ink-500 tracking-wider uppercase font-medium">GEO Score Comparison</span>
+                  <span className="text-ink-500">November 2025</span>
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center gap-4">
                     <span className="w-28 text-sm text-ink-700 font-medium">Your Brand</span>
                     <div className="flex-1 bg-cream-200 h-2">
-                      <div className="bg-claude-500 h-2" style={{ width: '47%' }}></div>
+                      <div className="bg-claude-500 h-2" style={{ width: '72%' }}></div>
                     </div>
-                    <span className="text-sm font-medium text-claude-500 w-12 text-right">47%</span>
+                    <span className="text-sm font-medium text-claude-500 w-12 text-right">72%</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="w-28 text-sm text-ink-600">Competitor A</span>
                     <div className="flex-1 bg-cream-200 h-2">
-                      <div className="bg-ink-400 h-2" style={{ width: '65%' }}></div>
+                      <div className="bg-ink-400 h-2" style={{ width: '85%' }}></div>
                     </div>
-                    <span className="text-sm font-medium text-ink-600 w-12 text-right">65%</span>
+                    <span className="text-sm font-medium text-ink-600 w-12 text-right">85%</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="w-28 text-sm text-ink-600">Competitor B</span>
                     <div className="flex-1 bg-cream-200 h-2">
-                      <div className="bg-ink-300 h-2" style={{ width: '32%' }}></div>
+                      <div className="bg-ink-300 h-2" style={{ width: '45%' }}></div>
                     </div>
-                    <span className="text-sm font-medium text-ink-500 w-12 text-right">32%</span>
+                    <span className="text-sm font-medium text-ink-500 w-12 text-right">45%</span>
                   </div>
                 </div>
               </div>
@@ -421,34 +421,62 @@ export default function Home() {
       <section id="features" className="py-28 bg-cream-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 mb-6 px-5 py-2 border border-claude-200">
+              <span className="text-claude-600 text-sm tracking-wider uppercase font-medium">GEO Tools</span>
+            </div>
             <h2 className="font-display text-4xl md:text-5xl font-medium mb-6 text-ink-900">
-              Two tools. Everything you need.
+              Everything you need for GEO
             </h2>
             <p className="text-lg text-ink-600 max-w-2xl mx-auto leading-relaxed">
-              We built the essentials for AI visibility — no bloat, no fluff. Just what works.
+              Built on the 7 GEO strategies — the proven framework for AI search visibility.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
-            {/* GEO Audit */}
-            <div className="card-elevated p-10">
-              <div className="w-14 h-14 border border-claude-200 flex items-center justify-center mb-8">
-                <Search className="w-6 h-6 text-claude-500" />
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* GEO Score */}
+            <div className="card-elevated p-8">
+              <div className="w-14 h-14 border border-claude-200 flex items-center justify-center mb-6">
+                <BarChart3 className="w-6 h-6 text-claude-500" />
               </div>
-              <h3 className="font-display text-2xl mb-4 text-ink-900">GEO Audit</h3>
-              <p className="text-ink-600 leading-relaxed mb-6">
-                Scan any webpage and get a detailed report on how AI-ready it is. We check for schema markup, content structure, citations, and more.
+              <h3 className="font-display text-xl mb-3 text-ink-900">GEO Score</h3>
+              <p className="text-ink-600 leading-relaxed mb-5 text-sm">
+                Test how AI models like ChatGPT, Claude, and Gemini recommend your brand. Get a score out of 100.
               </p>
-              <ul className="space-y-3 text-sm text-ink-700">
-                <li className="flex items-center gap-3">
+              <ul className="space-y-2 text-sm text-ink-700">
+                <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-claude-500" />
-                  <span>Score out of 100 with letter grade</span>
+                  <span>6 AI models tested</span>
                 </li>
-                <li className="flex items-center gap-3">
+                <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-claude-500" />
                   <span>Competitor comparison</span>
                 </li>
-                <li className="flex items-center gap-3">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  <span>GEO action plan</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* GEO Audit */}
+            <div className="card-elevated p-8">
+              <div className="w-14 h-14 border border-claude-200 flex items-center justify-center mb-6">
+                <Search className="w-6 h-6 text-claude-500" />
+              </div>
+              <h3 className="font-display text-xl mb-3 text-ink-900">GEO Audit</h3>
+              <p className="text-ink-600 leading-relaxed mb-5 text-sm">
+                Analyze any webpage for AI-readiness. We check schema, content structure, and citations.
+              </p>
+              <ul className="space-y-2 text-sm text-ink-700">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  <span>Technical GEO analysis</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-claude-500" />
+                  <span>Content optimization tips</span>
+                </li>
+                <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-claude-500" />
                   <span>Priority fixes list</span>
                 </li>
@@ -456,26 +484,26 @@ export default function Home() {
             </div>
 
             {/* Schema Generator */}
-            <div className="card-elevated p-10">
-              <div className="w-14 h-14 border border-claude-200 flex items-center justify-center mb-8">
+            <div className="card-elevated p-8">
+              <div className="w-14 h-14 border border-claude-200 flex items-center justify-center mb-6">
                 <Zap className="w-6 h-6 text-claude-500" />
               </div>
-              <h3 className="font-display text-2xl mb-4 text-ink-900">Schema Generator</h3>
-              <p className="text-ink-600 leading-relaxed mb-6">
-                Create the structured data AI needs to understand your content. Copy-paste ready JSON-LD for your website.
+              <h3 className="font-display text-xl mb-3 text-ink-900">Schema Generator</h3>
+              <p className="text-ink-600 leading-relaxed mb-5 text-sm">
+                Create structured data that AI search engines understand. Copy-paste ready JSON-LD.
               </p>
-              <ul className="space-y-3 text-sm text-ink-700">
-                <li className="flex items-center gap-3">
+              <ul className="space-y-2 text-sm text-ink-700">
+                <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-claude-500" />
-                  <span>Organization, Product, FAQ schemas</span>
+                  <span>7 schema types</span>
                 </li>
-                <li className="flex items-center gap-3">
+                <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-claude-500" />
                   <span>Valid JSON-LD output</span>
                 </li>
-                <li className="flex items-center gap-3">
+                <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-claude-500" />
-                  <span>Easy implementation guide</span>
+                  <span>Implementation guide</span>
                 </li>
               </ul>
             </div>
@@ -487,17 +515,17 @@ export default function Home() {
       <section className="py-24 bg-claude-500">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="inline-block border border-white/30 text-white px-5 py-2 text-xs tracking-wider uppercase font-medium mb-8">
-            Black Friday Sale
+            GEO is the New SEO
           </div>
           <h2 className="font-display text-4xl md:text-5xl font-medium text-white mb-8">
-            Fix your AI visibility before competitors do.
+            Optimize for AI before your competitors do.
           </h2>
           <p className="text-lg text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Lock in 30% off when you go annual. Your website's AI-readiness can't wait.
+            AI search engines are growing 40% monthly. Early GEO adopters will dominate the new search landscape.
           </p>
           
           <div className="mb-12">
-            <p className="text-white/70 mb-5 text-sm tracking-wider uppercase font-medium">Sale ends in</p>
+            <p className="text-white/70 mb-5 text-sm tracking-wider uppercase font-medium">Black Friday — Sale ends in</p>
             <CountdownTimer />
           </div>
 
@@ -537,16 +565,16 @@ export default function Home() {
       <section className="py-24 bg-ink-900">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="font-display text-4xl md:text-5xl font-medium text-white mb-8">
-            Your competitors are invisible to AI. Are you?
+            What's your GEO Score?
           </h2>
           <p className="text-lg text-ink-400 mb-12">
-            Run your first GEO Audit in 30 seconds. No signup required.
+            Test your brand across 6 AI models in 60 seconds. Free, no signup required.
           </p>
           <Link
-            href="/tools/health-check"
+            href="/tools/ai-visibility"
             className="inline-block bg-claude-500 text-white px-12 py-4 hover:bg-claude-600 transition text-sm tracking-wider uppercase font-medium"
           >
-            Run Free GEO Audit
+            Get My Free GEO Score
           </Link>
         </div>
       </section>
@@ -558,7 +586,7 @@ export default function Home() {
             <div>
               <h3 className="font-display text-3xl mb-6">dwight</h3>
               <p className="text-ink-400">
-                Make your brand visible to AI
+                Generative Engine Optimization tools for modern brands
               </p>
             </div>
             <div>
