@@ -1,5 +1,6 @@
 'use client'
 
+// Trigger Vercel redeploy with env vars
 import { useState } from 'react'
 import { 
   ArrowLeft, ArrowRight, Loader, CheckCircle, XCircle, 
