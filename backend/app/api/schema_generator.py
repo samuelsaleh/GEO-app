@@ -32,10 +32,10 @@ async def generate_schema(request: SchemaRequest):
         if request.data.get("rating") and request.data.get("ratingCount"):
             schema["aggregateRating"] = {
                 "@type": "AggregateRating",
-                "ratingValue": request.data.get("rating"),
-                "bestRating": "5",
-                "worstRating": "1",
-                "ratingCount": str(request.data.get("ratingCount"))
+                "ratingValue": float(request.data.get("rating")),
+                "bestRating": 5,
+                "worstRating": 1,
+                "ratingCount": int(request.data.get("ratingCount"))
             }
 
     elif request.schema_type == SchemaType.ARTICLE:
