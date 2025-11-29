@@ -11,12 +11,21 @@ from app.services.ai_service import ai_service
 logger = logging.getLogger(__name__)
 
 
+class CompanySize(BaseModel):
+    """Company size classification"""
+    category: str  # "micro" | "small" | "medium" | "large"
+    description: str  # e.g., "<10 employees, <€2M revenue"
+    estimated_employees: Optional[str] = None  # e.g., "10-50"
+    estimated_revenue: Optional[str] = None  # e.g., "€2M-€10M"
+
+
 class CompetitorSuggestion(BaseModel):
-    """A suggested competitor"""
+    """A suggested competitor with size classification"""
     name: str
     website: Optional[str] = None
     scope: str  # "local" or "global"
     reason: str
+    company_size: Optional[CompanySize] = None
 
 
 class CompetitorDiscoveryResult(BaseModel):
@@ -27,6 +36,7 @@ class CompetitorDiscoveryResult(BaseModel):
     local_competitors: List[CompetitorSuggestion] = []
     global_competitors: List[CompetitorSuggestion] = []
     total_found: int = 0
+    size_breakdown: dict = {}  # Count by size category
 
 
 class CompetitorAnalyzer:
@@ -75,7 +85,8 @@ class CompetitorAnalyzer:
         location: Optional[str] = None
     ) -> CompetitorDiscoveryResult:
         """
-        Discover top 10 competitors: 5 local + 5 global scale.
+        Discover top 20 competitors: 10 local/national + 10 global scale.
+        Includes company size classification.
         
         Priority order:
         1. Claude Sonnet 4 (best for analysis)
@@ -88,7 +99,7 @@ class CompetitorAnalyzer:
             location: Optional location for local competitors (e.g., "France", "New York")
             
         Returns:
-            CompetitorDiscoveryResult with local and global competitors
+            CompetitorDiscoveryResult with local and global competitors including size
         """
         if not self.ai.is_available:
             logger.warning("No AI providers available for competitor discovery")
@@ -97,7 +108,7 @@ class CompetitorAnalyzer:
         # Build the prompt for competitor discovery
         location_context = f" in {location}" if location else ""
         
-        prompt = f"""You are a market research expert. Find the TOP 10 COMPETITORS for this brand:
+        prompt = f"""You are a market research expert. Find the TOP 20 COMPETITORS for this brand:
 
 Brand: {brand}
 Category: {category}
@@ -105,41 +116,58 @@ Location: {location if location else "Global"}
 
 I need you to identify:
 
-**5 LOCAL/REGIONAL COMPETITORS:**
+**10 LOCAL/NATIONAL COMPETITORS:**
 These are competitors that operate primarily{location_context or " in the same market/region as the brand"}. 
-They may be smaller but compete directly in the same geographic area.
+Include a mix of sizes from small local players to national chains.
 
-**5 GLOBAL COMPETITORS:**
-These are major international brands that compete in the same {category} space worldwide.
-They are well-known globally and represent the major players in the industry.
+**10 GLOBAL COMPETITORS:**
+These are international brands that compete in the same {category} space worldwide.
+Include a mix from medium-sized international brands to major global players.
+
+**COMPANY SIZE CLASSIFICATION:**
+For each competitor, estimate their size category:
+- "micro": <10 employees, <€2M revenue
+- "small": <50 employees, <€10M revenue  
+- "medium": <250 employees, <€50M revenue
+- "large": 250+ employees or €50M+ revenue
 
 Return your response as valid JSON in this EXACT format:
 {{
     "local_competitors": [
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}}
+        {{
+            "name": "Competitor Name",
+            "website": "https://example.com",
+            "reason": "Brief reason why they compete",
+            "size": "small",
+            "estimated_employees": "20-50",
+            "estimated_revenue": "€5M-€10M"
+        }},
+        ... (10 total)
     ],
     "global_competitors": [
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
-        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}}
+        {{
+            "name": "Competitor Name",
+            "website": "https://example.com",
+            "reason": "Brief reason why they compete",
+            "size": "large",
+            "estimated_employees": "1000+",
+            "estimated_revenue": "€500M+"
+        }},
+        ... (10 total)
     ]
 }}
 
 IMPORTANT:
 - Return ONLY valid JSON, no markdown code blocks
-- Include exactly 5 local and 5 global competitors
+- Include exactly 10 local and 10 global competitors (20 total)
 - Use real company names and actual website URLs
 - Do NOT include {brand} itself in the list
-- Make sure competitors are relevant to {category}"""
+- Make sure competitors are relevant to {category}
+- Include a mix of sizes: some micro/small, some medium, some large
+- Be realistic about company sizes based on your knowledge"""
 
         system_prompt = """You are a market research expert specializing in competitive analysis. 
-You have extensive knowledge of brands across all industries worldwide.
+You have extensive knowledge of brands and company sizes across all industries worldwide.
 Always return valid JSON only, no explanations or markdown."""
 
         available_providers = self.ai.get_available_providers()
@@ -155,7 +183,7 @@ Always return valid JSON only, no explanations or markdown."""
                         system_prompt=system_prompt,
                         model="claude-sonnet-4-20250514",
                         provider="anthropic",
-                        max_tokens=1500,
+                        max_tokens=3000,
                         temperature=0.3
                     )
                     if response:
@@ -173,7 +201,7 @@ Always return valid JSON only, no explanations or markdown."""
                         system_prompt=system_prompt,
                         model="gemini-1.5-pro-latest",
                         provider="google",
-                        max_tokens=1500,
+                        max_tokens=3000,
                         temperature=0.3
                     )
                     if response:
@@ -188,7 +216,7 @@ Always return valid JSON only, no explanations or markdown."""
                 response = await self.ai.generate(
                     prompt=prompt,
                     system_prompt=system_prompt,
-                    max_tokens=1500,
+                    max_tokens=3000,
                     temperature=0.3
                 )
             
@@ -212,7 +240,16 @@ Always return valid JSON only, no explanations or markdown."""
         category: str, 
         location: Optional[str]
     ) -> CompetitorDiscoveryResult:
-        """Parse the AI response into CompetitorDiscoveryResult"""
+        """Parse the AI response into CompetitorDiscoveryResult with company sizes"""
+        
+        # Size category descriptions
+        size_descriptions = {
+            "micro": "<10 employees, <€2M revenue",
+            "small": "<50 employees, <€10M revenue",
+            "medium": "<250 employees, <€50M revenue",
+            "large": "250+ employees or €50M+ revenue"
+        }
+        
         try:
             # Clean up response - remove markdown code blocks if present
             cleaned = response.strip()
@@ -222,22 +259,51 @@ Always return valid JSON only, no explanations or markdown."""
             
             data = json.loads(cleaned)
             
+            # Track size breakdown
+            size_counts = {"micro": 0, "small": 0, "medium": 0, "large": 0}
+            
             local_competitors = []
-            for comp in data.get("local_competitors", [])[:5]:
+            for comp in data.get("local_competitors", [])[:10]:
+                size_cat = comp.get("size", "medium").lower()
+                if size_cat not in size_descriptions:
+                    size_cat = "medium"
+                size_counts[size_cat] += 1
+                
+                company_size = CompanySize(
+                    category=size_cat,
+                    description=size_descriptions[size_cat],
+                    estimated_employees=comp.get("estimated_employees"),
+                    estimated_revenue=comp.get("estimated_revenue")
+                )
+                
                 local_competitors.append(CompetitorSuggestion(
                     name=comp.get("name", "Unknown"),
                     website=comp.get("website"),
                     scope="local",
-                    reason=comp.get("reason", "Identified as local competitor")
+                    reason=comp.get("reason", "Identified as local competitor"),
+                    company_size=company_size
                 ))
             
             global_competitors = []
-            for comp in data.get("global_competitors", [])[:5]:
+            for comp in data.get("global_competitors", [])[:10]:
+                size_cat = comp.get("size", "large").lower()
+                if size_cat not in size_descriptions:
+                    size_cat = "large"
+                size_counts[size_cat] += 1
+                
+                company_size = CompanySize(
+                    category=size_cat,
+                    description=size_descriptions[size_cat],
+                    estimated_employees=comp.get("estimated_employees"),
+                    estimated_revenue=comp.get("estimated_revenue")
+                )
+                
                 global_competitors.append(CompetitorSuggestion(
                     name=comp.get("name", "Unknown"),
                     website=comp.get("website"),
                     scope="global",
-                    reason=comp.get("reason", "Identified as global competitor")
+                    reason=comp.get("reason", "Identified as global competitor"),
+                    company_size=company_size
                 ))
             
             return CompetitorDiscoveryResult(
@@ -246,7 +312,8 @@ Always return valid JSON only, no explanations or markdown."""
                 location=location,
                 local_competitors=local_competitors,
                 global_competitors=global_competitors,
-                total_found=len(local_competitors) + len(global_competitors)
+                total_found=len(local_competitors) + len(global_competitors),
+                size_breakdown=size_counts
             )
             
         except json.JSONDecodeError as e:
