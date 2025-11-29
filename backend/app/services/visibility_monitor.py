@@ -75,8 +75,8 @@ class MultiModelResult(BaseModel):
 # Available AI models to test - one per provider
 AI_MODELS = [
     {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai", "icon": "🤖"},
-    {"id": "claude-sonnet", "name": "Claude 3.5 Sonnet", "provider": "anthropic", "icon": "🧠"},
-    {"id": "gemini-flash", "name": "Gemini 1.5 Flash", "provider": "google", "icon": "💎"},
+    {"id": "claude-haiku", "name": "Claude 3 Haiku", "provider": "anthropic", "icon": "🧠"},
+    {"id": "gemini-flash", "name": "Gemini 2.0 Flash", "provider": "google", "icon": "💎"},
 ]
 
 
@@ -417,8 +417,8 @@ class VisibilityMonitor:
             # Map model IDs to actual model names
             model_mapping = {
                 "gpt-4o": "gpt-4o",
-                "claude-sonnet": "claude-3-5-sonnet-20241022",
-                "gemini-flash": "gemini-1.5-flash-latest"
+                "claude-haiku": "claude-3-haiku-20240307",
+                "gemini-flash": "gemini-2.0-flash"
             }
             
             actual_model = model_mapping.get(model_id, model_id)

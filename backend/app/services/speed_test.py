@@ -40,8 +40,8 @@ class SpeedTestService:
     # One model per provider for speed and simplicity
     MODELS = [
         {"id": "gpt-4o", "provider": "openai", "name": "GPT-4o", "icon": "🤖"},
-        {"id": "claude-3-5-sonnet-20241022", "provider": "anthropic", "name": "Claude 3.5 Sonnet", "icon": "🧠"},
-        {"id": "gemini-1.5-flash-latest", "provider": "google", "name": "Gemini 1.5 Flash", "icon": "💎"},
+        {"id": "claude-3-haiku-20240307", "provider": "anthropic", "name": "Claude 3 Haiku", "icon": "🧠"},
+        {"id": "gemini-2.0-flash", "provider": "google", "name": "Gemini 2.0 Flash", "icon": "💎"},
     ]
 
     def __init__(self):

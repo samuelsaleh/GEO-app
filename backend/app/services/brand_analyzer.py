@@ -267,7 +267,7 @@ Return ONLY valid JSON, no markdown or explanation."""
                 response = await self.ai.generate_with_model(
                     prompt=prompt,
                     system_prompt="You are a brand strategist expert who deeply understands brand positioning and market segments. Extract precise, insightful business information. Return only valid JSON.",
-                    model="claude-3-5-sonnet-20241022",
+                    model="claude-3-haiku-20240307",
                     provider="anthropic",
                     max_tokens=800,
                     temperature=0.3

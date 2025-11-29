@@ -69,8 +69,8 @@ class MultiProviderAI:
                 from anthropic import Anthropic
                 self.providers["anthropic"] = {
                     "client": Anthropic(api_key=settings.anthropic_api_key),
-                    "model": "claude-sonnet-4-20250514",  # Best model
-                    "fallback_model": "claude-3-5-sonnet-20241022",
+                    "model": "claude-3-haiku-20240307",  # Fast and reliable
+                    "fallback_model": "claude-3-haiku-20240307",
                     "name": "Claude"
                 }
                 logger.info("✅ Anthropic (Claude) initialized")
@@ -98,8 +98,8 @@ class MultiProviderAI:
                 genai.configure(api_key=settings.google_api_key)
                 self.providers["google"] = {
                     "client": genai,
-                    "model": "gemini-1.5-flash-latest",  # Most reliable model
-                    "fallback_model": "gemini-1.5-pro-latest",
+                    "model": "gemini-2.0-flash",  # Latest fast model
+                    "fallback_model": "gemini-2.5-flash",
                     "name": "Gemini"
                 }
                 logger.info("✅ Google (Gemini) initialized")
