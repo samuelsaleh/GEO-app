@@ -37,7 +37,7 @@ class AIModel:
     GPT_4O_MINI = ("openai", "gpt-4o-mini", "GPT-4o Mini")
     
     # Google Models (Fast & cost-effective)
-    GEMINI_PRO = ("google", "gemini-1.5-pro", "Gemini 1.5 Pro")
+    GEMINI_PRO = ("google", "gemini-2.0-flash-exp", "Gemini 2.0 Flash")
     GEMINI_FLASH = ("google", "gemini-1.5-flash", "Gemini 1.5 Flash")
 
 
@@ -69,9 +69,9 @@ class MultiProviderAI:
                 from anthropic import Anthropic
                 self.providers["anthropic"] = {
                     "client": Anthropic(api_key=settings.anthropic_api_key),
-                    "model": "claude-sonnet-4-20250514",  # Best model
+                    "model": "claude-sonnet-4-20250514",  # Latest model
                     "fallback_model": "claude-3-5-sonnet-20241022",
-                    "name": "Claude"
+                    "name": "Claude Sonnet 4"
                 }
                 logger.info("✅ Anthropic (Claude) initialized")
             except Exception as e:
@@ -98,9 +98,9 @@ class MultiProviderAI:
                 genai.configure(api_key=settings.google_api_key)
                 self.providers["google"] = {
                     "client": genai,
-                    "model": "gemini-1.5-pro",  # Best model
+                    "model": "gemini-2.0-flash-exp",  # Latest available model
                     "fallback_model": "gemini-1.5-flash",
-                    "name": "Gemini Pro"
+                    "name": "Gemini 2.0 Flash"
                 }
                 logger.info("✅ Google (Gemini) initialized")
             except Exception as e:

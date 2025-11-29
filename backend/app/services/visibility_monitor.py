@@ -76,10 +76,10 @@ class MultiModelResult(BaseModel):
 AI_MODELS = [
     {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai", "icon": "🤖"},
     {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai", "icon": "🤖"},
-    {"id": "claude-sonnet", "name": "Claude Sonnet", "provider": "anthropic", "icon": "🧠"},
-    {"id": "claude-haiku", "name": "Claude Haiku", "provider": "anthropic", "icon": "🧠"},
-    {"id": "gemini-pro", "name": "Gemini Pro", "provider": "google", "icon": "💎"},
-    {"id": "gemini-flash", "name": "Gemini Flash", "provider": "google", "icon": "⚡"},
+    {"id": "claude-sonnet", "name": "Claude Sonnet 4", "provider": "anthropic", "icon": "🧠"},
+    {"id": "claude-haiku", "name": "Claude 3.5 Sonnet", "provider": "anthropic", "icon": "🧠"},
+    {"id": "gemini-pro", "name": "Gemini 2.0 Flash", "provider": "google", "icon": "💎"},
+    {"id": "gemini-flash", "name": "Gemini 1.5 Flash", "provider": "google", "icon": "⚡"},
 ]
 
 
@@ -415,8 +415,8 @@ class VisibilityMonitor:
                 "gpt-4o": "gpt-4o",
                 "gpt-4o-mini": "gpt-4o-mini",
                 "claude-sonnet": "claude-sonnet-4-20250514",
-                "claude-haiku": "claude-3-haiku-20240307",
-                "gemini-pro": "gemini-1.5-pro",
+                "claude-haiku": "claude-3-5-sonnet-20241022",
+                "gemini-pro": "gemini-2.0-flash-exp",
                 "gemini-flash": "gemini-1.5-flash"
             }
             

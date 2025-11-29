@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Code, ArrowLeft, Eye } from 'lucide-react'
+import { Search, Code, ArrowLeft, Eye, Lock } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ToolsPage() {
@@ -29,33 +29,15 @@ export default function ToolsPage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-          <Link
-            href="/tools/health-check"
-            className="card-elevated p-10 group"
-          >
-            <div className="w-16 h-16 border border-claude-200 flex items-center justify-center mb-8 group-hover:border-claude-400 transition">
-              <Search className="w-7 h-7 text-claude-500" />
-            </div>
-            <h2 className="font-display text-2xl font-light mb-4 text-ink-900 group-hover:text-claude-500 transition tracking-wide">
-              AI Visibility Health-Check
-            </h2>
-            <p className="text-ink-500 mb-6 leading-relaxed font-light">
-              Get a free score showing how well your content performs in ChatGPT, Bing Chat, and Google Gemini.
-            </p>
-            <div className="flex items-center gap-2 text-claude-500 text-xs tracking-widest uppercase font-light">
-              Start Free Check
-              <span className="group-hover:translate-x-1 transition">→</span>
-            </div>
-          </Link>
-
+          {/* AI Visibility Checker - FREE */}
           <Link
             href="/tools/ai-visibility"
-            className="card-elevated p-10 group relative overflow-hidden"
+            className="card-elevated p-10 group relative overflow-hidden border-2 border-purple-100 hover:border-purple-300"
           >
-            <div className="absolute top-4 right-4 bg-purple-500 text-white text-[10px] px-3 py-1 tracking-widest uppercase font-light">
-              New
+            <div className="absolute top-4 right-4 bg-green-500 text-white text-[10px] px-3 py-1 tracking-widest uppercase font-light rounded-full">
+              Free Tool
             </div>
-            <div className="w-16 h-16 border border-purple-200 flex items-center justify-center mb-8 group-hover:border-purple-400 transition">
+            <div className="w-16 h-16 border border-purple-200 bg-purple-50 flex items-center justify-center mb-8 group-hover:scale-110 transition duration-300">
               <Eye className="w-7 h-7 text-purple-600" />
             </div>
             <h2 className="font-display text-2xl font-light mb-4 text-ink-900 group-hover:text-purple-600 transition tracking-wide">
@@ -64,43 +46,70 @@ export default function ToolsPage() {
             <p className="text-ink-500 mb-6 leading-relaxed font-light">
               Test if your brand appears when people ask AI for recommendations. See the actual AI response.
             </p>
-            <div className="flex items-center gap-2 text-purple-600 text-xs tracking-widest uppercase font-light">
+            <div className="flex items-center gap-2 text-purple-600 text-xs tracking-widest uppercase font-light font-semibold">
               Test Your Visibility
               <span className="group-hover:translate-x-1 transition">→</span>
             </div>
           </Link>
 
-          <Link
-            href="/tools/schema-generator"
-            className="card-elevated p-10 group"
-          >
-            <div className="w-16 h-16 border border-ink-200 flex items-center justify-center mb-8 group-hover:border-ink-400 transition">
-              <Code className="w-7 h-7 text-ink-600" />
+          {/* Health Check - LOCKED */}
+          <div className="card-elevated p-10 relative opacity-75 hover:opacity-100 transition-opacity">
+            <div className="absolute top-4 right-4 bg-gray-100 text-ink-500 text-[10px] px-3 py-1 tracking-widest uppercase font-light flex items-center gap-1 rounded-full">
+              <Lock className="w-3 h-3" /> Premium
             </div>
-            <h2 className="font-display text-2xl font-light mb-4 text-ink-900 group-hover:text-ink-600 transition tracking-wide">
+            <div className="w-16 h-16 border border-cream-300 flex items-center justify-center mb-8 bg-cream-50">
+              <Search className="w-7 h-7 text-ink-400" />
+            </div>
+            <h2 className="font-display text-2xl font-light mb-4 text-ink-900 tracking-wide">
+              AI Health Check
+            </h2>
+            <p className="text-ink-500 mb-6 leading-relaxed font-light">
+              Get a comprehensive score showing how well your content performs in ChatGPT, Bing Chat, and Google Gemini.
+            </p>
+            <Link 
+              href="/pricing"
+              className="flex items-center gap-2 text-ink-400 text-xs tracking-widest uppercase font-light hover:text-purple-600 transition"
+            >
+              Unlock in Pro Plan
+              <Lock className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {/* Schema Generator - LOCKED */}
+          <div className="card-elevated p-10 relative opacity-75 hover:opacity-100 transition-opacity">
+            <div className="absolute top-4 right-4 bg-gray-100 text-ink-500 text-[10px] px-3 py-1 tracking-widest uppercase font-light flex items-center gap-1 rounded-full">
+              <Lock className="w-3 h-3" /> Premium
+            </div>
+            <div className="w-16 h-16 border border-cream-300 flex items-center justify-center mb-8 bg-cream-50">
+              <Code className="w-7 h-7 text-ink-400" />
+            </div>
+            <h2 className="font-display text-2xl font-light mb-4 text-ink-900 tracking-wide">
               Schema Generator
             </h2>
             <p className="text-ink-500 mb-6 leading-relaxed font-light">
               Create perfect schema markup (invisible labels) in seconds. No coding required.
             </p>
-            <div className="flex items-center gap-2 text-ink-600 text-xs tracking-widest uppercase font-light">
-              Generate Schema
-              <span className="group-hover:translate-x-1 transition">→</span>
-            </div>
-          </Link>
+            <Link 
+              href="/pricing"
+              className="flex items-center gap-2 text-ink-400 text-xs tracking-widest uppercase font-light hover:text-purple-600 transition"
+            >
+              Unlock in Pro Plan
+              <Lock className="w-3 h-3" />
+            </Link>
+          </div>
         </div>
 
         <div className="mt-20 text-center">
-          <div className="bg-claude-500 p-14 text-white max-w-3xl mx-auto">
-            <h2 className="font-display text-3xl font-light mb-6 tracking-wide">Need More Help?</h2>
+          <div className="bg-ink-900 p-14 text-white max-w-3xl mx-auto rounded-none">
+            <h2 className="font-display text-3xl font-light mb-6 tracking-wide">Need the Full Suite?</h2>
             <p className="mb-8 text-white/80 font-light leading-relaxed">
-              Get a complete audit with screenshots, detailed analysis, and expert recommendations
+              Get access to all premium tools, detailed audits, and expert recommendations with our Pro plan.
             </p>
             <Link
-              href="/#services"
-              className="inline-block bg-white text-claude-600 px-10 py-4 hover:bg-cream-100 transition text-xs tracking-widest uppercase font-light"
+              href="/pricing"
+              className="inline-block bg-white text-ink-900 px-10 py-4 hover:bg-cream-100 transition text-xs tracking-widest uppercase font-light"
             >
-              View Full Services
+              View Pricing
             </Link>
           </div>
         </div>
