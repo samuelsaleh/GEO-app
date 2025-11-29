@@ -780,7 +780,7 @@ export default function ScorePage() {
                 Want to fix your AI visibility?
               </h3>
               <p className="text-slate-300 mb-6">
-                Get a detailed health check with specific recommendations to improve your score.
+                Get a detailed audit with specific recommendations to improve your score.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -788,7 +788,7 @@ export default function ScorePage() {
                   href="/tools/health-check"
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-xl transition"
                 >
-                  Run Full Health Check
+                  Run Full GEO Audit
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link

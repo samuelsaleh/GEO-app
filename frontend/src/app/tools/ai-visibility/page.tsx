@@ -1,16 +1,46 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, ArrowLeft, Loader, CheckCircle, XCircle, Sparkles, TrendingUp, Users, Plus, Trash2, Eye } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { 
+  Search, ArrowLeft, ArrowRight, Loader, CheckCircle, XCircle, 
+  Sparkles, TrendingUp, Users, Plus, Trash2, Eye, Globe, 
+  Building2, Target, Edit2, Check, RefreshCw
+} from 'lucide-react'
 import Link from 'next/link'
 
-interface PromptResult {
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface CompetitorInfo {
+  name: string
+  reason: string
+  auto_detected: boolean
+}
+
+interface PromptWithCategory {
   prompt: string
-  response: string
-  brand_mentioned: boolean
-  position: number | null
-  sentiment: string
-  competitors_mentioned: string[]
+  category: string
+  topic_cluster?: string
+  selected: boolean
+}
+
+interface TopicCluster {
+  name: string
+  category: string
+  prompts: PromptWithCategory[]
+}
+
+interface BrandProfile {
+  brand_name: string
+  website_url: string
+  industry: string
+  products_services: string[]
+  value_proposition: string
+  target_audience: string
+  competitors: CompetitorInfo[]
+  suggested_prompts: PromptWithCategory[]
+  topic_clusters: TopicCluster[]
 }
 
 interface ModelResult {
@@ -34,176 +64,208 @@ interface MultiModelResponse {
   mention_rate: number
   results: ModelResult[]
   summary: any
-  chart_data: {
-    labels: string[]
-    mentioned: number[]
-    providers: string[]
-  }
 }
 
-interface PromptSummary {
+interface TestResult {
   prompt: string
   category: string
-  models_mentioning: number
-  models_tested: number
-  mention_rate: number
-  results: Array<{
-    model_id: string
-    model_name: string
-    provider: string
-    mentioned: boolean
-    position: number | null
-    sentiment: string
-  }>
+  results: MultiModelResponse
 }
 
-interface ComprehensiveResult {
-  brand: string
-  competitors: string[]
-  industry: string
-  total_tests: number
-  total_mentions: number
-  overall_visibility: number
-  prompts_tested: number
-  models_tested: number
-  prompt_results: PromptSummary[]
-  model_performance: Array<{
-    model_id: string
-    model_name: string
-    provider: string
-    mentions: number
-    total: number
-    rate: number
-    icon: string
-  }>
-  best_prompt: PromptSummary | null
-  worst_prompt: PromptSummary | null
-  matrix: {
-    columns: string[]
-    rows: Array<{
-      prompt: string
-      category: string
-      cells: boolean[]
-    }>
-  }
+// =============================================================================
+// WIZARD STEPS
+// =============================================================================
+
+type WizardStep = 'input' | 'profile' | 'prompts' | 'results'
+
+const STEP_INFO = {
+  input: { number: 1, title: 'Brand Info', icon: Globe },
+  profile: { number: 2, title: 'Review Profile', icon: Building2 },
+  prompts: { number: 3, title: 'Select Prompts', icon: Target },
+  results: { number: 4, title: 'Results', icon: TrendingUp }
 }
 
-interface VisibilityReport {
-  brand: string
-  visibility_score: string
-  average_position: string | number
-  prompts_tested: number
-  times_mentioned: number
-  sentiment: string
-  top_competitor: string | null
-  recommendations: string[]
-  full_report: {
-    top_competitors: Array<{name: string, mentions: number, rate: number}>
-  }
-}
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
 
 export default function AIVisibilityTool() {
-  const [brand, setBrand] = useState('')
-  const [competitors, setCompetitors] = useState<string[]>([''])
-  const [prompts, setPrompts] = useState<string[]>([''])
-  const [industry, setIndustry] = useState('jewelry')
-  const [loading, setLoading] = useState(false)
-  const [loadingPrompt, setLoadingPrompt] = useState<number | null>(null)
-  const [results, setResults] = useState<PromptResult[]>([])
-  const [report, setReport] = useState<VisibilityReport | null>(null)
-  const [mode, setMode] = useState<'single' | 'multi' | 'bulk'>('multi')
-  const [singlePrompt, setSinglePrompt] = useState('')
-  const [singleResult, setSingleResult] = useState<PromptResult | null>(null)
-  const [multiModelResult, setMultiModelResult] = useState<MultiModelResponse | null>(null)
+  // Wizard state
+  const [step, setStep] = useState<WizardStep>('input')
+  
+  // Step 1: Input
+  const [brandName, setBrandName] = useState('')
+  const [websiteUrl, setWebsiteUrl] = useState('')
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null)
+  
+  // Step 2: Profile
+  const [profile, setProfile] = useState<BrandProfile | null>(null)
+  const [editingIndustry, setEditingIndustry] = useState(false)
+  const [tempIndustry, setTempIndustry] = useState('')
+  
+  // Step 3: Prompts
+  const [selectedPrompts, setSelectedPrompts] = useState<PromptWithCategory[]>([])
+  const [customPrompt, setCustomPrompt] = useState('')
+  
+  // Step 4: Results
+  const [testing, setTesting] = useState(false)
+  const [testProgress, setTestProgress] = useState({ current: 0, total: 0 })
+  const [testResults, setTestResults] = useState<TestResult[]>([])
   const [expandedModel, setExpandedModel] = useState<string | null>(null)
-  const [comprehensiveResult, setComprehensiveResult] = useState<ComprehensiveResult | null>(null)
-  const [testProgress, setTestProgress] = useState<string>('')
 
-  const addPrompt = () => {
-    setPrompts([...prompts, ''])
+  // =============================================================================
+  // STEP 1: Analyze Brand
+  // =============================================================================
+  
+  const analyzeBrand = async () => {
+    if (!brandName || !websiteUrl) return
+    
+    setAnalyzing(true)
+    setAnalyzeError(null)
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const response = await fetch(`${apiUrl}/api/visibility/analyze-brand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brand_name: brandName,
+          website_url: websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`,
+          known_competitors: []
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success && data.profile) {
+        setProfile(data.profile)
+        setSelectedPrompts(data.profile.suggested_prompts.map((p: PromptWithCategory) => ({
+          ...p,
+          selected: true
+        })))
+        setStep('profile')
+      } else {
+        setAnalyzeError(data.error || 'Failed to analyze website')
+      }
+    } catch (error) {
+      console.error('Error analyzing brand:', error)
+      setAnalyzeError('Failed to connect to server. Please try again.')
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
-  const updatePrompt = (index: number, value: string) => {
-    const newPrompts = [...prompts]
-    newPrompts[index] = value
-    setPrompts(newPrompts)
+  // =============================================================================
+  // STEP 2: Profile Editing
+  // =============================================================================
+  
+  const updateIndustry = () => {
+    if (profile && tempIndustry) {
+      setProfile({ ...profile, industry: tempIndustry })
+    }
+    setEditingIndustry(false)
   }
-
-  const removePrompt = (index: number) => {
-    setPrompts(prompts.filter((_, i) => i !== index))
-  }
-
-  const addCompetitor = () => {
-    setCompetitors([...competitors, ''])
-  }
-
-  const updateCompetitor = (index: number, value: string) => {
-    const newCompetitors = [...competitors]
-    newCompetitors[index] = value
-    setCompetitors(newCompetitors)
-  }
-
+  
   const removeCompetitor = (index: number) => {
-    setCompetitors(competitors.filter((_, i) => i !== index))
-  }
-
-  // Test a single prompt
-  const testSinglePrompt = async () => {
-    if (!brand || !singlePrompt) return
-    
-    setLoading(true)
-    setSingleResult(null)
-    
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-      const response = await fetch(`${apiUrl}/api/visibility/test-prompt`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: singlePrompt,
-          brand: brand,
-          competitors: competitors.filter(c => c.trim()),
-          model: 'auto'
-        })
+    if (profile) {
+      setProfile({
+        ...profile,
+        competitors: profile.competitors.filter((_, i) => i !== index)
       })
-      
-      const data = await response.json()
-      setSingleResult(data)
-    } catch (error) {
-      console.error('Error testing prompt:', error)
-    } finally {
-      setLoading(false)
+    }
+  }
+  
+  const addCompetitor = (name: string) => {
+    if (profile && name.trim()) {
+      setProfile({
+        ...profile,
+        competitors: [...profile.competitors, {
+          name: name.trim(),
+          reason: 'Added manually',
+          auto_detected: false
+        }]
+      })
     }
   }
 
-  // Test across all AI models
-  const testMultiModel = async () => {
-    if (!brand || !singlePrompt) return
-    
-    setLoading(true)
-    setMultiModelResult(null)
-    
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-      const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: singlePrompt,
-          brand: brand,
-          competitors: competitors.filter(c => c.trim())
-        })
-      })
-      
-      const data = await response.json()
-      setMultiModelResult(data)
-    } catch (error) {
-      console.error('Error testing across models:', error)
-    } finally {
-      setLoading(false)
+  // =============================================================================
+  // STEP 3: Prompt Selection
+  // =============================================================================
+  
+  const togglePrompt = (index: number) => {
+    setSelectedPrompts(prev => prev.map((p, i) => 
+      i === index ? { ...p, selected: !p.selected } : p
+    ))
+  }
+  
+  const addCustomPrompt = () => {
+    if (customPrompt.trim()) {
+      setSelectedPrompts(prev => [...prev, {
+        prompt: customPrompt.trim(),
+        category: 'custom',
+        selected: true
+      }])
+      setCustomPrompt('')
     }
   }
+  
+  const removePrompt = (index: number) => {
+    setSelectedPrompts(prev => prev.filter((_, i) => i !== index))
+  }
 
+  // =============================================================================
+  // STEP 4: Run Tests
+  // =============================================================================
+  
+  const runTests = async () => {
+    if (!profile) return
+    
+    const promptsToTest = selectedPrompts.filter(p => p.selected)
+    if (promptsToTest.length === 0) return
+    
+    setTesting(true)
+    setTestProgress({ current: 0, total: promptsToTest.length })
+    setTestResults([])
+    setStep('results')
+    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+    const competitorNames = profile.competitors.map(c => c.name)
+    
+    for (let i = 0; i < promptsToTest.length; i++) {
+      const prompt = promptsToTest[i]
+      setTestProgress({ current: i + 1, total: promptsToTest.length })
+      
+      try {
+        const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: prompt.prompt,
+            brand: profile.brand_name,
+            competitors: competitorNames
+          })
+        })
+        
+        const data = await response.json()
+        
+        setTestResults(prev => [...prev, {
+          prompt: prompt.prompt,
+          category: prompt.category,
+          results: data
+        }])
+      } catch (error) {
+        console.error('Error testing prompt:', error)
+      }
+    }
+    
+    setTesting(false)
+  }
+
+  // =============================================================================
+  // HELPER FUNCTIONS
+  // =============================================================================
+  
   const getProviderColor = (provider: string) => {
     switch (provider) {
       case 'openai': return 'bg-green-500'
@@ -212,689 +274,620 @@ export default function AIVisibilityTool() {
       default: return 'bg-gray-500'
     }
   }
-
-  const getProviderBgColor = (provider: string) => {
-    switch (provider) {
-      case 'openai': return 'bg-green-50 border-green-200'
-      case 'anthropic': return 'bg-orange-50 border-orange-200'
-      case 'google': return 'bg-blue-50 border-blue-200'
-      default: return 'bg-gray-50 border-gray-200'
-    }
-  }
-
-  // Run comprehensive test (5 prompts × 6 models)
-  const runComprehensiveTest = async () => {
-    if (!brand) return
-    
-    setLoading(true)
-    setComprehensiveResult(null)
-    setTestProgress('Generating smart questions for your brand...')
-    
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-      const response = await fetch(`${apiUrl}/api/visibility/comprehensive-test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brand: brand,
-          competitors: competitors.filter(c => c.trim()),
-          industry: industry,
-          num_prompts: 5
-        })
-      })
-      
-      const data = await response.json()
-      setComprehensiveResult(data)
-      setTestProgress('')
-    } catch (error) {
-      console.error('Error running comprehensive test:', error)
-      setTestProgress('Error running test')
-    } finally {
-      setLoading(false)
-    }
-  }
-
+  
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'recommendation': return 'bg-blue-100 text-blue-700'
-      case 'comparison': return 'bg-purple-100 text-purple-700'
-      case 'purchase': return 'bg-green-100 text-green-700'
-      case 'reputation': return 'bg-yellow-100 text-yellow-700'
-      case 'feature': return 'bg-pink-100 text-pink-700'
-      default: return 'bg-gray-100 text-gray-700'
+      case 'recommendation': return 'bg-blue-100 text-blue-700 border-blue-200'
+      case 'comparison': return 'bg-purple-100 text-purple-700 border-purple-200'
+      case 'purchase': return 'bg-green-100 text-green-700 border-green-200'
+      case 'reputation': return 'bg-yellow-100 text-yellow-700 border-yellow-200'
+      case 'feature': return 'bg-pink-100 text-pink-700 border-pink-200'
+      case 'custom': return 'bg-gray-100 text-gray-700 border-gray-200'
+      default: return 'bg-gray-100 text-gray-700 border-gray-200'
     }
   }
-
-  // Run full visibility check
-  const runFullCheck = async () => {
-    if (!brand) return
-    
-    setLoading(true)
-    setReport(null)
-    setResults([])
-    
-    try {
-      const validPrompts = prompts.filter(p => p.trim())
-      const validCompetitors = competitors.filter(c => c.trim())
-      
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-      const response = await fetch(`${apiUrl}/api/visibility/check`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brand: brand,
-          prompts: validPrompts.length > 0 ? validPrompts : null,
-          competitors: validCompetitors,
-          industry: industry,
-          models: ['auto']
-        })
-      })
-      
-      const data = await response.json()
-      setReport({
-        brand: data.brand,
-        visibility_score: `${data.mention_rate.toFixed(0)}%`,
-        average_position: data.avg_position > 0 ? data.avg_position : 'Not ranked',
-        prompts_tested: data.total_prompts,
-        times_mentioned: data.mentions,
-        sentiment: Object.entries(data.sentiment_breakdown).reduce((a, b) => 
-          (b[1] as number) > (a[1] as number) ? b : a
-        )[0],
-        top_competitor: data.top_competitors[0]?.name || null,
-        recommendations: data.recommendations,
-        full_report: data
-      })
-    } catch (error) {
-      console.error('Error running check:', error)
-    } finally {
-      setLoading(false)
+  
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      recommendation: '🎯 Recommendations',
+      comparison: '⚖️ Comparisons',
+      purchase: '🛒 Purchase Intent',
+      reputation: '⭐ Reputation',
+      feature: '✨ Features',
+      custom: '📝 Custom'
     }
+    return labels[category] || category
+  }
+  
+  const getOverallScore = () => {
+    if (testResults.length === 0) return 0
+    const totalMentions = testResults.reduce((acc, r) => acc + r.results.models_mentioning, 0)
+    const totalTests = testResults.reduce((acc, r) => acc + r.results.models_tested, 0)
+    return totalTests > 0 ? Math.round((totalMentions / totalTests) * 100) : 0
   }
 
-  const getScoreColor = (score: string) => {
-    const num = parseInt(score)
-    if (num >= 50) return 'text-green-600'
-    if (num >= 20) return 'text-yellow-600'
-    return 'text-red-600'
-  }
-
-  const getSentimentColor = (sentiment: string) => {
-    if (sentiment === 'positive') return 'text-green-600 bg-green-100'
-    if (sentiment === 'negative') return 'text-red-600 bg-red-100'
-    return 'text-gray-600 bg-gray-100'
-  }
+  // =============================================================================
+  // RENDER
+  // =============================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-100 via-white to-cream-200">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
       {/* Navigation */}
-      <nav className="border-b border-cream-300 sticky top-0 z-50 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="border-b border-slate-200 sticky top-0 z-50 bg-white/80 backdrop-blur-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/tools" className="flex items-center gap-2">
-              <ArrowLeft className="w-5 h-5 text-ink-500" />
-              <h1 className="text-2xl font-display font-bold text-claude-600">
-                Dwight
-              </h1>
+              <ArrowLeft className="w-5 h-5 text-slate-500" />
+              <h1 className="text-xl font-bold text-purple-600">Dwight</h1>
             </Link>
+            
+            {/* Step Indicator */}
+            <div className="hidden md:flex items-center gap-2">
+              {Object.entries(STEP_INFO).map(([key, info], idx) => {
+                const Icon = info.icon
+                const isActive = step === key
+                const isPast = Object.keys(STEP_INFO).indexOf(step) > idx
+                
+                return (
+                  <div key={key} className="flex items-center">
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition
+                      ${isActive ? 'bg-purple-100 text-purple-700' : 
+                        isPast ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>
+                      {isPast ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                      <span className="hidden lg:inline">{info.title}</span>
+                    </div>
+                    {idx < 3 && <ArrowRight className="w-4 h-4 text-slate-300 mx-1" />}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-6">
-            <Eye className="w-8 h-8 text-purple-600" />
-          </div>
-          <h1 className="font-display text-4xl font-bold mb-4 text-ink-900">
-            AI Visibility Checker
-          </h1>
-          <p className="text-xl text-ink-500 max-w-2xl mx-auto">
-            Test if your brand appears when people ask AI for recommendations
-          </p>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        
+        {/* ================================================================= */}
+        {/* STEP 1: BRAND INPUT */}
+        {/* ================================================================= */}
+        {step === 'input' && (
+          <div className="space-y-8">
+            {/* Header */}
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Eye className="w-8 h-8 text-purple-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-slate-900 mb-3">
+                AI Visibility Checker
+              </h1>
+              <p className="text-lg text-slate-500 max-w-xl mx-auto">
+                Enter your brand and website - we'll analyze it and generate smart prompts to test your AI visibility
+              </p>
+            </div>
 
-        {/* Mode Toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-cream-200 rounded-full p-1 flex gap-1">
-            <button
-              onClick={() => setMode('multi')}
-              className={`px-5 py-2 rounded-full font-medium transition text-sm ${
-                mode === 'multi' 
-                  ? 'bg-white shadow text-ink-900' 
-                  : 'text-ink-500 hover:text-ink-700'
-              }`}
-            >
-              🤖 All AI Models
-            </button>
-            <button
-              onClick={() => setMode('single')}
-              className={`px-5 py-2 rounded-full font-medium transition text-sm ${
-                mode === 'single' 
-                  ? 'bg-white shadow text-ink-900' 
-                  : 'text-ink-500 hover:text-ink-700'
-              }`}
-            >
-              Single Model
-            </button>
-            <button
-              onClick={() => setMode('bulk')}
-              className={`px-5 py-2 rounded-full font-medium transition text-sm ${
-                mode === 'bulk' 
-                  ? 'bg-white shadow text-ink-900' 
-                  : 'text-ink-500 hover:text-ink-700'
-              }`}
-            >
-              Full Report
-            </button>
-          </div>
-        </div>
-
-        {/* Brand Input (shared) */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <h2 className="font-display text-xl font-bold mb-4 text-ink-900">
-            Your Brand
-          </h2>
-          <input
-            type="text"
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-            placeholder="e.g., Love Lab, Nike, HubSpot"
-            className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-          />
-        </div>
-
-        {/* Multi-Model Mode */}
-        {mode === 'multi' && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h2 className="font-display text-xl font-bold mb-4 text-ink-900 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-500" />
-              Test Across 6 AI Models
-            </h2>
-            <p className="text-ink-500 mb-4">
-              See how ChatGPT, Claude, and Gemini respond to the same question
-            </p>
+            {/* Input Form */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Brand Name
+                  </label>
+                  <input
+                    type="text"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                    placeholder="e.g., Love Lab, Nike, HubSpot"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Website URL
+                  </label>
+                  <input
+                    type="text"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="e.g., love-lab.com"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+                  />
+                </div>
+                
+                {analyzeError && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
+                    {analyzeError}
+                  </div>
+                )}
+                
+                <button
+                  onClick={analyzeBrand}
+                  disabled={!brandName || !websiteUrl || analyzing}
+                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg transition-all"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader className="w-5 h-5 animate-spin" />
+                      Analyzing your website...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Analyze My Brand
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              {/* Progress indicator during analysis */}
+              {analyzing && (
+                <div className="mt-6 space-y-3">
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-500 rounded-full animate-pulse" style={{ width: '60%' }} />
+                  </div>
+                  <p className="text-sm text-slate-500 text-center">
+                    Crawling website, extracting business context, generating smart prompts...
+                  </p>
+                </div>
+              )}
+            </div>
             
-            <div className="flex gap-4 mb-6">
-              <input
-                type="text"
-                value={singlePrompt}
-                onChange={(e) => setSinglePrompt(e.target.value)}
-                placeholder="e.g., What are the best jewelry brands for engagement rings?"
-                className="flex-1 px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
+            {/* How it works */}
+            <div className="bg-slate-50 rounded-2xl p-6">
+              <h3 className="font-semibold text-slate-900 mb-4">How it works</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Globe className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">1. We analyze your website</p>
+                    <p className="text-sm text-slate-500">Extract industry, products, competitors</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Target className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">2. Generate smart prompts</p>
+                    <p className="text-sm text-slate-500">Questions customers ask AI</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">3. Test across AI models</p>
+                    <p className="text-sm text-slate-500">ChatGPT, Claude, Gemini</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* STEP 2: PROFILE REVIEW */}
+        {/* ================================================================= */}
+        {step === 'profile' && profile && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Review Your Profile</h2>
+                <p className="text-slate-500">We analyzed your website. Adjust if needed.</p>
+              </div>
               <button
-                onClick={testMultiModel}
-                disabled={!brand || !singlePrompt || loading}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                onClick={() => setStep('input')}
+                className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
               >
-                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                Test All Models
+                <ArrowLeft className="w-4 h-4" />
+                Back
               </button>
             </div>
 
-            {/* Competitors */}
-            <div className="border-t border-cream-200 pt-4">
-              <h3 className="font-semibold text-ink-700 mb-3">Track Competitors (optional)</h3>
-              <div className="flex flex-wrap gap-2">
-                {competitors.map((comp, i) => (
-                  <div key={i} className="flex items-center gap-2">
+            {/* Profile Card */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 space-y-6">
+              {/* Brand Info */}
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                  {profile.brand_name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-slate-900">{profile.brand_name}</h3>
+                  <p className="text-slate-500 text-sm">{profile.website_url}</p>
+                </div>
+              </div>
+              
+              {/* Industry */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Industry</label>
+                {editingIndustry ? (
+                  <div className="flex gap-2">
                     <input
                       type="text"
-                      value={comp}
-                      onChange={(e) => updateCompetitor(i, e.target.value)}
-                      placeholder="Competitor name"
-                      className="px-3 py-2 border border-cream-300 rounded-lg text-sm w-40"
+                      value={tempIndustry}
+                      onChange={(e) => setTempIndustry(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      placeholder="e.g., luxury jewelry"
                     />
-                    {competitors.length > 1 && (
-                      <button onClick={() => removeCompetitor(i)} className="text-red-500 hover:text-red-700">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <button
+                      onClick={updateIndustry}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
                   </div>
-                ))}
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg font-medium">
+                      {profile.industry}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setTempIndustry(profile.industry)
+                        setEditingIndustry(true)
+                      }}
+                      className="p-2 text-slate-400 hover:text-purple-600"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              {/* Products/Services */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Products & Services</label>
+                <div className="flex flex-wrap gap-2">
+                  {profile.products_services.map((product, i) => (
+                    <span key={i} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm">
+                      {product}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Value Proposition */}
+              {profile.value_proposition && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Value Proposition</label>
+                  <p className="text-slate-600 bg-slate-50 rounded-lg p-3 text-sm">
+                    {profile.value_proposition}
+                  </p>
+                </div>
+              )}
+              
+              {/* Competitors */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Competitors to Track
+                  <span className="font-normal text-slate-400 ml-2">({profile.competitors.length})</span>
+                </label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {profile.competitors.map((comp, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm
+                        ${comp.auto_detected 
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                          : 'bg-slate-100 text-slate-700 border border-slate-200'}`}
+                    >
+                      <span>{comp.name}</span>
+                      {comp.auto_detected && (
+                        <span className="text-xs opacity-60">AI</span>
+                      )}
+                      <button
+                        onClick={() => removeCompetitor(i)}
+                        className="text-slate-400 hover:text-red-500"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Add competitor..."
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        addCompetitor((e.target as HTMLInputElement).value)
+                        ;(e.target as HTMLInputElement).value = ''
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={(e) => {
+                      const input = (e.target as HTMLElement).previousSibling as HTMLInputElement
+                      addCompetitor(input.value)
+                      input.value = ''
+                    }}
+                    className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Next Button */}
+            <button
+              onClick={() => setStep('prompts')}
+              className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 flex items-center justify-center gap-3 shadow-lg"
+            >
+              Looks Good, Show Prompts
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* STEP 3: PROMPT SELECTION */}
+        {/* ================================================================= */}
+        {step === 'prompts' && profile && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Select Prompts to Test</h2>
+                <p className="text-slate-500">
+                  {selectedPrompts.filter(p => p.selected).length} of {selectedPrompts.length} prompts selected
+                </p>
+              </div>
+              <button
+                onClick={() => setStep('profile')}
+                className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </button>
+            </div>
+
+            {/* Prompts by Category */}
+            {['recommendation', 'comparison', 'purchase', 'reputation', 'feature', 'custom'].map(category => {
+              const categoryPrompts = selectedPrompts.filter(p => p.category === category)
+              if (categoryPrompts.length === 0) return null
+              
+              return (
+                <div key={category} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(category)}`}>
+                      {getCategoryLabel(category)}
+                    </span>
+                    <span className="text-sm font-normal text-slate-400">
+                      ({categoryPrompts.filter(p => p.selected).length}/{categoryPrompts.length})
+                    </span>
+                  </h3>
+                  <div className="space-y-2">
+                    {categoryPrompts.map((prompt, idx) => {
+                      const globalIdx = selectedPrompts.findIndex(p => p.prompt === prompt.prompt)
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex items-center gap-3 p-3 rounded-xl border transition cursor-pointer
+                            ${prompt.selected 
+                              ? 'bg-purple-50 border-purple-200' 
+                              : 'bg-slate-50 border-slate-200 opacity-60'}`}
+                          onClick={() => togglePrompt(globalIdx)}
+                        >
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center
+                            ${prompt.selected 
+                              ? 'bg-purple-600 border-purple-600' 
+                              : 'border-slate-300'}`}>
+                            {prompt.selected && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <span className="flex-1 text-slate-700">{prompt.prompt}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              removePrompt(globalIdx)
+                            }}
+                            className="p-1 text-slate-400 hover:text-red-500"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Add Custom Prompt */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+              <h3 className="font-semibold text-slate-900 mb-4">Add Custom Prompt</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="Enter a custom question to test..."
+                  className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500"
+                  onKeyDown={(e) => e.key === 'Enter' && addCustomPrompt()}
+                />
                 <button
-                  onClick={addCompetitor}
-                  className="px-3 py-2 border border-dashed border-cream-400 rounded-lg text-ink-500 hover:border-purple-500 hover:text-purple-500 text-sm"
+                  onClick={addCustomPrompt}
+                  disabled={!customPrompt.trim()}
+                  className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 disabled:opacity-50"
                 >
-                  + Add
+                  <Plus className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Multi-Model Results */}
-            {multiModelResult && (
-              <div className="mt-8 border-t border-cream-200 pt-6">
-                {/* Summary Card */}
-                <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-display text-xl font-bold text-ink-900">
-                      Results: "{multiModelResult.prompt}"
-                    </h3>
-                    <div className={`text-3xl font-bold ${
-                      multiModelResult.mention_rate >= 50 ? 'text-green-600' :
-                      multiModelResult.mention_rate >= 20 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {multiModelResult.mention_rate.toFixed(0)}%
-                    </div>
-                  </div>
-                  <p className="text-ink-600">
-                    <strong>{multiModelResult.brand}</strong> mentioned in{' '}
-                    <strong>{multiModelResult.models_mentioning}</strong> of{' '}
-                    <strong>{multiModelResult.models_tested}</strong> AI models
+            {/* Test Info & Button */}
+            <div className="bg-purple-50 rounded-2xl p-6 border border-purple-100">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-semibold text-purple-900">Ready to test</p>
+                  <p className="text-sm text-purple-700">
+                    {selectedPrompts.filter(p => p.selected).length} prompts × 6 AI models = {' '}
+                    <strong>{selectedPrompts.filter(p => p.selected).length * 6} tests</strong>
                   </p>
                 </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">🤖</span>
+                  <span className="text-2xl">🧠</span>
+                  <span className="text-2xl">💎</span>
+                </div>
+              </div>
+              <button
+                onClick={runTests}
+                disabled={selectedPrompts.filter(p => p.selected).length === 0}
+                className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 disabled:from-slate-300 disabled:to-slate-400 flex items-center justify-center gap-3 shadow-lg"
+              >
+                <Sparkles className="w-5 h-5" />
+                Run Visibility Test
+              </button>
+            </div>
+          </div>
+        )}
 
-                {/* Model Grid */}
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {multiModelResult.results.map((result, i) => (
+        {/* ================================================================= */}
+        {/* STEP 4: RESULTS */}
+        {/* ================================================================= */}
+        {step === 'results' && profile && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Visibility Results</h2>
+                <p className="text-slate-500">
+                  {testing 
+                    ? `Testing prompt ${testProgress.current} of ${testProgress.total}...`
+                    : `${testResults.length} prompts tested across 6 AI models`
+                  }
+                </p>
+              </div>
+              {!testing && (
+                <button
+                  onClick={() => setStep('prompts')}
+                  className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Test Again
+                </button>
+              )}
+            </div>
+
+            {/* Progress during testing */}
+            {testing && (
+              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+                <div className="flex items-center justify-center gap-4 mb-6">
+                  <Loader className="w-8 h-8 text-purple-600 animate-spin" />
+                  <div>
+                    <p className="font-semibold text-slate-900">Testing your visibility...</p>
+                    <p className="text-sm text-slate-500">
+                      Prompt {testProgress.current} of {testProgress.total}
+                    </p>
+                  </div>
+                </div>
+                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-purple-500 rounded-full transition-all duration-500"
+                    style={{ width: `${(testProgress.current / testProgress.total) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Overall Score */}
+            {!testing && testResults.length > 0 && (
+              <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-8 text-white">
+                <div className="text-center">
+                  <p className="text-purple-200 mb-2">Overall Visibility Score</p>
+                  <div className={`text-6xl font-bold mb-2 ${
+                    getOverallScore() >= 50 ? 'text-green-300' :
+                    getOverallScore() >= 20 ? 'text-yellow-300' : 'text-red-300'
+                  }`}>
+                    {getOverallScore()}%
+                  </div>
+                  <p className="text-purple-200">
+                    {profile.brand_name} mentioned in {' '}
+                    {testResults.reduce((acc, r) => acc + r.results.models_mentioning, 0)} of {' '}
+                    {testResults.reduce((acc, r) => acc + r.results.models_tested, 0)} AI responses
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Results by Prompt */}
+            {testResults.map((result, idx) => (
+              <div key={idx} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(result.category)}`}>
+                        {result.category}
+                      </span>
+                    </div>
+                    <p className="font-medium text-slate-900">{result.prompt}</p>
+                  </div>
+                  <div className={`text-2xl font-bold ${
+                    result.results.mention_rate >= 50 ? 'text-green-600' :
+                    result.results.mention_rate >= 20 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {result.results.mention_rate.toFixed(0)}%
+                  </div>
+                </div>
+                
+                {/* Model Results Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {result.results.results.map((modelResult, mIdx) => (
                     <div
-                      key={i}
-                      className={`rounded-xl border-2 p-4 transition cursor-pointer ${
-                        result.brand_mentioned 
-                          ? 'border-green-300 bg-green-50' 
-                          : 'border-red-200 bg-red-50'
-                      } ${expandedModel === result.model_id ? 'ring-2 ring-purple-500' : ''}`}
+                      key={mIdx}
+                      className={`p-3 rounded-xl border cursor-pointer transition
+                        ${modelResult.brand_mentioned 
+                          ? 'bg-green-50 border-green-200' 
+                          : 'bg-red-50 border-red-200'}
+                        ${expandedModel === `${idx}-${mIdx}` ? 'ring-2 ring-purple-500' : ''}`}
                       onClick={() => setExpandedModel(
-                        expandedModel === result.model_id ? null : result.model_id
+                        expandedModel === `${idx}-${mIdx}` ? null : `${idx}-${mIdx}`
                       )}
                     >
-                      {/* Model Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{result.icon}</span>
-                          <div>
-                            <div className="font-semibold text-ink-900">{result.model_name}</div>
-                            <div className={`text-xs px-2 py-0.5 rounded-full inline-block ${getProviderColor(result.provider)} text-white`}>
-                              {result.provider}
-                            </div>
-                          </div>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-lg">{modelResult.icon}</span>
+                          <span className="font-medium text-sm text-slate-700">
+                            {modelResult.model_name}
+                          </span>
                         </div>
-                        {result.brand_mentioned ? (
-                          <CheckCircle className="w-6 h-6 text-green-600" />
+                        {modelResult.brand_mentioned ? (
+                          <CheckCircle className="w-4 h-4 text-green-600" />
                         ) : (
-                          <XCircle className="w-6 h-6 text-red-500" />
+                          <XCircle className="w-4 h-4 text-red-500" />
                         )}
                       </div>
-
-                      {/* Status */}
-                      <div className={`text-sm font-medium mb-2 ${
-                        result.brand_mentioned ? 'text-green-700' : 'text-red-600'
+                      <p className={`text-xs ${
+                        modelResult.brand_mentioned ? 'text-green-700' : 'text-red-600'
                       }`}>
-                        {result.brand_mentioned 
-                          ? `✓ Mentioned${result.position ? ` (Position #${result.position})` : ''}`
-                          : '✗ Not mentioned'
+                        {modelResult.brand_mentioned 
+                          ? `Mentioned${modelResult.position ? ` #${modelResult.position}` : ''}`
+                          : 'Not mentioned'
                         }
-                      </div>
-
-                      {/* Competitors */}
-                      {result.competitors_mentioned.length > 0 && (
-                        <div className="text-xs text-ink-500">
-                          Competitors: {result.competitors_mentioned.join(', ')}
-                        </div>
-                      )}
-
+                      </p>
+                      
                       {/* Expanded Response */}
-                      {expandedModel === result.model_id && (
-                        <div className="mt-3 pt-3 border-t border-cream-300">
-                          <div className="text-xs text-ink-400 mb-1">AI Response:</div>
-                          <p className="text-sm text-ink-600 leading-relaxed">
-                            {result.response_preview}
+                      {expandedModel === `${idx}-${mIdx}` && (
+                        <div className="mt-3 pt-3 border-t border-slate-200">
+                          <p className="text-xs text-slate-600 leading-relaxed">
+                            {modelResult.response_preview}
                           </p>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
-
-                {/* Provider Summary */}
-                <div className="mt-6 grid grid-cols-3 gap-4">
-                  {Object.entries(multiModelResult.summary.by_provider || {}).map(([provider, stats]: [string, any]) => (
-                    <div key={provider} className={`rounded-xl p-4 border ${getProviderBgColor(provider)}`}>
-                      <div className="font-semibold text-ink-900 capitalize mb-1">{provider}</div>
-                      <div className="text-2xl font-bold">
-                        {stats.mentioned}/{stats.tested}
-                      </div>
-                      <div className="text-xs text-ink-500">models mention you</div>
-                    </div>
-                  ))}
-                </div>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Single Prompt Mode */}
-        {mode === 'single' && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h2 className="font-display text-xl font-bold mb-4 text-ink-900 flex items-center gap-2">
-              <Search className="w-5 h-5 text-purple-500" />
-              Test a Prompt
-            </h2>
-            <p className="text-ink-500 mb-4">
-              Enter a question your customers might ask AI - we'll check if your brand appears
-            </p>
-            
-            <div className="flex gap-4 mb-6">
-              <input
-                type="text"
-                value={singlePrompt}
-                onChange={(e) => setSinglePrompt(e.target.value)}
-                placeholder="e.g., What are the best jewelry brands for engagement rings?"
-                className="flex-1 px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <button
-                onClick={testSinglePrompt}
-                disabled={!brand || !singlePrompt || loading}
-                className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                Test
-              </button>
-            </div>
-
-            {/* Competitors for single test */}
-            <div className="border-t border-cream-200 pt-4">
-              <h3 className="font-semibold text-ink-700 mb-3">Track Competitors (optional)</h3>
-              <div className="flex flex-wrap gap-2">
-                {competitors.map((comp, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={comp}
-                      onChange={(e) => updateCompetitor(i, e.target.value)}
-                      placeholder="Competitor name"
-                      className="px-3 py-2 border border-cream-300 rounded-lg text-sm w-40"
-                    />
-                    {competitors.length > 1 && (
-                      <button onClick={() => removeCompetitor(i)} className="text-red-500 hover:text-red-700">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  onClick={addCompetitor}
-                  className="px-3 py-2 border border-dashed border-cream-400 rounded-lg text-ink-500 hover:border-purple-500 hover:text-purple-500 text-sm"
-                >
-                  + Add
-                </button>
-              </div>
-            </div>
-
-            {/* Single Result */}
-            {singleResult && (
-              <div className="mt-8 border-t border-cream-200 pt-6">
-                <div className="flex items-center gap-4 mb-4">
-                  {singleResult.brand_mentioned ? (
-                    <div className="flex items-center gap-2 text-green-600 bg-green-100 px-4 py-2 rounded-full">
-                      <CheckCircle className="w-5 h-5" />
-                      <span className="font-semibold">You're mentioned!</span>
-                      {singleResult.position && (
-                        <span className="text-sm">Position #{singleResult.position}</span>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-red-600 bg-red-100 px-4 py-2 rounded-full">
-                      <XCircle className="w-5 h-5" />
-                      <span className="font-semibold">Not mentioned</span>
-                    </div>
-                  )}
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getSentimentColor(singleResult.sentiment)}`}>
-                    {singleResult.sentiment}
-                  </span>
-                </div>
-
-                {singleResult.competitors_mentioned.length > 0 && (
-                  <div className="mb-4">
-                    <span className="text-ink-500 text-sm">Competitors mentioned: </span>
-                    <span className="font-medium">
-                      {singleResult.competitors_mentioned.join(', ')}
-                    </span>
-                  </div>
-                )}
-
-                <div className="bg-cream-50 rounded-xl p-4">
-                  <h4 className="font-semibold text-ink-700 mb-2">AI Response:</h4>
-                  <p className="text-ink-600 text-sm leading-relaxed whitespace-pre-wrap">
-                    {singleResult.response}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Bulk Mode */}
-        {mode === 'bulk' && (
-          <>
-            {/* Industry Selection */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-              <h2 className="font-display text-xl font-bold mb-4 text-ink-900">
-                Industry
-              </h2>
-              <select
-                value={industry}
-                onChange={(e) => setIndustry(e.target.value)}
-                className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="jewelry">Jewelry</option>
-                <option value="saas">SaaS / Software</option>
-                <option value="ecommerce">E-commerce</option>
-                <option value="default">Other</option>
-              </select>
-              <p className="text-ink-400 text-sm mt-2">
-                We'll use industry-specific prompts if you don't add your own
-              </p>
-            </div>
-
-            {/* Custom Prompts */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-              <h2 className="font-display text-xl font-bold mb-4 text-ink-900 flex items-center gap-2">
-                <Search className="w-5 h-5 text-purple-500" />
-                Custom Prompts (optional)
-              </h2>
-              <p className="text-ink-500 mb-4">
-                Add questions your customers ask AI. Leave empty to use industry defaults.
-              </p>
-              
-              <div className="space-y-3">
-                {prompts.map((prompt, i) => (
-                  <div key={i} className="flex gap-3">
-                    <input
-                      type="text"
-                      value={prompt}
-                      onChange={(e) => updatePrompt(i, e.target.value)}
-                      placeholder={`e.g., Best ${industry} brands for beginners`}
-                      className="flex-1 px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-purple-500"
-                    />
-                    {prompts.length > 1 && (
-                      <button
-                        onClick={() => removePrompt(i)}
-                        className="px-3 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              <button
-                onClick={addPrompt}
-                className="mt-4 w-full py-3 border-2 border-dashed border-cream-400 rounded-lg text-ink-500 hover:border-purple-500 hover:text-purple-500 transition flex items-center justify-center gap-2"
-              >
-                <Plus className="w-5 h-5" />
-                Add Another Prompt
-              </button>
-            </div>
-
-            {/* Competitors */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-              <h2 className="font-display text-xl font-bold mb-4 text-ink-900 flex items-center gap-2">
-                <Users className="w-5 h-5 text-purple-500" />
-                Competitors to Track
-              </h2>
-              
-              <div className="space-y-3">
-                {competitors.map((comp, i) => (
-                  <div key={i} className="flex gap-3">
-                    <input
-                      type="text"
-                      value={comp}
-                      onChange={(e) => updateCompetitor(i, e.target.value)}
-                      placeholder="Competitor brand name"
-                      className="flex-1 px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-purple-500"
-                    />
-                    {competitors.length > 1 && (
-                      <button
-                        onClick={() => removeCompetitor(i)}
-                        className="px-3 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              <button
-                onClick={addCompetitor}
-                className="mt-4 w-full py-3 border-2 border-dashed border-cream-400 rounded-lg text-ink-500 hover:border-purple-500 hover:text-purple-500 transition flex items-center justify-center gap-2"
-              >
-                <Plus className="w-5 h-5" />
-                Add Competitor
-              </button>
-            </div>
-
-            {/* Run Button */}
-            <button
-              onClick={runFullCheck}
-              disabled={!brand || loading}
-              className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg"
-            >
-              {loading ? (
-                <>
-                  <Loader className="w-6 h-6 animate-spin" />
-                  Analyzing AI Responses...
-                </>
-              ) : (
-                <>
-                  <TrendingUp className="w-6 h-6" />
-                  Run Visibility Check
-                </>
-              )}
-            </button>
-
-            {/* Report Results */}
-            {report && (
-              <div className="mt-12 space-y-8">
-                {/* Score Card */}
-                <div className="bg-white rounded-2xl shadow-lg p-10 text-center">
-                  <h2 className="font-display text-2xl font-bold mb-6 text-ink-900">
-                    Your AI Visibility Score
-                  </h2>
-                  <div className={`font-display text-8xl font-bold mb-4 ${getScoreColor(report.visibility_score)}`}>
-                    {report.visibility_score}
-                  </div>
-                  <p className="text-ink-500 mb-4">
-                    You appeared in {report.times_mentioned} of {report.prompts_tested} prompts tested
-                  </p>
-                  {report.average_position !== 'Not ranked' && (
-                    <p className="text-ink-600">
-                      Average position when mentioned: <strong>#{report.average_position}</strong>
-                    </p>
-                  )}
-                </div>
-
-                {/* Competitor Comparison */}
-                {report.full_report.top_competitors.length > 0 && (
-                  <div className="bg-white rounded-2xl shadow-lg p-8">
-                    <h3 className="font-display text-xl font-bold mb-6 text-ink-900 flex items-center gap-2">
-                      <Users className="w-5 h-5 text-purple-500" />
-                      Competitor Visibility
-                    </h3>
-                    <div className="space-y-4">
-                      {/* Your brand */}
-                      <div className="flex items-center gap-4">
-                        <div className="w-32 font-semibold text-ink-900">{report.brand}</div>
-                        <div className="flex-1 bg-cream-100 rounded-full h-8 overflow-hidden">
-                          <div 
-                            className="h-full bg-purple-500 rounded-full flex items-center justify-end pr-3"
-                            style={{ width: report.visibility_score }}
-                          >
-                            <span className="text-white text-sm font-semibold">{report.visibility_score}</span>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Competitors */}
-                      {report.full_report.top_competitors.map((comp, i) => (
-                        <div key={i} className="flex items-center gap-4">
-                          <div className="w-32 font-medium text-ink-600">{comp.name}</div>
-                          <div className="flex-1 bg-cream-100 rounded-full h-8 overflow-hidden">
-                            <div 
-                              className="h-full bg-gray-400 rounded-full flex items-center justify-end pr-3"
-                              style={{ width: `${comp.rate}%` }}
-                            >
-                              <span className="text-white text-sm font-semibold">{comp.rate.toFixed(0)}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Recommendations */}
-                {report.recommendations.length > 0 && (
-                  <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-8 text-white">
-                    <h3 className="font-display text-xl font-bold mb-4">
-                      💡 Recommendations
-                    </h3>
-                    <ul className="space-y-3">
-                      {report.recommendations.map((rec, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <span className="text-purple-200">→</span>
-                          <span>{rec}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Example Prompts */}
-        <div className="mt-12 bg-cream-100 rounded-2xl p-8">
-          <h3 className="font-display text-lg font-bold mb-4 text-ink-900">
-            💡 Example Prompts to Test
-          </h3>
-          <div className="grid md:grid-cols-2 gap-3">
-            {[
-              "What are the best jewelry brands?",
-              "Best engagement ring brands 2025",
-              "Where to buy lab-grown diamonds?",
-              "Top sustainable jewelry brands",
-              "Best jewelry for gifts under €500",
-              "Luxury jewelry brands in Europe"
-            ].map((example, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  setMode('single')
-                  setSinglePrompt(example)
-                }}
-                className="text-left px-4 py-3 bg-white rounded-lg text-ink-600 hover:bg-purple-50 hover:text-purple-700 transition border border-cream-200"
-              >
-                "{example}"
-              </button>
             ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
 }
-

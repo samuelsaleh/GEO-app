@@ -110,10 +110,10 @@ export default function HealthCheck() {
             <Search className="w-7 h-7 text-claude-500" />
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-light mb-6 text-ink-900 tracking-wide">
-            AI Website Audit
+            GEO Audit
           </h1>
           <p className="text-lg text-ink-500 max-w-2xl mx-auto font-light leading-relaxed">
-            Discover how visible your content is to AI engines like ChatGPT and Bing Chat
+            Discover how visible your content is to AI engines with our proprietary GEO scoring
           </p>
         </div>
 

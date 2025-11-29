@@ -79,7 +79,7 @@ export default function PricingPage() {
   const faqs = [
     {
       question: "What do I actually get?",
-      answer: "Two tools: AI Website Audit (scans your site for AI visibility issues) and Schema Generator (creates structured data markup). Free plan has limits, paid plans are unlimited."
+      answer: "Two tools: GEO Audit (scans your site for AI visibility issues) and Schema Generator (creates structured data markup). Free plan has limits, paid plans are unlimited."
     },
     {
       question: "Why is this so cheap compared to competitors?",
@@ -87,7 +87,7 @@ export default function PricingPage() {
     },
     {
       question: "Can I try before I buy?",
-      answer: "Absolutely. The free plan gives you 3 website audits and 5 schema generations per month, forever. No credit card required. Upgrade only if you need more."
+      answer: "Absolutely. The free plan gives you 3 GEO Audits and 5 schema generations per month, forever. No credit card required. Upgrade only if you need more."
     },
     {
       question: "How does the 30% Black Friday discount work?",
@@ -178,7 +178,7 @@ export default function PricingPage() {
               <ul className="space-y-4 text-sm flex-1">
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">3 AI Website Audits per month</span>
+                  <span className="text-ink-700">3 GEO Audits per month</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
@@ -220,7 +220,7 @@ export default function PricingPage() {
               <ul className="space-y-4 text-sm flex-1">
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">Unlimited AI Website Audits</span>
+                  <span className="text-ink-700">Unlimited GEO Audits</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
@@ -339,7 +339,7 @@ export default function PricingPage() {
               </thead>
               <tbody className="divide-y divide-cream-200">
                 <tr>
-                  <td className="p-4 text-ink-700">GEO Health Checks</td>
+                  <td className="p-4 text-ink-700">GEO Audits</td>
                   <td className="p-4 text-center text-ink-600">3/month</td>
                   <td className="p-4 text-center text-ink-900 font-medium">Unlimited</td>
                   <td className="p-4 text-center text-ink-600">Unlimited</td>
@@ -406,7 +406,7 @@ export default function PricingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="font-display text-2xl mb-4 text-ink-900">GEO Health Check</h3>
+              <h3 className="font-display text-2xl mb-4 text-ink-900">GEO Audit</h3>
               <p className="text-ink-600 leading-relaxed">
                 Get a complete analysis of your website's AI visibility. See how well AI systems can understand your content, find issues, and get actionable recommendations to improve.
               </p>
@@ -455,7 +455,7 @@ export default function PricingPage() {
             href="/tools/health-check"
             className="inline-block bg-claude-500 text-white px-12 py-4 hover:bg-claude-600 transition text-sm tracking-wider uppercase font-medium"
           >
-            Run Free Health Check
+            Run Free GEO Audit
           </Link>
         </div>
       </section>

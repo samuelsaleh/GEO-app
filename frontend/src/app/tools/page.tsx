@@ -61,10 +61,10 @@ export default function ToolsPage() {
               <Search className="w-7 h-7 text-ink-400" />
             </div>
             <h2 className="font-display text-2xl font-light mb-4 text-ink-900 tracking-wide">
-              AI Website Audit
+              GEO Audit
             </h2>
             <p className="text-ink-500 mb-6 leading-relaxed font-light">
-              Get a comprehensive score showing how well your content performs in ChatGPT, Bing Chat, and Google Gemini.
+              Get a comprehensive GEO score showing how well your content performs in AI engines.
             </p>
             <Link 
               href="/pricing"

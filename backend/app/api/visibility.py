@@ -11,11 +11,20 @@ import logging
 
 from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult, MultiModelResult, AI_MODELS
 from app.services.speed_test import speed_test_service
+from app.services.brand_analyzer import brand_analyzer
 from app.services.website_analyzer import website_analyzer
 from app.models.speed_test import (
     ScoreRequest, ScoreResponse, 
     AnalyzeSiteRequest, AnalyzeSiteResponse,
     BrandContext
+)
+from app.models.brand_profile import (
+    BrandProfile,
+    BrandAnalysisRequest,
+    BrandAnalysisResponse,
+    PromptWithCategory,
+    TopicCluster,
+    CompetitorInfo
 )
 
 router = APIRouter()
@@ -123,6 +132,68 @@ async def analyze_website(request: AnalyzeSiteRequest):
     except Exception as e:
         logger.error(f"Website analysis error: {e}")
         return AnalyzeSiteResponse(
+            success=False,
+            error=str(e)
+        )
+
+
+# =============================================================================
+# SMART BRAND ANALYSIS - Peec AI-style intelligent analysis
+# =============================================================================
+
+@router.post("/analyze-brand", response_model=BrandAnalysisResponse)
+async def analyze_brand_smart(request: BrandAnalysisRequest):
+    """
+    🧠 SMART BRAND ANALYSIS - Peec AI-style intelligent website analysis
+    
+    Analyzes website and generates:
+    - Industry/category detection
+    - Products/services extraction
+    - Competitor auto-detection
+    - Smart prompt generation with categories
+    - Topic clustering for organized display
+    
+    This powers the multi-step visibility wizard.
+    
+    Example:
+    ```json
+    {
+        "brand_name": "Love Lab",
+        "website_url": "https://love-lab.com",
+        "industry_hint": "jewelry",
+        "known_competitors": ["Kimai", "Vrai"]
+    }
+    ```
+    
+    Returns:
+    - profile: Complete brand profile (industry, products, USP, audience)
+    - suggested_prompts: 10 AI-generated prompts with categories
+    - topic_clusters: Prompts organized by topic (Recommendations, Comparisons, etc.)
+    - detected_competitors: Auto-detected + user-provided competitors
+    """
+    try:
+        logger.info(f"Smart brand analysis for {request.brand_name}: {request.website_url}")
+        
+        profile = await brand_analyzer.analyze_brand(
+            website_url=request.website_url,
+            brand_name=request.brand_name,
+            industry_hint=request.industry_hint,
+            known_competitors=request.known_competitors
+        )
+        
+        logger.info(f"Analysis complete: {profile.industry}, {len(profile.suggested_prompts)} prompts")
+        
+        return BrandAnalysisResponse(
+            success=True,
+            profile=profile,
+            suggested_prompts=profile.suggested_prompts,
+            topic_clusters=profile.topic_clusters,
+            detected_competitors=profile.competitors
+        )
+        
+    except Exception as e:
+        logger.error(f"Smart brand analysis error: {e}")
+        return BrandAnalysisResponse(
             success=False,
             error=str(e)
         )

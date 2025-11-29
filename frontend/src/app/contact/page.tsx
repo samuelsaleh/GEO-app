@@ -128,7 +128,7 @@ export default function ContactPage() {
                   onChange={handleChange}
                   className="w-full px-5 py-4 border border-cream-300 focus:border-claude-500 bg-white font-light"
                 >
-                  <option value="health-check">AI Visibility Health-Check</option>
+                  <option value="health-check">GEO Audit</option>
                   <option value="schema">Schema & Labels Fix-Up</option>
                   <option value="alerts">24/7 AI Mention Alerts</option>
                   <option value="custom">Custom/Enterprise Solution</option>
@@ -186,7 +186,7 @@ export default function ContactPage() {
                   href="/tools/health-check"
                   className="block p-5 border border-claude-100 hover:border-claude-300 transition"
                 >
-                  <div className="font-light text-ink-900">Try Free Health Check</div>
+                  <div className="font-light text-ink-900">Try Free GEO Audit</div>
                   <div className="text-sm text-ink-400 font-light mt-1">Get your AI visibility score</div>
                 </Link>
                 <Link

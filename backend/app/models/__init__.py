@@ -12,8 +12,6 @@ from app.models.speed_test import (
     CompetitorInfo,
     ModelBreakdown,
     PromptCategory,
-    get_category_config,
-    CATEGORY_CONFIG,
 )
 
 __all__ = [
@@ -24,7 +22,5 @@ __all__ = [
     "CompetitorInfo",
     "ModelBreakdown",
     "PromptCategory",
-    "get_category_config",
-    "CATEGORY_CONFIG",
 ]
 
