@@ -1021,9 +1021,10 @@ export default function AIVisibilityTool() {
                           >
                             <XCircle className="w-4 h-4" />
                           </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 
                 <p className="text-xs text-slate-500 bg-purple-50 p-2 rounded-lg">
