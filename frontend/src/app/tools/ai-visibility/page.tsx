@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { 
-  Search, ArrowLeft, ArrowRight, Loader, CheckCircle, XCircle, 
-  Sparkles, TrendingUp, Users, Plus, Trash2, Eye, Globe, 
-  Building2, Target, Edit2, Check, RefreshCw
+  ArrowLeft, ArrowRight, Loader, CheckCircle, XCircle, 
+  Sparkles, TrendingUp, Plus, Trash2, Eye, Globe, 
+  Building2, Target, Edit2, Check, RefreshCw, Lock,
+  Lightbulb, AlertTriangle, Award, BarChart3, Mail
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -18,19 +19,6 @@ interface CompetitorInfo {
   auto_detected: boolean
 }
 
-interface PromptWithCategory {
-  prompt: string
-  category: string
-  topic_cluster?: string
-  selected: boolean
-}
-
-interface TopicCluster {
-  name: string
-  category: string
-  prompts: PromptWithCategory[]
-}
-
 interface BrandProfile {
   brand_name: string
   website_url: string
@@ -39,8 +27,6 @@ interface BrandProfile {
   value_proposition: string
   target_audience: string
   competitors: CompetitorInfo[]
-  suggested_prompts: PromptWithCategory[]
-  topic_clusters: TopicCluster[]
 }
 
 interface ModelResult {
@@ -66,22 +52,69 @@ interface MultiModelResponse {
   summary: any
 }
 
-interface TestResult {
-  prompt: string
+interface CategoryResult {
   category: string
-  results: MultiModelResponse
+  categoryLabel: string
+  prompt: string
+  score: number
+  results: ModelResult[]
+  insight: string
+  status: 'strong' | 'moderate' | 'weak'
 }
+
+// =============================================================================
+// FIXED CATEGORIES (5 required + 2 custom)
+// =============================================================================
+
+const FIXED_CATEGORIES = [
+  {
+    id: 'recommendation',
+    label: '🎯 Recommendation',
+    description: 'When users ask AI for advice',
+    template: 'What {category} do you recommend?',
+    example: 'What ticket resale platform do you recommend?'
+  },
+  {
+    id: 'best_of',
+    label: '🏆 Best Of',
+    description: 'When users search for the best option',
+    template: 'What is the best {category} for {use_case}?',
+    example: 'What is the best site to buy concert tickets?'
+  },
+  {
+    id: 'comparison',
+    label: '⚖️ Comparison',
+    description: 'When users compare options',
+    template: 'Compare different {category} options',
+    example: 'Compare ticket resale websites'
+  },
+  {
+    id: 'problem_solution',
+    label: '🔧 Problem/Solution',
+    description: 'When users need to solve a problem',
+    template: 'How can I {solve_problem}?',
+    example: 'How can I find last-minute concert tickets?'
+  },
+  {
+    id: 'alternative',
+    label: '🔄 Alternative',
+    description: 'When users look for alternatives',
+    template: 'What are alternatives to {competitor}?',
+    example: 'What are alternatives to StubHub?'
+  }
+]
 
 // =============================================================================
 // WIZARD STEPS
 // =============================================================================
 
-type WizardStep = 'input' | 'profile' | 'prompts' | 'results'
+type WizardStep = 'input' | 'profile' | 'prompts' | 'testing' | 'results'
 
 const STEP_INFO = {
   input: { number: 1, title: 'Brand Info', icon: Globe },
   profile: { number: 2, title: 'Review Profile', icon: Building2 },
   prompts: { number: 3, title: 'Select Prompts', icon: Target },
+  testing: { number: 4, title: 'Testing', icon: Loader },
   results: { number: 4, title: 'Results', icon: TrendingUp }
 }
 
@@ -96,6 +129,7 @@ export default function AIVisibilityTool() {
   // Step 1: Input
   const [brandName, setBrandName] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
+  const [email, setEmail] = useState('')
   const [analyzing, setAnalyzing] = useState(false)
   const [analyzeError, setAnalyzeError] = useState<string | null>(null)
   
@@ -104,15 +138,16 @@ export default function AIVisibilityTool() {
   const [editingIndustry, setEditingIndustry] = useState(false)
   const [tempIndustry, setTempIndustry] = useState('')
   
-  // Step 3: Prompts
-  const [selectedPrompts, setSelectedPrompts] = useState<PromptWithCategory[]>([])
-  const [customPrompt, setCustomPrompt] = useState('')
+  // Step 3: Prompts (5 fixed + 2 custom)
+  const [categoryPrompts, setCategoryPrompts] = useState<Record<string, string>>({})
+  const [customPrompt1, setCustomPrompt1] = useState('')
+  const [customPrompt2, setCustomPrompt2] = useState('')
   
   // Step 4: Results
   const [testing, setTesting] = useState(false)
-  const [testProgress, setTestProgress] = useState({ current: 0, total: 0 })
-  const [testResults, setTestResults] = useState<TestResult[]>([])
-  const [expandedModel, setExpandedModel] = useState<string | null>(null)
+  const [testProgress, setTestProgress] = useState({ current: 0, total: 5 })
+  const [categoryResults, setCategoryResults] = useState<CategoryResult[]>([])
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
   // =============================================================================
   // STEP 1: Analyze Brand
@@ -140,10 +175,8 @@ export default function AIVisibilityTool() {
       
       if (data.success && data.profile) {
         setProfile(data.profile)
-        setSelectedPrompts(data.profile.suggested_prompts.map((p: PromptWithCategory) => ({
-          ...p,
-          selected: true
-        })))
+        // Generate default prompts based on profile
+        generateDefaultPrompts(data.profile)
         setStep('profile')
       } else {
         setAnalyzeError(data.error || 'Failed to analyze website')
@@ -155,6 +188,19 @@ export default function AIVisibilityTool() {
       setAnalyzing(false)
     }
   }
+  
+  const generateDefaultPrompts = (profile: BrandProfile) => {
+    const category = profile.industry || 'this product'
+    const competitor = profile.competitors?.[0]?.name || 'the market leader'
+    
+    setCategoryPrompts({
+      recommendation: `What ${category} do you recommend?`,
+      best_of: `What is the best ${category}?`,
+      comparison: `Compare different ${category} options`,
+      problem_solution: `How do I find the best ${category}?`,
+      alternative: `What are alternatives to ${competitor}?`
+    })
+  }
 
   // =============================================================================
   // STEP 2: Profile Editing
@@ -163,6 +209,8 @@ export default function AIVisibilityTool() {
   const updateIndustry = () => {
     if (profile && tempIndustry) {
       setProfile({ ...profile, industry: tempIndustry })
+      // Regenerate prompts with new industry
+      generateDefaultPrompts({ ...profile, industry: tempIndustry })
     }
     setEditingIndustry(false)
   }
@@ -190,120 +238,194 @@ export default function AIVisibilityTool() {
   }
 
   // =============================================================================
-  // STEP 3: Prompt Selection
-  // =============================================================================
-  
-  const togglePrompt = (index: number) => {
-    setSelectedPrompts(prev => prev.map((p, i) => 
-      i === index ? { ...p, selected: !p.selected } : p
-    ))
-  }
-  
-  const addCustomPrompt = () => {
-    if (customPrompt.trim()) {
-      setSelectedPrompts(prev => [...prev, {
-        prompt: customPrompt.trim(),
-        category: 'custom',
-        selected: true
-      }])
-      setCustomPrompt('')
-    }
-  }
-  
-  const removePrompt = (index: number) => {
-    setSelectedPrompts(prev => prev.filter((_, i) => i !== index))
-  }
-
-  // =============================================================================
-  // STEP 4: Run Tests
+  // STEP 4: Run Tests (2 models only for free tier)
   // =============================================================================
   
   const runTests = async () => {
     if (!profile) return
     
-    const promptsToTest = selectedPrompts.filter(p => p.selected)
-    if (promptsToTest.length === 0) return
-    
     setTesting(true)
-    setTestProgress({ current: 0, total: promptsToTest.length })
-    setTestResults([])
-    setStep('results')
+    setTestProgress({ current: 0, total: 5 })
+    setCategoryResults([])
+    setStep('testing')
     
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
     const competitorNames = profile.competitors.map(c => c.name)
+    const results: CategoryResult[] = []
     
-    for (let i = 0; i < promptsToTest.length; i++) {
-      const prompt = promptsToTest[i]
-      setTestProgress({ current: i + 1, total: promptsToTest.length })
+    // Test each of the 5 fixed categories
+    for (let i = 0; i < FIXED_CATEGORIES.length; i++) {
+      const category = FIXED_CATEGORIES[i]
+      const prompt = categoryPrompts[category.id] || category.template
+      
+      setTestProgress({ current: i + 1, total: 5 })
       
       try {
         const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            prompt: prompt.prompt,
+            prompt: prompt,
             brand: profile.brand_name,
-            competitors: competitorNames
+            competitors: competitorNames,
+            models: ['gpt-4o', 'claude-sonnet'] // Only 2 models for free tier
           })
         })
         
-        const data = await response.json()
+        const data: MultiModelResponse = await response.json()
         
-        setTestResults(prev => [...prev, {
-          prompt: prompt.prompt,
-          category: prompt.category,
-          results: data
-        }])
+        // Calculate score for this category
+        const score = Math.round(data.mention_rate)
+        const status = score >= 70 ? 'strong' : score >= 40 ? 'moderate' : 'weak'
+        const insight = generateCategoryInsight(category.id, score, profile.brand_name)
+        
+        results.push({
+          category: category.id,
+          categoryLabel: category.label,
+          prompt: prompt,
+          score: score,
+          results: data.results,
+          insight: insight,
+          status: status
+        })
+        
+        setCategoryResults([...results])
       } catch (error) {
-        console.error('Error testing prompt:', error)
+        console.error('Error testing category:', error)
       }
     }
     
     setTesting(false)
+    setStep('results')
+  }
+  
+  const generateCategoryInsight = (category: string, score: number, brandName: string): string => {
+    const insights: Record<string, Record<string, string>> = {
+      recommendation: {
+        strong: `Great! AI actively recommends ${brandName} when users ask for advice.`,
+        moderate: `${brandName} is sometimes recommended, but competitors appear more often.`,
+        weak: `AI rarely recommends ${brandName}. You need more authoritative content.`
+      },
+      best_of: {
+        strong: `Excellent! ${brandName} is recognized as a top option in "best of" searches.`,
+        moderate: `${brandName} appears in some "best of" results but not consistently.`,
+        weak: `${brandName} is missing from "best of" queries. Add comparison content.`
+      },
+      comparison: {
+        strong: `${brandName} is well-represented in comparison queries.`,
+        moderate: `${brandName} appears in some comparisons. Add more vs-competitor content.`,
+        weak: `${brandName} is absent from comparisons. Create detailed comparison pages.`
+      },
+      problem_solution: {
+        strong: `AI connects ${brandName} with solving user problems effectively.`,
+        moderate: `${brandName} is sometimes suggested as a solution.`,
+        weak: `${brandName} isn't associated with problem-solving. Add how-to guides.`
+      },
+      alternative: {
+        strong: `${brandName} is recommended as an alternative to competitors.`,
+        moderate: `${brandName} sometimes appears as an alternative option.`,
+        weak: `${brandName} is not suggested as an alternative. Improve competitive positioning.`
+      }
+    }
+    
+    const statusKey = score >= 70 ? 'strong' : score >= 40 ? 'moderate' : 'weak'
+    return insights[category]?.[statusKey] || `Score: ${score}%`
   }
 
   // =============================================================================
-  // HELPER FUNCTIONS
+  // ANALYSIS HELPERS
   // =============================================================================
   
-  const getProviderColor = (provider: string) => {
-    switch (provider) {
-      case 'openai': return 'bg-green-500'
-      case 'anthropic': return 'bg-orange-500'
-      case 'google': return 'bg-blue-500'
-      default: return 'bg-gray-500'
-    }
-  }
-  
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'recommendation': return 'bg-blue-100 text-blue-700 border-blue-200'
-      case 'comparison': return 'bg-purple-100 text-purple-700 border-purple-200'
-      case 'purchase': return 'bg-green-100 text-green-700 border-green-200'
-      case 'reputation': return 'bg-yellow-100 text-yellow-700 border-yellow-200'
-      case 'feature': return 'bg-pink-100 text-pink-700 border-pink-200'
-      case 'custom': return 'bg-gray-100 text-gray-700 border-gray-200'
-      default: return 'bg-gray-100 text-gray-700 border-gray-200'
-    }
-  }
-  
-  const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      recommendation: '🎯 Recommendations',
-      comparison: '⚖️ Comparisons',
-      purchase: '🛒 Purchase Intent',
-      reputation: '⭐ Reputation',
-      feature: '✨ Features',
-      custom: '📝 Custom'
-    }
-    return labels[category] || category
-  }
-  
   const getOverallScore = () => {
-    if (testResults.length === 0) return 0
-    const totalMentions = testResults.reduce((acc, r) => acc + r.results.models_mentioning, 0)
-    const totalTests = testResults.reduce((acc, r) => acc + r.results.models_tested, 0)
-    return totalTests > 0 ? Math.round((totalMentions / totalTests) * 100) : 0
+    if (categoryResults.length === 0) return 0
+    const total = categoryResults.reduce((acc, r) => acc + r.score, 0)
+    return Math.round(total / categoryResults.length)
+  }
+  
+  const getGrade = (score: number) => {
+    if (score >= 80) return { grade: 'A', label: 'Excellent', color: 'text-green-600' }
+    if (score >= 60) return { grade: 'B', label: 'Good', color: 'text-blue-600' }
+    if (score >= 40) return { grade: 'C', label: 'Average', color: 'text-yellow-600' }
+    if (score >= 20) return { grade: 'D', label: 'Poor', color: 'text-orange-600' }
+    return { grade: 'F', label: 'Invisible', color: 'text-red-600' }
+  }
+  
+  const getStrengths = () => {
+    return categoryResults.filter(r => r.status === 'strong')
+  }
+  
+  const getWeaknesses = () => {
+    return categoryResults.filter(r => r.status === 'weak')
+  }
+  
+  const getRecommendations = () => {
+    const recommendations: string[] = []
+    const weakCategories = getWeaknesses()
+    
+    weakCategories.forEach(cat => {
+      switch (cat.category) {
+        case 'recommendation':
+          recommendations.push('Create expert guides and authoritative content to boost recommendations')
+          break
+        case 'best_of':
+          recommendations.push('Add "Best of" comparison articles and customer testimonials')
+          break
+        case 'comparison':
+          recommendations.push('Create detailed vs-competitor comparison pages')
+          break
+        case 'problem_solution':
+          recommendations.push('Publish how-to guides and problem-solving content')
+          break
+        case 'alternative':
+          recommendations.push('Position yourself explicitly as an alternative in your content')
+          break
+      }
+    })
+    
+    if (recommendations.length === 0) {
+      recommendations.push('Maintain your strong visibility with regular content updates')
+      recommendations.push('Monitor competitor mentions to stay ahead')
+    }
+    
+    return recommendations.slice(0, 3)
+  }
+  
+  const getScoreInterpretation = (score: number) => {
+    if (score >= 80) {
+      return "AI actively recommends your brand. You have strong visibility across most query types."
+    }
+    if (score >= 60) {
+      return "Your brand has good visibility but there are gaps. Focus on weak categories to improve."
+    }
+    if (score >= 40) {
+      return "Your brand is moderately visible. AI mentions you sometimes but competitors may appear more often."
+    }
+    if (score >= 20) {
+      return "Your brand has low visibility. AI rarely mentions you. Significant content improvements needed."
+    }
+    return "Your brand is nearly invisible to AI. Urgent action required to build AI presence."
+  }
+
+  // =============================================================================
+  // RENDER HELPERS
+  // =============================================================================
+  
+  const getCategoryColor = (status: string) => {
+    switch (status) {
+      case 'strong': return 'bg-green-100 border-green-300 text-green-800'
+      case 'moderate': return 'bg-yellow-100 border-yellow-300 text-yellow-800'
+      case 'weak': return 'bg-red-100 border-red-300 text-red-800'
+      default: return 'bg-slate-100 border-slate-300 text-slate-800'
+    }
+  }
+  
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'strong': return <CheckCircle className="w-5 h-5 text-green-600" />
+      case 'moderate': return <AlertTriangle className="w-5 h-5 text-yellow-600" />
+      case 'weak': return <XCircle className="w-5 h-5 text-red-600" />
+      default: return null
+    }
   }
 
   // =============================================================================
@@ -318,15 +440,16 @@ export default function AIVisibilityTool() {
           <div className="flex justify-between items-center h-16">
             <Link href="/tools" className="flex items-center gap-2">
               <ArrowLeft className="w-5 h-5 text-slate-500" />
-              <h1 className="text-xl font-bold text-purple-600">Dwight</h1>
+              <h1 className="text-xl font-bold text-purple-600">Creed</h1>
             </Link>
             
             {/* Step Indicator */}
             <div className="hidden md:flex items-center gap-2">
-              {Object.entries(STEP_INFO).map(([key, info], idx) => {
+              {['input', 'profile', 'prompts', 'results'].map((key, idx) => {
+                const info = STEP_INFO[key as keyof typeof STEP_INFO]
                 const Icon = info.icon
-                const isActive = step === key
-                const isPast = Object.keys(STEP_INFO).indexOf(step) > idx
+                const isActive = step === key || (step === 'testing' && key === 'results')
+                const isPast = ['input', 'profile', 'prompts', 'testing', 'results'].indexOf(step) > idx
                 
                 return (
                   <div key={key} className="flex items-center">
@@ -358,10 +481,10 @@ export default function AIVisibilityTool() {
                 <Eye className="w-8 h-8 text-purple-600" />
               </div>
               <h1 className="text-3xl font-bold text-slate-900 mb-3">
-                AI Visibility Checker
+                AI Visibility Score
               </h1>
               <p className="text-lg text-slate-500 max-w-xl mx-auto">
-                Enter your brand and website - we'll analyze it and generate smart prompts to test your AI visibility
+                See how visible your brand is when people ask AI for recommendations
               </p>
             </div>
 
@@ -376,7 +499,7 @@ export default function AIVisibilityTool() {
                     type="text"
                     value={brandName}
                     onChange={(e) => setBrandName(e.target.value)}
-                    placeholder="e.g., Love Lab, Nike, HubSpot"
+                    placeholder="e.g., viagogo, Nike, HubSpot"
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
                   />
                 </div>
@@ -389,7 +512,20 @@ export default function AIVisibilityTool() {
                     type="text"
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
-                    placeholder="e.g., love-lab.com"
+                    placeholder="e.g., viagogo.com"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Email <span className="text-slate-400 font-normal">(to receive your report)</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com"
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
                   />
                 </div>
@@ -426,7 +562,7 @@ export default function AIVisibilityTool() {
                     <div className="h-full bg-purple-500 rounded-full animate-pulse" style={{ width: '60%' }} />
                   </div>
                   <p className="text-sm text-slate-500 text-center">
-                    Crawling website, extracting business context, generating smart prompts...
+                    Crawling website, extracting business context...
                   </p>
                 </div>
               )}
@@ -434,36 +570,18 @@ export default function AIVisibilityTool() {
             
             {/* How it works */}
             <div className="bg-slate-50 rounded-2xl p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">How it works</h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Globe className="w-4 h-4 text-purple-600" />
+              <h3 className="font-semibold text-slate-900 mb-4">How we score your visibility</h3>
+              <div className="grid md:grid-cols-5 gap-4">
+                {FIXED_CATEGORIES.map((cat, i) => (
+                  <div key={cat.id} className="text-center">
+                    <div className="text-2xl mb-2">{cat.label.split(' ')[0]}</div>
+                    <p className="text-xs text-slate-600">{cat.label.split(' ').slice(1).join(' ')}</p>
                   </div>
-                  <div>
-                    <p className="font-medium text-slate-900">1. We analyze your website</p>
-                    <p className="text-sm text-slate-500">Extract industry, products, competitors</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Target className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900">2. Generate smart prompts</p>
-                    <p className="text-sm text-slate-500">Questions customers ask AI</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900">3. Test across AI models</p>
-                    <p className="text-sm text-slate-500">ChatGPT, Claude, Gemini</p>
-                  </div>
-                </div>
+                ))}
               </div>
+              <p className="text-sm text-slate-500 mt-4 text-center">
+                We test your brand across 5 key query types to give you a consistent, comparable score
+              </p>
             </div>
           </div>
         )}
@@ -503,7 +621,7 @@ export default function AIVisibilityTool() {
               
               {/* Industry */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Industry</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Industry / Category</label>
                 {editingIndustry ? (
                   <div className="flex gap-2">
                     <input
@@ -511,7 +629,7 @@ export default function AIVisibilityTool() {
                       value={tempIndustry}
                       onChange={(e) => setTempIndustry(e.target.value)}
                       className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                      placeholder="e.g., luxury jewelry"
+                      placeholder="e.g., ticket resale platform"
                     />
                     <button
                       onClick={updateIndustry}
@@ -536,29 +654,8 @@ export default function AIVisibilityTool() {
                     </button>
                   </div>
                 )}
+                <p className="text-xs text-slate-500 mt-1">This will be used in the test prompts</p>
               </div>
-              
-              {/* Products/Services */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Products & Services</label>
-                <div className="flex flex-wrap gap-2">
-                  {profile.products_services.map((product, i) => (
-                    <span key={i} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm">
-                      {product}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Value Proposition */}
-              {profile.value_proposition && (
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Value Proposition</label>
-                  <p className="text-slate-600 bg-slate-50 rounded-lg p-3 text-sm">
-                    {profile.value_proposition}
-                  </p>
-                </div>
-              )}
               
               {/* Competitors */}
               <div>
@@ -600,16 +697,6 @@ export default function AIVisibilityTool() {
                       }
                     }}
                   />
-                  <button
-                    onClick={(e) => {
-                      const input = (e.target as HTMLElement).previousSibling as HTMLInputElement
-                      addCompetitor(input.value)
-                      input.value = ''
-                    }}
-                    className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -619,24 +706,22 @@ export default function AIVisibilityTool() {
               onClick={() => setStep('prompts')}
               className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 flex items-center justify-center gap-3 shadow-lg"
             >
-              Looks Good, Show Prompts
+              Looks Good, Review Prompts
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
         )}
 
         {/* ================================================================= */}
-        {/* STEP 3: PROMPT SELECTION */}
+        {/* STEP 3: PROMPT REVIEW (5 Fixed Categories) */}
         {/* ================================================================= */}
         {step === 'prompts' && profile && (
           <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Select Prompts to Test</h2>
-                <p className="text-slate-500">
-                  {selectedPrompts.filter(p => p.selected).length} of {selectedPrompts.length} prompts selected
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900">Review Test Prompts</h2>
+                <p className="text-slate-500">5 categories for consistent scoring</p>
               </div>
               <button
                 onClick={() => setStep('profile')}
@@ -647,76 +732,50 @@ export default function AIVisibilityTool() {
               </button>
             </div>
 
-            {/* Prompts by Category */}
-            {['recommendation', 'comparison', 'purchase', 'reputation', 'feature', 'custom'].map(category => {
-              const categoryPrompts = selectedPrompts.filter(p => p.category === category)
-              if (categoryPrompts.length === 0) return null
-              
-              return (
-                <div key={category} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(category)}`}>
-                      {getCategoryLabel(category)}
-                    </span>
-                    <span className="text-sm font-normal text-slate-400">
-                      ({categoryPrompts.filter(p => p.selected).length}/{categoryPrompts.length})
-                    </span>
-                  </h3>
-                  <div className="space-y-2">
-                    {categoryPrompts.map((prompt, idx) => {
-                      const globalIdx = selectedPrompts.findIndex(p => p.prompt === prompt.prompt)
-                      return (
-                        <div
-                          key={idx}
-                          className={`flex items-center gap-3 p-3 rounded-xl border transition cursor-pointer
-                            ${prompt.selected 
-                              ? 'bg-purple-50 border-purple-200' 
-                              : 'bg-slate-50 border-slate-200 opacity-60'}`}
-                          onClick={() => togglePrompt(globalIdx)}
-                        >
-                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center
-                            ${prompt.selected 
-                              ? 'bg-purple-600 border-purple-600' 
-                              : 'border-slate-300'}`}>
-                            {prompt.selected && <Check className="w-3 h-3 text-white" />}
-                          </div>
-                          <span className="flex-1 text-slate-700">{prompt.prompt}</span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              removePrompt(globalIdx)
-                            }}
-                            className="p-1 text-slate-400 hover:text-red-500"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )
-                    })}
+            {/* Fixed Categories */}
+            <div className="space-y-4">
+              {FIXED_CATEGORIES.map((category) => (
+                <div key={category.id} className="bg-white rounded-xl shadow-lg border border-slate-200 p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{category.label}</h3>
+                      <p className="text-sm text-slate-500">{category.description}</p>
+                    </div>
                   </div>
+                  <input
+                    type="text"
+                    value={categoryPrompts[category.id] || ''}
+                    onChange={(e) => setCategoryPrompts({
+                      ...categoryPrompts,
+                      [category.id]: e.target.value
+                    })}
+                    placeholder={category.example}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
                 </div>
-              )
-            })}
+              ))}
+            </div>
 
-            {/* Add Custom Prompt */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">Add Custom Prompt</h3>
-              <div className="flex gap-2">
+            {/* Custom Prompts (Optional) */}
+            <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+              <h3 className="font-semibold text-slate-900 mb-1">Custom Prompts (Optional)</h3>
+              <p className="text-sm text-slate-500 mb-4">Add up to 2 custom prompts. These won't affect your main score.</p>
+              
+              <div className="space-y-3">
                 <input
                   type="text"
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="Enter a custom question to test..."
-                  className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500"
-                  onKeyDown={(e) => e.key === 'Enter' && addCustomPrompt()}
+                  value={customPrompt1}
+                  onChange={(e) => setCustomPrompt1(e.target.value)}
+                  placeholder="Custom prompt 1 (optional)"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
                 />
-                <button
-                  onClick={addCustomPrompt}
-                  disabled={!customPrompt.trim()}
-                  className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 disabled:opacity-50"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
+                <input
+                  type="text"
+                  value={customPrompt2}
+                  onChange={(e) => setCustomPrompt2(e.target.value)}
+                  placeholder="Custom prompt 2 (optional)"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                />
               </div>
             </div>
 
@@ -726,20 +785,17 @@ export default function AIVisibilityTool() {
                 <div>
                   <p className="font-semibold text-purple-900">Ready to test</p>
                   <p className="text-sm text-purple-700">
-                    {selectedPrompts.filter(p => p.selected).length} prompts × 6 AI models = {' '}
-                    <strong>{selectedPrompts.filter(p => p.selected).length * 6} tests</strong>
+                    5 categories × 2 AI models = <strong>10 tests</strong>
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🤖</span>
-                  <span className="text-2xl">🧠</span>
-                  <span className="text-2xl">💎</span>
+                <div className="flex items-center gap-2 text-2xl">
+                  <span title="GPT-4o">🤖</span>
+                  <span title="Claude">🧠</span>
                 </div>
               </div>
               <button
                 onClick={runTests}
-                disabled={selectedPrompts.filter(p => p.selected).length === 0}
-                className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 disabled:from-slate-300 disabled:to-slate-400 flex items-center justify-center gap-3 shadow-lg"
+                className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-purple-800 flex items-center justify-center gap-3 shadow-lg"
               >
                 <Sparkles className="w-5 h-5" />
                 Run Visibility Test
@@ -749,142 +805,284 @@ export default function AIVisibilityTool() {
         )}
 
         {/* ================================================================= */}
-        {/* STEP 4: RESULTS */}
+        {/* STEP 4: TESTING IN PROGRESS */}
         {/* ================================================================= */}
-        {step === 'results' && profile && (
+        {step === 'testing' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <div className="text-center mb-8">
+                <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">Testing Your Visibility</h2>
+                <p className="text-slate-500">
+                  Testing category {testProgress.current} of {testProgress.total}...
+                </p>
+              </div>
+              
+              <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-6">
+                <div 
+                  className="h-full bg-purple-500 rounded-full transition-all duration-500"
+                  style={{ width: `${(testProgress.current / testProgress.total) * 100}%` }}
+                />
+              </div>
+              
+              {/* Show results as they come in */}
+              <div className="space-y-3">
+                {categoryResults.map((result, idx) => (
+                  <div key={idx} className={`flex items-center justify-between p-3 rounded-lg border ${getCategoryColor(result.status)}`}>
+                    <span className="font-medium">{result.categoryLabel}</span>
+                    <span className="font-bold">{result.score}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* STEP 5: RESULTS & ANALYSIS */}
+        {/* ================================================================= */}
+        {step === 'results' && profile && categoryResults.length > 0 && (
           <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Visibility Results</h2>
-                <p className="text-slate-500">
-                  {testing 
-                    ? `Testing prompt ${testProgress.current} of ${testProgress.total}...`
-                    : `${testResults.length} prompts tested across 6 AI models`
-                  }
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900">Your AI Visibility Report</h2>
+                <p className="text-slate-500">{profile.brand_name} • Tested on GPT-4o & Claude</p>
               </div>
-              {!testing && (
-                <button
-                  onClick={() => setStep('prompts')}
-                  className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Test Again
-                </button>
-              )}
+              <button
+                onClick={() => setStep('prompts')}
+                className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Test Again
+              </button>
             </div>
 
-            {/* Progress during testing */}
-            {testing && (
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-                <div className="flex items-center justify-center gap-4 mb-6">
-                  <Loader className="w-8 h-8 text-purple-600 animate-spin" />
-                  <div>
-                    <p className="font-semibold text-slate-900">Testing your visibility...</p>
-                    <p className="text-sm text-slate-500">
-                      Prompt {testProgress.current} of {testProgress.total}
-                    </p>
+            {/* Overall Score Card */}
+            <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-8 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-200 text-sm mb-1">Overall Visibility Score</p>
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-6xl font-bold">{getOverallScore()}%</span>
+                    <span className={`text-3xl font-bold px-3 py-1 rounded-lg bg-white/20`}>
+                      {getGrade(getOverallScore()).grade}
+                    </span>
                   </div>
+                  <p className="text-purple-200 mt-2">{getGrade(getOverallScore()).label}</p>
                 </div>
-                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div className="text-right">
+                  <Award className="w-16 h-16 text-purple-300" />
+                </div>
+              </div>
+            </div>
+
+            {/* Score Interpretation */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Lightbulb className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-2">What This Means</h3>
+                  <p className="text-slate-600">{getScoreInterpretation(getOverallScore())}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Category Breakdown */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-purple-600" />
+                Category Breakdown
+              </h3>
+              
+              <div className="space-y-3">
+                {categoryResults.map((result) => (
                   <div 
-                    className="h-full bg-purple-500 rounded-full transition-all duration-500"
-                    style={{ width: `${(testProgress.current / testProgress.total) * 100}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Overall Score */}
-            {!testing && testResults.length > 0 && (
-              <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-8 text-white">
-                <div className="text-center">
-                  <p className="text-purple-200 mb-2">Overall Visibility Score</p>
-                  <div className={`text-6xl font-bold mb-2 ${
-                    getOverallScore() >= 50 ? 'text-green-300' :
-                    getOverallScore() >= 20 ? 'text-yellow-300' : 'text-red-300'
-                  }`}>
-                    {getOverallScore()}%
-                  </div>
-                  <p className="text-purple-200">
-                    {profile.brand_name} mentioned in {' '}
-                    {testResults.reduce((acc, r) => acc + r.results.models_mentioning, 0)} of {' '}
-                    {testResults.reduce((acc, r) => acc + r.results.models_tested, 0)} AI responses
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Results by Prompt */}
-            {testResults.map((result, idx) => (
-              <div key={idx} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(result.category)}`}>
-                        {result.category}
-                      </span>
-                    </div>
-                    <p className="font-medium text-slate-900">{result.prompt}</p>
-                  </div>
-                  <div className={`text-2xl font-bold ${
-                    result.results.mention_rate >= 50 ? 'text-green-600' :
-                    result.results.mention_rate >= 20 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
-                    {result.results.mention_rate.toFixed(0)}%
-                  </div>
-                </div>
-                
-                {/* Model Results Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {result.results.results.map((modelResult, mIdx) => (
-                    <div
-                      key={mIdx}
-                      className={`p-3 rounded-xl border cursor-pointer transition
-                        ${modelResult.brand_mentioned 
-                          ? 'bg-green-50 border-green-200' 
-                          : 'bg-red-50 border-red-200'}
-                        ${expandedModel === `${idx}-${mIdx}` ? 'ring-2 ring-purple-500' : ''}`}
-                      onClick={() => setExpandedModel(
-                        expandedModel === `${idx}-${mIdx}` ? null : `${idx}-${mIdx}`
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-lg">{modelResult.icon}</span>
-                          <span className="font-medium text-sm text-slate-700">
-                            {modelResult.model_name}
-                          </span>
+                    key={result.category}
+                    className={`border rounded-xl overflow-hidden cursor-pointer transition ${
+                      expandedCategory === result.category ? 'border-purple-300' : 'border-slate-200'
+                    }`}
+                    onClick={() => setExpandedCategory(
+                      expandedCategory === result.category ? null : result.category
+                    )}
+                  >
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        {getStatusIcon(result.status)}
+                        <div>
+                          <p className="font-medium text-slate-900">{result.categoryLabel}</p>
+                          <p className="text-sm text-slate-500">{result.prompt}</p>
                         </div>
-                        {modelResult.brand_mentioned ? (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-red-500" />
-                        )}
                       </div>
-                      <p className={`text-xs ${
-                        modelResult.brand_mentioned ? 'text-green-700' : 'text-red-600'
-                      }`}>
-                        {modelResult.brand_mentioned 
-                          ? `Mentioned${modelResult.position ? ` #${modelResult.position}` : ''}`
-                          : 'Not mentioned'
-                        }
-                      </p>
-                      
-                      {/* Expanded Response */}
-                      {expandedModel === `${idx}-${mIdx}` && (
-                        <div className="mt-3 pt-3 border-t border-slate-200">
-                          <p className="text-xs text-slate-600 leading-relaxed">
-                            {modelResult.response_preview}
-                          </p>
+                      <div className="flex items-center gap-3">
+                        <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getCategoryColor(result.status)}`}>
+                          {result.score}%
                         </div>
-                      )}
+                        <ArrowRight className={`w-4 h-4 text-slate-400 transition ${
+                          expandedCategory === result.category ? 'rotate-90' : ''
+                        }`} />
+                      </div>
                     </div>
-                  ))}
+                    
+                    {/* Expanded Details */}
+                    {expandedCategory === result.category && (
+                      <div className="px-4 pb-4 border-t border-slate-100 pt-4">
+                        <p className="text-sm text-slate-600 mb-3">{result.insight}</p>
+                        
+                        {/* Model Results */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {result.results.map((modelResult, idx) => (
+                            <div 
+                              key={idx}
+                              className={`p-3 rounded-lg text-sm ${
+                                modelResult.brand_mentioned 
+                                  ? 'bg-green-50 border border-green-200' 
+                                  : 'bg-red-50 border border-red-200'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-medium">{modelResult.icon} {modelResult.model_name}</span>
+                                {modelResult.brand_mentioned ? (
+                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-red-500" />
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-600 line-clamp-2">
+                                {modelResult.response_preview}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Strengths & Weaknesses */}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Strengths */}
+              <div className="bg-green-50 rounded-2xl p-6 border border-green-200">
+                <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  Your Strengths
+                </h3>
+                {getStrengths().length > 0 ? (
+                  <ul className="space-y-2">
+                    {getStrengths().map(s => (
+                      <li key={s.category} className="text-sm text-green-800 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                        {s.categoryLabel} ({s.score}%)
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-green-700">No strong categories yet. Focus on improving visibility across all areas.</p>
+                )}
+              </div>
+              
+              {/* Weaknesses */}
+              <div className="bg-red-50 rounded-2xl p-6 border border-red-200">
+                <h3 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  Areas to Improve
+                </h3>
+                {getWeaknesses().length > 0 ? (
+                  <ul className="space-y-2">
+                    {getWeaknesses().map(w => (
+                      <li key={w.category} className="text-sm text-red-800 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                        {w.categoryLabel} ({w.score}%)
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-red-700">Great job! No critical weaknesses detected.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <Target className="w-5 h-5 text-purple-600" />
+                Recommended Actions
+              </h3>
+              <div className="space-y-3">
+                {getRecommendations().map((rec, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                      {idx + 1}
+                    </div>
+                    <p className="text-slate-700">{rec}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Upgrade CTA */}
+            <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-white">
+              <div className="flex items-start gap-4">
+                <Lock className="w-8 h-8 flex-shrink-0" />
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold mb-2">Want the Full Picture?</h3>
+                  <p className="text-purple-100 mb-4">
+                    This free report tested 2 AI models. Upgrade to see:
+                  </p>
+                  <ul className="space-y-2 mb-6">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>All 6 AI models (GPT-4, GPT-4o, Claude, Gemini Pro & Flash, Perplexity)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Competitor ranking - see where you stand vs 10 competitors</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Detailed action plan to improve your score</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>PDF report for your team</span>
+                    </li>
+                  </ul>
+                  <div className="flex flex-wrap gap-3">
+                    <a
+                      href="/pricing"
+                      className="inline-flex items-center gap-2 bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-purple-50 transition"
+                    >
+                      Get Full Report - €97
+                      <ArrowRight className="w-4 h-4" />
+                    </a>
+                    <button className="inline-flex items-center gap-2 bg-white/20 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition">
+                      <Mail className="w-4 h-4" />
+                      Email Me This Report
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Test Another Brand */}
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  setStep('input')
+                  setBrandName('')
+                  setWebsiteUrl('')
+                  setProfile(null)
+                  setCategoryResults([])
+                }}
+                className="text-purple-600 hover:text-purple-700 font-medium"
+              >
+                ← Test Another Brand
+              </button>
+            </div>
           </div>
         )}
       </div>
