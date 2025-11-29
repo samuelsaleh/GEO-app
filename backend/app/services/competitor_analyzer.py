@@ -5,9 +5,28 @@ from typing import List, Dict, Any, Optional
 import re
 import json
 import logging
+from pydantic import BaseModel
 from app.services.ai_service import ai_service
 
 logger = logging.getLogger(__name__)
+
+
+class CompetitorSuggestion(BaseModel):
+    """A suggested competitor"""
+    name: str
+    website: Optional[str] = None
+    scope: str  # "local" or "global"
+    reason: str
+
+
+class CompetitorDiscoveryResult(BaseModel):
+    """Result of competitor discovery"""
+    brand: str
+    category: str
+    location: Optional[str] = None
+    local_competitors: List[CompetitorSuggestion] = []
+    global_competitors: List[CompetitorSuggestion] = []
+    total_found: int = 0
 
 
 class CompetitorAnalyzer:
@@ -48,6 +67,165 @@ class CompetitorAnalyzer:
         
         logger.info(f"Discovered {len(competitors)} competitors for {company_name}")
         return competitors
+
+    async def discover_top_competitors(
+        self,
+        brand: str,
+        category: str,
+        location: Optional[str] = None,
+        use_gemini: bool = True
+    ) -> CompetitorDiscoveryResult:
+        """
+        Discover top 10 competitors: 5 local + 5 global scale.
+        
+        Uses Gemini 1.5 Pro by default for best analysis.
+        
+        Args:
+            brand: The brand name to find competitors for
+            category: Product/service category (e.g., "fashion clothing", "running shoes")
+            location: Optional location for local competitors (e.g., "France", "New York")
+            use_gemini: Whether to prefer Gemini for this task
+            
+        Returns:
+            CompetitorDiscoveryResult with local and global competitors
+        """
+        if not self.ai.is_available:
+            logger.warning("No AI providers available for competitor discovery")
+            return CompetitorDiscoveryResult(brand=brand, category=category, location=location)
+        
+        # Build the prompt for competitor discovery
+        location_context = f" in {location}" if location else ""
+        
+        prompt = f"""You are a market research expert. Find the TOP 10 COMPETITORS for this brand:
+
+Brand: {brand}
+Category: {category}
+Location: {location if location else "Global"}
+
+I need you to identify:
+
+**5 LOCAL/REGIONAL COMPETITORS:**
+These are competitors that operate primarily{location_context or " in the same market/region as the brand"}. 
+They may be smaller but compete directly in the same geographic area.
+
+**5 GLOBAL COMPETITORS:**
+These are major international brands that compete in the same {category} space worldwide.
+They are well-known globally and represent the major players in the industry.
+
+Return your response as valid JSON in this EXACT format:
+{{
+    "local_competitors": [
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}}
+    ],
+    "global_competitors": [
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}},
+        {{"name": "Competitor Name", "website": "https://example.com", "reason": "Brief reason why they compete"}}
+    ]
+}}
+
+IMPORTANT:
+- Return ONLY valid JSON, no markdown code blocks
+- Include exactly 5 local and 5 global competitors
+- Use real company names and actual website URLs
+- Do NOT include {brand} itself in the list
+- Make sure competitors are relevant to {category}"""
+
+        system_prompt = """You are a market research expert specializing in competitive analysis. 
+You have extensive knowledge of brands across all industries worldwide.
+Always return valid JSON only, no explanations or markdown."""
+
+        try:
+            # Try to use Gemini if available and requested
+            response = None
+            if use_gemini and "google" in self.ai.get_available_providers():
+                logger.info("Using Gemini for competitor discovery")
+                response = await self.ai.generate_with_model(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    model="gemini-1.5-pro-latest",
+                    provider="google",
+                    max_tokens=1500,
+                    temperature=0.3
+                )
+            
+            # Fallback to default provider order if Gemini didn't work
+            if not response:
+                logger.info("Using default AI provider for competitor discovery")
+                response = await self.ai.generate(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    max_tokens=1500,
+                    temperature=0.3
+                )
+            
+            if not response:
+                logger.warning("No response from AI for competitor discovery")
+                return CompetitorDiscoveryResult(brand=brand, category=category, location=location)
+            
+            # Parse the JSON response
+            result = self._parse_competitor_response(response, brand, category, location)
+            logger.info(f"Discovered {result.total_found} competitors for {brand}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error discovering competitors: {e}")
+            return CompetitorDiscoveryResult(brand=brand, category=category, location=location)
+    
+    def _parse_competitor_response(
+        self, 
+        response: str, 
+        brand: str, 
+        category: str, 
+        location: Optional[str]
+    ) -> CompetitorDiscoveryResult:
+        """Parse the AI response into CompetitorDiscoveryResult"""
+        try:
+            # Clean up response - remove markdown code blocks if present
+            cleaned = response.strip()
+            if cleaned.startswith("```"):
+                cleaned = re.sub(r'^```(?:json)?\n?', '', cleaned)
+                cleaned = re.sub(r'\n?```$', '', cleaned)
+            
+            data = json.loads(cleaned)
+            
+            local_competitors = []
+            for comp in data.get("local_competitors", [])[:5]:
+                local_competitors.append(CompetitorSuggestion(
+                    name=comp.get("name", "Unknown"),
+                    website=comp.get("website"),
+                    scope="local",
+                    reason=comp.get("reason", "Identified as local competitor")
+                ))
+            
+            global_competitors = []
+            for comp in data.get("global_competitors", [])[:5]:
+                global_competitors.append(CompetitorSuggestion(
+                    name=comp.get("name", "Unknown"),
+                    website=comp.get("website"),
+                    scope="global",
+                    reason=comp.get("reason", "Identified as global competitor")
+                ))
+            
+            return CompetitorDiscoveryResult(
+                brand=brand,
+                category=category,
+                location=location,
+                local_competitors=local_competitors,
+                global_competitors=global_competitors,
+                total_found=len(local_competitors) + len(global_competitors)
+            )
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse competitor JSON: {e}")
+            logger.debug(f"Raw response: {response[:500]}")
+            return CompetitorDiscoveryResult(brand=brand, category=category, location=location)
     
     async def _extract_business_context(self, url: str) -> str:
         """Extract business context from a website"""

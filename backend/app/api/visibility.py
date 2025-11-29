@@ -26,6 +26,7 @@ from app.models.brand_profile import (
     TopicCluster,
     CompetitorInfo
 )
+from app.services.competitor_analyzer import competitor_analyzer, CompetitorDiscoveryResult
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -122,6 +123,61 @@ async def get_api_status():
         "message": f"{configured_count}/{total_providers} AI providers configured",
         "recommendation": "Add API keys to backend/.env file" if configured_count < total_providers else "All providers configured!"
     }
+
+
+# =============================================================================
+# COMPETITOR DISCOVERY - Auto-discover local & global competitors
+# =============================================================================
+
+class DiscoverCompetitorsRequest(BaseModel):
+    """Request to discover competitors for a brand"""
+    brand: str
+    category: str
+    location: Optional[str] = None  # e.g., "France", "New York", "Europe"
+
+
+@router.post("/discover-competitors", response_model=CompetitorDiscoveryResult)
+async def discover_competitors(request: DiscoverCompetitorsRequest):
+    """
+    🔍 DISCOVER COMPETITORS - AI-powered competitor discovery
+    
+    Uses Gemini 1.5 Pro to find the top 10 competitors:
+    - 5 LOCAL/REGIONAL competitors (same market/geography)
+    - 5 GLOBAL competitors (major international players)
+    
+    Example:
+    ```json
+    {
+        "brand": "American Vintage",
+        "category": "fashion clothing",
+        "location": "France"
+    }
+    ```
+    
+    Returns:
+    - local_competitors: 5 regional competitors with names, websites, and reasons
+    - global_competitors: 5 international competitors with names, websites, and reasons
+    - total_found: Total number of competitors discovered
+    """
+    try:
+        logger.info(f"Discovering competitors for {request.brand} in {request.category}")
+        
+        result = await competitor_analyzer.discover_top_competitors(
+            brand=request.brand,
+            category=request.category,
+            location=request.location,
+            use_gemini=True  # Prefer Gemini for this task
+        )
+        
+        logger.info(f"Found {result.total_found} competitors for {request.brand}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error discovering competitors: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to discover competitors: {str(e)}"
+        )
 
 
 # =============================================================================
