@@ -46,8 +46,16 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ['var(--font-display)', 'serif'],
-        body: ['var(--font-body)', 'sans-serif'],
+        display: ['var(--font-display)', 'Cormorant Garamond', 'serif'],
+        body: ['var(--font-body)', 'Montserrat', 'sans-serif'],
+      },
+      letterSpacing: {
+        'widest': '0.25em',
+        'ultra': '0.35em',
+      },
+      fontWeight: {
+        'extralight': 200,
+        'light': 300,
       },
     },
   },

@@ -10,6 +10,8 @@ from typing import List, Optional
 import logging
 
 from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult, MultiModelResult, AI_MODELS
+from app.services.speed_test import speed_test_service
+from app.models.speed_test import ScoreRequest, ScoreResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -64,6 +66,61 @@ async def get_available_models():
         "total": len(AI_MODELS),
         "providers": ["openai", "anthropic", "google"]
     }
+
+
+# =============================================================================
+# AI VISIBILITY SCORE - THE KILLER FEATURE
+# =============================================================================
+
+@router.post("/score", response_model=ScoreResponse)
+async def get_visibility_score(request: ScoreRequest):
+    """
+    🚀 AI VISIBILITY SCORE - Instant brand visibility test
+    
+    The killer feature. Tests your brand across multiple AI models
+    in parallel and returns a comprehensive visibility score.
+    
+    Input:
+    - brand: Your brand name (e.g., "Nike")
+    - category: Product/service category (e.g., "running shoes")
+    - location: Optional location for local businesses
+    
+    Output:
+    - score: 0-100 visibility score
+    - verdict: "invisible", "ghost", "contender", "visible", "authority"
+    - competitors: Who AI recommends instead of you
+    - killer_quote: The "aha" moment showing your invisibility
+    - share_text: Pre-written viral text for LinkedIn
+    
+    Runs 12 AI queries in parallel (4 prompts × 3 models)
+    Target response time: under 15 seconds
+    
+    Example:
+    ```json
+    {
+        "brand": "Nike",
+        "category": "running shoes"
+    }
+    ```
+    """
+    try:
+        logger.info(f"Running AI Visibility Score test for {request.brand} in {request.category}")
+        
+        result = await speed_test_service.run_test(
+            brand=request.brand,
+            category=request.category,
+            location=request.location
+        )
+        
+        logger.info(f"Test completed: score={result.score}, verdict={result.verdict}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Speed test error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to run visibility test: {str(e)}"
+        )
 
 
 @router.post("/test-multi-model")

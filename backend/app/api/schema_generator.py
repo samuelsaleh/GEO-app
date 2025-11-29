@@ -35,7 +35,7 @@ async def generate_schema(request: SchemaRequest):
                 "ratingValue": request.data.get("rating"),
                 "bestRating": "5",
                 "worstRating": "1",
-                "ratingCount": "1"
+                "ratingCount": "10"
             }
 
     elif request.schema_type == SchemaType.ARTICLE:
@@ -72,13 +72,23 @@ async def generate_schema(request: SchemaRequest):
         }
 
     elif request.schema_type == SchemaType.HOWTO:
+        steps = request.data.get("steps", [])
         schema = {
             "@context": "https://schema.org",
             "@type": "HowTo",
             "name": request.data.get("title", ""),
             "description": request.data.get("description", ""),
             "image": request.data.get("image", ""),
-            "step": []
+            "step": [
+                {
+                    "@type": "HowToStep",
+                    "name": step.get("name", ""),
+                    "text": step.get("text", ""),
+                    "image": step.get("image", ""),
+                    "url": step.get("url", "")
+                }
+                for step in steps if step.get("name") or step.get("text")
+            ]
         }
 
     elif request.schema_type == SchemaType.ORGANIZATION:
@@ -87,7 +97,45 @@ async def generate_schema(request: SchemaRequest):
             "@type": "Organization",
             "name": request.data.get("name", ""),
             "url": request.data.get("url", ""),
-            "logo": request.data.get("logo", "")
+            "logo": request.data.get("logo", ""),
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": request.data.get("phone", ""),
+                "contactType": "customer service"
+            }
+        }
+
+    elif request.schema_type == SchemaType.LOCAL_BUSINESS:
+        schema = {
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": request.data.get("name", ""),
+            "image": request.data.get("image", ""),
+            "telephone": request.data.get("phone", ""),
+            "priceRange": request.data.get("priceRange", "$$"),
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": request.data.get("address", ""),
+                "addressLocality": request.data.get("city", ""),
+                "postalCode": request.data.get("zip", ""),
+                "addressCountry": request.data.get("country", "")
+            }
+        }
+
+    elif request.schema_type == SchemaType.BREADCRUMB:
+        breadcrumbs = request.data.get("breadcrumbs", [])
+        schema = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": idx + 1,
+                    "name": crumb.get("name", ""),
+                    "item": crumb.get("item", "")
+                }
+                for idx, crumb in enumerate(breadcrumbs)
+            ]
         }
 
     json_ld = json.dumps(schema, indent=2)

@@ -150,3 +150,4 @@ async def test_contact():
     """Test endpoint"""
     return {"status": "ok", "message": "Contact API is working"}
 
+

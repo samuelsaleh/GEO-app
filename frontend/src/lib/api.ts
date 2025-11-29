@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://geo-app-production-339e.up.railway.app'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -141,6 +141,125 @@ export const contactAPI = {
     message: string
   }) => {
     const response = await api.post('/api/contact/submit', data)
+    return response.data
+  },
+}
+
+// =============================================================================
+// AI VISIBILITY SCORE API - THE KILLER FEATURE
+// =============================================================================
+
+export interface ScoreRequest {
+  brand: string
+  category: string
+  location?: string
+}
+
+export interface ModelResult {
+  model_id: string
+  model_name: string
+  provider: string
+  mentioned: boolean
+  position: number | null
+  sentiment: string
+  competitors_found: string[]
+  killer_quote: string | null
+  full_response: string
+  response_time_ms: number
+  prompt: string
+  error: string | null
+}
+
+export interface PromptResult {
+  prompt: string
+  category: string
+  models: ModelResult[]
+  mention_rate: number
+  best_position: number | null
+}
+
+export interface CompetitorInfo {
+  name: string
+  mentions: number
+  rate: number
+}
+
+export interface ModelBreakdown {
+  model_id: string
+  model_name: string
+  provider: string
+  mentions: number
+  total: number
+  rate: number
+}
+
+export interface ScoreResponse {
+  // Core score
+  score: number
+  verdict: string
+  verdict_emoji: string
+  grade: string
+  
+  // Brand info
+  brand: string
+  category: string
+  location: string | null
+  
+  // Test summary
+  total_tests: number
+  total_mentions: number
+  mention_rate: number
+  
+  // Detailed results
+  prompt_results: PromptResult[]
+  model_breakdown: ModelBreakdown[]
+  
+  // Competitor analysis
+  competitors: CompetitorInfo[]
+  you_vs_top: {
+    competitor: string
+    their_rate: number
+    your_rate: number
+    gap: number
+  } | null
+  
+  // The "aha" moment
+  worst_prompt: {
+    prompt: string
+    category: string
+    mention_rate: number
+    models_mentioning: number
+    total_models: number
+  } | null
+  killer_quote: string | null
+  
+  // Example AI response
+  example_response: {
+    prompt: string
+    response: string
+    model: string
+    mentioned: boolean
+  } | null
+  
+  // Sharing
+  share_text: string
+  share_url: string | null
+  
+  // Metadata
+  tested_at: string
+  test_duration_ms: number
+}
+
+// AI Visibility Score API
+export const scoreAPI = {
+  /**
+   * Run AI Visibility Score test
+   * 
+   * Tests your brand across 3 AI models with 4 different prompts.
+   * Returns a 0-100 score with detailed breakdown.
+   */
+  check: async (data: ScoreRequest): Promise<ScoreResponse> => {
+    const response = await api.post('/api/visibility/score', data)
     return response.data
   },
 }

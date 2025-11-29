@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Copy, CheckCircle, Code, ArrowLeft } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Copy, CheckCircle, Code, ArrowLeft, Plus, Trash2, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
-type SchemaType = 'product' | 'article' | 'faq' | 'howto' | 'organization'
+type SchemaType = 'product' | 'article' | 'faq' | 'howto' | 'organization' | 'localBusiness' | 'breadcrumb'
 
 export default function SchemaGenerator() {
   const [schemaType, setSchemaType] = useState<SchemaType>('product')
@@ -30,19 +30,50 @@ export default function SchemaGenerator() {
   // FAQ fields
   const [faqs, setFaqs] = useState([{ question: '', answer: '' }])
 
-  const addFAQ = () => {
-    setFaqs([...faqs, { question: '', answer: '' }])
-  }
+  // HowTo fields
+  const [howtoTitle, setHowtoTitle] = useState('')
+  const [howtoDescription, setHowtoDescription] = useState('')
+  const [howtoSteps, setHowtoSteps] = useState([{ name: '', text: '', image: '', url: '' }])
 
+  // Local Business fields
+  const [businessName, setBusinessName] = useState('')
+  const [businessImage, setBusinessImage] = useState('')
+  const [businessPhone, setBusinessPhone] = useState('')
+  const [businessAddress, setBusinessAddress] = useState('')
+  const [businessCity, setBusinessCity] = useState('')
+  const [businessZip, setBusinessZip] = useState('')
+  const [businessCountry, setBusinessCountry] = useState('')
+  const [businessPriceRange, setBusinessPriceRange] = useState('$$')
+
+  // Breadcrumb fields
+  const [breadcrumbs, setBreadcrumbs] = useState([{ name: 'Home', item: 'https://example.com' }])
+
+  // FAQ Handlers
+  const addFAQ = () => setFaqs([...faqs, { question: '', answer: '' }])
   const updateFAQ = (index: number, field: 'question' | 'answer', value: string) => {
     const newFaqs = [...faqs]
     newFaqs[index][field] = value
     setFaqs(newFaqs)
   }
+  const removeFAQ = (index: number) => setFaqs(faqs.filter((_, i) => i !== index))
 
-  const removeFAQ = (index: number) => {
-    setFaqs(faqs.filter((_, i) => i !== index))
+  // HowTo Handlers
+  const addStep = () => setHowtoSteps([...howtoSteps, { name: '', text: '', image: '', url: '' }])
+  const updateStep = (index: number, field: keyof typeof howtoSteps[0], value: string) => {
+    const newSteps = [...howtoSteps]
+    newSteps[index][field] = value
+    setHowtoSteps(newSteps)
   }
+  const removeStep = (index: number) => setHowtoSteps(howtoSteps.filter((_, i) => i !== index))
+
+  // Breadcrumb Handlers
+  const addBreadcrumb = () => setBreadcrumbs([...breadcrumbs, { name: '', item: '' }])
+  const updateBreadcrumb = (index: number, field: 'name' | 'item', value: string) => {
+    const newCrumbs = [...breadcrumbs]
+    newCrumbs[index][field] = value
+    setBreadcrumbs(newCrumbs)
+  }
+  const removeBreadcrumb = (index: number) => setBreadcrumbs(breadcrumbs.filter((_, i) => i !== index))
 
   const generateSchema = () => {
     let schema: any = {}
@@ -52,12 +83,12 @@ export default function SchemaGenerator() {
         schema = {
           "@context": "https://schema.org/",
           "@type": "Product",
-          "name": productName,
-          "description": productDescription,
-          "image": productImage,
+          "name": productName || "Product Name",
+          "description": productDescription || "Product Description",
+          "image": productImage ? [productImage] : [],
           "brand": {
             "@type": "Brand",
-            "name": productBrand
+            "name": productBrand || "Brand Name"
           },
           "offers": {
             "@type": "Offer",
@@ -70,9 +101,7 @@ export default function SchemaGenerator() {
           schema.aggregateRating = {
             "@type": "AggregateRating",
             "ratingValue": productRating,
-            "bestRating": "5",
-            "worstRating": "1",
-            "ratingCount": "1"
+            "reviewCount": "10" // Default for validity
           }
         }
         break
@@ -81,15 +110,15 @@ export default function SchemaGenerator() {
         schema = {
           "@context": "https://schema.org",
           "@type": "Article",
-          "headline": articleTitle,
+          "headline": articleTitle || "Article Headline",
           "description": articleDescription,
-          "image": articleImage,
+          "image": articleImage ? [articleImage] : [],
           "author": {
             "@type": "Person",
-            "name": articleAuthor
+            "name": articleAuthor || "Author Name"
           },
-          "datePublished": articleDate,
-          "dateModified": articleDate
+          "datePublished": articleDate || new Date().toISOString(),
+          "dateModified": articleDate || new Date().toISOString()
         }
         break
 
@@ -112,10 +141,15 @@ export default function SchemaGenerator() {
         schema = {
           "@context": "https://schema.org",
           "@type": "HowTo",
-          "name": articleTitle,
-          "description": articleDescription,
-          "image": articleImage,
-          "step": []
+          "name": howtoTitle || "How-To Title",
+          "description": howtoDescription,
+          "step": howtoSteps.filter(s => s.name || s.text).map(step => ({
+            "@type": "HowToStep",
+            "name": step.name,
+            "text": step.text,
+            "image": step.image,
+            "url": step.url
+          }))
         }
         break
 
@@ -123,9 +157,45 @@ export default function SchemaGenerator() {
         schema = {
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": productBrand,
-          "url": productImage,
-          "logo": productImage
+          "name": productBrand || "Organization Name", // Reusing productBrand for Org Name simplicity
+          "url": productImage || "https://example.com", // Reusing productImage for URL
+          "logo": productImage || "https://example.com/logo.png",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+1-000-000-0000",
+            "contactType": "customer service"
+          }
+        }
+        break
+
+      case 'localBusiness':
+        schema = {
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "name": businessName || "Business Name",
+          "image": businessImage,
+          "telephone": businessPhone,
+          "priceRange": businessPriceRange,
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": businessAddress,
+            "addressLocality": businessCity,
+            "postalCode": businessZip,
+            "addressCountry": businessCountry
+          }
+        }
+        break
+
+      case 'breadcrumb':
+        schema = {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": breadcrumbs.map((crumb, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": crumb.name,
+            "item": crumb.item
+          }))
         }
         break
     }
@@ -135,6 +205,19 @@ ${JSON.stringify(schema, null, 2)}
 </script>`
     setGeneratedCode(code)
   }
+
+  // Live generation
+  useEffect(() => {
+    generateSchema()
+  }, [
+    schemaType,
+    productName, productDescription, productPrice, productCurrency, productImage, productBrand, productRating,
+    articleTitle, articleDescription, articleAuthor, articleDate, articleImage,
+    faqs,
+    howtoTitle, howtoDescription, howtoSteps,
+    businessName, businessImage, businessPhone, businessAddress, businessCity, businessZip, businessCountry, businessPriceRange,
+    breadcrumbs
+  ])
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(generatedCode)
@@ -147,13 +230,14 @@ ${JSON.stringify(schema, null, 2)}
       {/* Navigation */}
       <nav className="glass-nav border-b border-cream-300 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <ArrowLeft className="w-5 h-5 text-ink-500" />
-              <h1 className="text-2xl font-display font-bold text-gradient-claude">
-                Dwight
-              </h1>
+          <div className="flex justify-between items-center h-20">
+            <Link href="/tools" className="flex items-center gap-3 text-ink-600 hover:text-ink-900 transition">
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-light tracking-wide">Back to Tools</span>
             </Link>
+            <div className="font-display text-2xl font-light tracking-wide text-ink-900">
+              dwight
+            </div>
           </div>
         </div>
       </nav>
@@ -161,305 +245,206 @@ ${JSON.stringify(schema, null, 2)}
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="w-16 h-16 bg-cream-300 rounded-xl flex items-center justify-center mx-auto mb-6">
-            <Code className="w-8 h-8 text-ink-600" />
-          </div>
-          <h1 className="font-display text-4xl font-bold mb-4 text-ink-900">Schema Generator</h1>
-          <p className="text-xl text-ink-500 max-w-2xl mx-auto">
-            Create perfect schema markup (invisible labels) that help AI engines understand your content
+          <h1 className="font-display text-4xl md:text-5xl font-light mb-4 text-ink-900 tracking-wide">Schema Generator</h1>
+          <p className="text-lg text-ink-500 max-w-2xl mx-auto font-light leading-relaxed">
+            Instantly generate semantic markup to help AI understand your content.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Form Section */}
-          <div className="card-elevated p-8">
-            <h2 className="font-display text-2xl font-bold mb-6 text-ink-900">Configure Your Schema</h2>
+          <div className="card-elevated p-8 overflow-y-auto max-h-[800px]">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-display text-xl font-light text-ink-900 tracking-wide">Configuration</h2>
+              <div className="text-xs font-light text-claude-600 uppercase tracking-widest bg-claude-100 px-3 py-1 rounded-full">
+                Auto-Updating
+              </div>
+            </div>
 
             {/* Schema Type Selector */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold mb-2 text-ink-700">Schema Type</label>
+            <div className="mb-8">
+              <label className="block text-xs tracking-widest uppercase mb-3 text-ink-500 font-light">Schema Type</label>
               <select
                 value={schemaType}
-                onChange={(e) => {
-                  setSchemaType(e.target.value as SchemaType)
-                  setGeneratedCode('')
-                }}
-                className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
+                onChange={(e) => setSchemaType(e.target.value as SchemaType)}
+                className="w-full px-4 py-3 border border-cream-300 focus:border-claude-500 bg-white font-light rounded-sm"
               >
-                <option value="product">Product (e-commerce)</option>
-                <option value="article">Article (blog post)</option>
+                <option value="product">Product</option>
+                <option value="article">Article</option>
                 <option value="faq">FAQ Page</option>
                 <option value="howto">How-To Guide</option>
-                <option value="organization">Organization/Brand</option>
+                <option value="localBusiness">Local Business</option>
+                <option value="organization">Organization</option>
+                <option value="breadcrumb">Breadcrumb List</option>
               </select>
             </div>
 
             {/* Dynamic Form Fields */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {schemaType === 'product' && (
                 <>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Product Name *</label>
-                    <input
-                      type="text"
-                      value={productName}
-                      onChange={(e) => setProductName(e.target.value)}
-                      placeholder="e.g., Vegan Hiking Boots"
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Description *</label>
-                    <textarea
-                      value={productDescription}
-                      onChange={(e) => setProductDescription(e.target.value)}
-                      placeholder="Brief product description"
-                      rows={3}
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
+                  <input type="text" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="Product Name" className="input-field" />
+                  <textarea value={productDescription} onChange={(e) => setProductDescription(e.target.value)} placeholder="Description" rows={3} className="input-field" />
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-ink-700">Price *</label>
-                      <input
-                        type="number"
-                        value={productPrice}
-                        onChange={(e) => setProductPrice(e.target.value)}
-                        placeholder="89.99"
-                        className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-ink-700">Currency</label>
-                      <select
-                        value={productCurrency}
-                        onChange={(e) => setProductCurrency(e.target.value)}
-                        className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                      >
-                        <option value="EUR">EUR (€)</option>
-                        <option value="USD">USD ($)</option>
-                        <option value="GBP">GBP (£)</option>
-                      </select>
-                    </div>
+                    <input type="number" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} placeholder="Price" className="input-field" />
+                    <select value={productCurrency} onChange={(e) => setProductCurrency(e.target.value)} className="input-field">
+                      <option value="EUR">EUR (€)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="GBP">GBP (£)</option>
+                    </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Brand Name</label>
-                    <input
-                      type="text"
-                      value={productBrand}
-                      onChange={(e) => setProductBrand(e.target.value)}
-                      placeholder="e.g., EcoTrail"
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Image URL</label>
-                    <input
-                      type="url"
-                      value={productImage}
-                      onChange={(e) => setProductImage(e.target.value)}
-                      placeholder="https://example.com/image.jpg"
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Rating (optional)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="5"
-                      value={productRating}
-                      onChange={(e) => setProductRating(e.target.value)}
-                      placeholder="4.5"
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
+                  <input type="text" value={productBrand} onChange={(e) => setProductBrand(e.target.value)} placeholder="Brand Name" className="input-field" />
+                  <input type="url" value={productImage} onChange={(e) => setProductImage(e.target.value)} placeholder="Image URL" className="input-field" />
+                  <input type="number" step="0.1" max="5" value={productRating} onChange={(e) => setProductRating(e.target.value)} placeholder="Rating (0-5)" className="input-field" />
                 </>
               )}
 
               {schemaType === 'article' && (
                 <>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Article Title *</label>
-                    <input
-                      type="text"
-                      value={articleTitle}
-                      onChange={(e) => setArticleTitle(e.target.value)}
-                      placeholder="e.g., Complete Guide to Vegan Hiking"
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Description *</label>
-                    <textarea
-                      value={articleDescription}
-                      onChange={(e) => setArticleDescription(e.target.value)}
-                      placeholder="Brief article summary"
-                      rows={3}
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Author Name *</label>
-                    <input
-                      type="text"
-                      value={articleAuthor}
-                      onChange={(e) => setArticleAuthor(e.target.value)}
-                      placeholder="e.g., Jane Smith"
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Published Date *</label>
-                    <input
-                      type="date"
-                      value={articleDate}
-                      onChange={(e) => setArticleDate(e.target.value)}
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-ink-700">Featured Image URL</label>
-                    <input
-                      type="url"
-                      value={articleImage}
-                      onChange={(e) => setArticleImage(e.target.value)}
-                      placeholder="https://example.com/image.jpg"
-                      className="w-full px-4 py-3 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                    />
-                  </div>
+                  <input type="text" value={articleTitle} onChange={(e) => setArticleTitle(e.target.value)} placeholder="Article Title" className="input-field" />
+                  <textarea value={articleDescription} onChange={(e) => setArticleDescription(e.target.value)} placeholder="Description" rows={3} className="input-field" />
+                  <input type="text" value={articleAuthor} onChange={(e) => setArticleAuthor(e.target.value)} placeholder="Author Name" className="input-field" />
+                  <input type="date" value={articleDate} onChange={(e) => setArticleDate(e.target.value)} className="input-field" />
+                  <input type="url" value={articleImage} onChange={(e) => setArticleImage(e.target.value)} placeholder="Featured Image URL" className="input-field" />
                 </>
               )}
 
               {schemaType === 'faq' && (
+                <div className="space-y-4">
+                  {faqs.map((faq, index) => (
+                    <div key={index} className="p-4 bg-cream-50 border border-cream-200 rounded-sm relative group">
+                      <button onClick={() => removeFAQ(index)} className="absolute top-2 right-2 text-ink-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><Trash2 className="w-4 h-4" /></button>
+                      <input type="text" value={faq.question} onChange={(e) => updateFAQ(index, 'question', e.target.value)} placeholder="Question" className="input-field mb-2" />
+                      <textarea value={faq.answer} onChange={(e) => updateFAQ(index, 'answer', e.target.value)} placeholder="Answer" rows={2} className="input-field" />
+                    </div>
+                  ))}
+                  <button onClick={addFAQ} className="w-full py-3 border border-dashed border-cream-400 text-ink-500 hover:border-claude-500 hover:text-claude-600 transition flex items-center justify-center gap-2 text-sm uppercase tracking-wider font-light">
+                    <Plus className="w-4 h-4" /> Add Question
+                  </button>
+                </div>
+              )}
+
+              {schemaType === 'howto' && (
                 <>
-                  <div className="space-y-4">
-                    {faqs.map((faq, index) => (
-                      <div key={index} className="border border-cream-300 rounded-lg p-4 bg-cream-50">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="font-semibold text-ink-700">FAQ #{index + 1}</span>
-                          {faqs.length > 1 && (
-                            <button
-                              onClick={() => removeFAQ(index)}
-                              className="text-claude-500 text-sm hover:text-claude-600"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                        <input
-                          type="text"
-                          value={faq.question}
-                          onChange={(e) => updateFAQ(index, 'question', e.target.value)}
-                          placeholder="Question (e.g., Are these boots waterproof?)"
-                          className="w-full px-4 py-2 border border-cream-400 rounded-lg mb-2 focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                        />
-                        <textarea
-                          value={faq.answer}
-                          onChange={(e) => updateFAQ(index, 'answer', e.target.value)}
-                          placeholder="Answer"
-                          rows={2}
-                          className="w-full px-4 py-2 border border-cream-400 rounded-lg focus:ring-2 focus:ring-claude-500 focus:border-transparent"
-                        />
+                  <input type="text" value={howtoTitle} onChange={(e) => setHowtoTitle(e.target.value)} placeholder="Guide Title" className="input-field" />
+                  <textarea value={howtoDescription} onChange={(e) => setHowtoDescription(e.target.value)} placeholder="Description" rows={2} className="input-field" />
+                  
+                  <div className="space-y-4 mt-4">
+                    <label className="block text-xs tracking-widest uppercase text-ink-500 font-light">Steps</label>
+                    {howtoSteps.map((step, index) => (
+                      <div key={index} className="p-4 bg-cream-50 border border-cream-200 rounded-sm relative group">
+                         <button onClick={() => removeStep(index)} className="absolute top-2 right-2 text-ink-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><Trash2 className="w-4 h-4" /></button>
+                         <div className="grid grid-cols-1 gap-3">
+                           <input type="text" value={step.name} onChange={(e) => updateStep(index, 'name', e.target.value)} placeholder={`Step ${index + 1} Title`} className="input-field font-medium" />
+                           <textarea value={step.text} onChange={(e) => updateStep(index, 'text', e.target.value)} placeholder="Step details..." rows={2} className="input-field" />
+                           <input type="url" value={step.image} onChange={(e) => updateStep(index, 'image', e.target.value)} placeholder="Step Image URL (optional)" className="input-field text-xs" />
+                         </div>
                       </div>
                     ))}
+                    <button onClick={addStep} className="w-full py-3 border border-dashed border-cream-400 text-ink-500 hover:border-claude-500 hover:text-claude-600 transition flex items-center justify-center gap-2 text-sm uppercase tracking-wider font-light">
+                      <Plus className="w-4 h-4" /> Add Step
+                    </button>
                   </div>
-                  <button
-                    onClick={addFAQ}
-                    className="w-full py-2 border-2 border-dashed border-cream-400 rounded-lg text-ink-500 hover:border-claude-500 hover:text-claude-500 transition"
-                  >
-                    + Add Another FAQ
+                </>
+              )}
+
+              {schemaType === 'localBusiness' && (
+                <>
+                  <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Business Name" className="input-field" />
+                  <input type="url" value={businessImage} onChange={(e) => setBusinessImage(e.target.value)} placeholder="Image URL" className="input-field" />
+                  <input type="tel" value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="Phone Number" className="input-field" />
+                  <select value={businessPriceRange} onChange={(e) => setBusinessPriceRange(e.target.value)} className="input-field">
+                    <option value="$">$ (Cheap)</option>
+                    <option value="$$">$$ (Moderate)</option>
+                    <option value="$$$">$$$ (Expensive)</option>
+                    <option value="$$$$">$$$$ (Luxury)</option>
+                  </select>
+                  <div className="space-y-2 pt-2">
+                    <label className="block text-xs tracking-widest uppercase text-ink-500 font-light">Address</label>
+                    <input type="text" value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)} placeholder="Street Address" className="input-field" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="text" value={businessCity} onChange={(e) => setBusinessCity(e.target.value)} placeholder="City" className="input-field" />
+                      <input type="text" value={businessZip} onChange={(e) => setBusinessZip(e.target.value)} placeholder="ZIP Code" className="input-field" />
+                    </div>
+                    <input type="text" value={businessCountry} onChange={(e) => setBusinessCountry(e.target.value)} placeholder="Country" className="input-field" />
+                  </div>
+                </>
+              )}
+
+              {schemaType === 'breadcrumb' && (
+                <div className="space-y-4">
+                  {breadcrumbs.map((crumb, index) => (
+                    <div key={index} className="flex gap-3 items-center">
+                      <span className="text-xs text-ink-400 w-6">{index + 1}.</span>
+                      <input type="text" value={crumb.name} onChange={(e) => updateBreadcrumb(index, 'name', e.target.value)} placeholder="Page Name" className="input-field" />
+                      <input type="text" value={crumb.item} onChange={(e) => updateBreadcrumb(index, 'item', e.target.value)} placeholder="URL" className="input-field" />
+                      <button onClick={() => removeBreadcrumb(index)} className="text-ink-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                  <button onClick={addBreadcrumb} className="w-full py-3 border border-dashed border-cream-400 text-ink-500 hover:border-claude-500 hover:text-claude-600 transition flex items-center justify-center gap-2 text-sm uppercase tracking-wider font-light">
+                    <Plus className="w-4 h-4" /> Add Level
                   </button>
+                </div>
+              )}
+
+              {schemaType === 'organization' && (
+                <>
+                  <input type="text" value={productBrand} onChange={(e) => setProductBrand(e.target.value)} placeholder="Organization Name" className="input-field" />
+                  <input type="url" value={productImage} onChange={(e) => setProductImage(e.target.value)} placeholder="Website URL" className="input-field" />
+                  <p className="text-xs text-ink-400 italic">This schema uses the same fields as the Product Brand setup for simplicity.</p>
                 </>
               )}
             </div>
-
-            <button
-              onClick={generateSchema}
-              className="w-full mt-6 btn-claude text-white px-6 py-4 rounded-lg font-semibold text-lg"
-            >
-              Generate Schema Code
-            </button>
           </div>
 
           {/* Output Section */}
-          <div className="bg-ink-900 rounded-2xl p-8 shadow-lg text-white">
+          <div className="bg-ink-900 p-8 rounded-sm shadow-xl flex flex-col max-h-[800px]">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="font-display text-2xl font-bold">Generated Code</h2>
-              {generatedCode && (
-                <button
-                  onClick={copyToClipboard}
-                  className="flex items-center gap-2 bg-ink-800 px-4 py-2 rounded-lg hover:bg-ink-700 transition"
-                >
-                  {copied ? (
-                    <>
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-5 h-5" />
-                      Copy Code
-                    </>
-                  )}
-                </button>
-              )}
+              <h2 className="font-display text-xl font-light tracking-wide text-white">Generated JSON-LD</h2>
+              <button
+                onClick={copyToClipboard}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium tracking-wide transition-all ${
+                  copied 
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/50' 
+                    : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                }`}
+              >
+                {copied ? <><CheckCircle className="w-3 h-3" /> COPIED</> : <><Copy className="w-3 h-3" /> COPY CODE</>}
+              </button>
             </div>
 
-            {generatedCode ? (
-              <>
-                <pre className="bg-ink-950 p-6 rounded-lg overflow-x-auto text-sm font-mono mb-6">
-                  <code className="text-claude-300">{generatedCode}</code>
-                </pre>
-
-                <div className="bg-claude-900/30 border border-claude-700 rounded-lg p-6">
-                  <h3 className="font-bold mb-3 text-claude-300">📋 Next Steps:</h3>
-                  <ol className="space-y-2 text-sm text-claude-200">
-                    <li>1. Copy the code above using the "Copy Code" button</li>
-                    <li>2. Paste it in the <code className="bg-ink-800 px-2 py-1 rounded">&lt;head&gt;</code> section of your HTML</li>
-                    <li>3. Or add it via Google Tag Manager as a Custom HTML tag</li>
-                    <li>4. Test it with <a href="https://search.google.com/test/rich-results" target="_blank" className="underline">Google's Rich Results Test</a></li>
-                  </ol>
-                </div>
-              </>
-            ) : (
-              <div className="bg-ink-800 rounded-lg p-12 text-center text-ink-400">
-                <Code className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>Fill out the form and click "Generate Schema Code" to see your code here</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Benefits Section */}
-        <div className="mt-16 card-elevated p-8">
-          <h2 className="font-display text-2xl font-bold mb-6 text-center text-ink-900">Why Schema Markup Matters for AI</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-3xl mb-3">🤖</div>
-              <h3 className="font-bold mb-2 text-ink-900">AI Understanding</h3>
-              <p className="text-ink-500 text-sm">
-                Schema helps ChatGPT, Bing Chat, and other AI engines correctly interpret your content
-              </p>
+            <div className="relative flex-1 overflow-hidden rounded bg-ink-950 border border-ink-800">
+               <pre className="absolute inset-0 p-6 overflow-auto text-sm font-mono text-claude-100 leading-relaxed scrollbar-thin scrollbar-thumb-ink-700 scrollbar-track-transparent">
+                <code>{generatedCode}</code>
+              </pre>
             </div>
-            <div className="text-center">
-              <div className="text-3xl mb-3">⭐</div>
-              <h3 className="font-bold mb-2 text-ink-900">Rich Results</h3>
-              <p className="text-ink-500 text-sm">
-                Get star ratings, FAQs, and enhanced snippets in Google search results
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl mb-3">📈</div>
-              <h3 className="font-bold mb-2 text-ink-900">Better Rankings</h3>
-              <p className="text-ink-500 text-sm">
-                Structured data improves your chances of being cited by AI and ranking higher
+
+            <div className="mt-6 p-4 bg-claude-900/20 border border-claude-800/50 rounded">
+              <h3 className="text-claude-300 text-xs uppercase tracking-widest font-semibold mb-2">Instructions</h3>
+              <p className="text-ink-400 text-sm font-light">
+                Copy this code and paste it into the <code className="text-claude-300 bg-ink-950 px-1 py-0.5 rounded">&lt;head&gt;</code> section of your page HTML, or use a plugin like "Insert Headers and Footers".
               </p>
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        .input-field {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          background-color: white;
+          border: 1px solid #e5e5e5; /* cream-300 */
+          border-radius: 0.125rem;
+          font-weight: 300;
+          transition: all 0.2s;
+        }
+        .input-field:focus {
+          outline: none;
+          border-color: #7c3aed; /* claude-500 */
+          box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+        }
+      `}</style>
     </div>
   )
 }

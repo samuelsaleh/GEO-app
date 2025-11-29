@@ -57,3 +57,4 @@ class SchemaGeneration(Base):
     user_email = Column(String(255))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+
