@@ -152,7 +152,9 @@ export const contactAPI = {
 export interface ScoreRequest {
   brand: string
   category: string
+  website_url?: string
   location?: string
+  custom_questions?: string[]
 }
 
 export interface ModelResult {
@@ -248,10 +250,57 @@ export interface ScoreResponse {
   // Metadata
   tested_at: string
   test_duration_ms: number
+  
+  // Questions that were tested
+  questions_tested: string[]
 }
 
-// AI Visibility Score API
+// =============================================================================
+// WEBSITE ANALYSIS TYPES
+// =============================================================================
+
+export interface BrandContext {
+  brand_name: string
+  website_url: string | null
+  product_category: string
+  product_types: string[]
+  brand_description: string
+  unique_selling_points: string[]
+  target_audience: string
+  price_range: string
+  known_competitors: string[]
+  location: string | null
+  suggested_questions: string[]
+}
+
+export interface AnalyzeSiteRequest {
+  brand_name: string
+  website_url: string
+  additional_context?: string
+}
+
+export interface AnalyzeSiteResponse {
+  success: boolean
+  brand_context: BrandContext | null
+  suggested_questions: string[]
+  detected_category: string
+  detected_competitors: string[]
+  error: string | null
+}
+
+// =============================================================================
+// AI VISIBILITY SCORE API
+// =============================================================================
+
 export const scoreAPI = {
+  /**
+   * Analyze website to extract brand context and suggest questions
+   */
+  analyzeSite: async (data: AnalyzeSiteRequest): Promise<AnalyzeSiteResponse> => {
+    const response = await api.post('/api/visibility/analyze-site', data)
+    return response.data
+  },
+  
   /**
    * Run AI Visibility Score test
    * 

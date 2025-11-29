@@ -79,7 +79,7 @@ export default function PricingPage() {
   const faqs = [
     {
       question: "What do I actually get?",
-      answer: "Two tools: GEO Health Check (scans your site for AI visibility issues) and Schema Generator (creates structured data markup). Free plan has limits, paid plans are unlimited."
+      answer: "Two tools: AI Website Audit (scans your site for AI visibility issues) and Schema Generator (creates structured data markup). Free plan has limits, paid plans are unlimited."
     },
     {
       question: "Why is this so cheap compared to competitors?",
@@ -87,7 +87,7 @@ export default function PricingPage() {
     },
     {
       question: "Can I try before I buy?",
-      answer: "Absolutely. The free plan gives you 3 health checks and 5 schema generations per month, forever. No credit card required. Upgrade only if you need more."
+      answer: "Absolutely. The free plan gives you 3 website audits and 5 schema generations per month, forever. No credit card required. Upgrade only if you need more."
     },
     {
       question: "How does the 30% Black Friday discount work?",
@@ -178,7 +178,7 @@ export default function PricingPage() {
               <ul className="space-y-4 text-sm flex-1">
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">3 GEO Health Checks per month</span>
+                  <span className="text-ink-700">3 AI Website Audits per month</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
@@ -220,7 +220,7 @@ export default function PricingPage() {
               <ul className="space-y-4 text-sm flex-1">
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">Unlimited GEO Health Checks</span>
+                  <span className="text-ink-700">Unlimited AI Website Audits</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />

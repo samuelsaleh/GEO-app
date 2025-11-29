@@ -11,7 +11,12 @@ import logging
 
 from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult, MultiModelResult, AI_MODELS
 from app.services.speed_test import speed_test_service
-from app.models.speed_test import ScoreRequest, ScoreResponse
+from app.services.website_analyzer import website_analyzer
+from app.models.speed_test import (
+    ScoreRequest, ScoreResponse, 
+    AnalyzeSiteRequest, AnalyzeSiteResponse,
+    BrandContext
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -66,6 +71,61 @@ async def get_available_models():
         "total": len(AI_MODELS),
         "providers": ["openai", "anthropic", "google"]
     }
+
+
+# =============================================================================
+# WEBSITE ANALYSIS - Extract brand context for smart prompts
+# =============================================================================
+
+@router.post("/analyze-site", response_model=AnalyzeSiteResponse)
+async def analyze_website(request: AnalyzeSiteRequest):
+    """
+    🔍 ANALYZE WEBSITE - Extract brand context for smart testing
+    
+    Fetches website content and uses AI to understand:
+    - What the brand sells (specific category)
+    - Their unique selling points
+    - Known competitors
+    - Target audience
+    
+    Returns suggested questions to test based on the analysis.
+    
+    Example:
+    ```json
+    {
+        "brand_name": "Dinh Van",
+        "website_url": "https://dinhvan.com",
+        "additional_context": "luxury French jewelry brand"
+    }
+    ```
+    
+    Response includes:
+    - detected_category: "luxury French jewelry"
+    - suggested_questions: ["What are the best luxury jewelry brands?", ...]
+    - detected_competitors: ["Cartier", "Van Cleef", ...]
+    """
+    try:
+        logger.info(f"Analyzing website for {request.brand_name}: {request.website_url}")
+        
+        result = await website_analyzer.analyze_website(
+            brand_name=request.brand_name,
+            website_url=request.website_url,
+            additional_context=request.additional_context
+        )
+        
+        if result.success:
+            logger.info(f"Analysis complete: category={result.detected_category}, {len(result.suggested_questions)} questions")
+        else:
+            logger.warning(f"Analysis failed: {result.error}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Website analysis error: {e}")
+        return AnalyzeSiteResponse(
+            success=False,
+            error=str(e)
+        )
 
 
 # =============================================================================

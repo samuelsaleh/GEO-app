@@ -52,7 +52,7 @@ export default function ToolsPage() {
             </div>
           </Link>
 
-          {/* Health Check - LOCKED */}
+          {/* Website Audit - LOCKED */}
           <div className="card-elevated p-10 relative opacity-75 hover:opacity-100 transition-opacity">
             <div className="absolute top-4 right-4 bg-gray-100 text-ink-500 text-[10px] px-3 py-1 tracking-widest uppercase font-light flex items-center gap-1 rounded-full">
               <Lock className="w-3 h-3" /> Premium
@@ -61,7 +61,7 @@ export default function ToolsPage() {
               <Search className="w-7 h-7 text-ink-400" />
             </div>
             <h2 className="font-display text-2xl font-light mb-4 text-ink-900 tracking-wide">
-              AI Health Check
+              AI Website Audit
             </h2>
             <p className="text-ink-500 mb-6 leading-relaxed font-light">
               Get a comprehensive score showing how well your content performs in ChatGPT, Bing Chat, and Google Gemini.

@@ -3,6 +3,7 @@ Speed Test Service
 
 The core engine for the AI Visibility Score feature.
 Runs parallel AI queries across multiple models to test brand visibility.
+Now with context-aware prompt generation.
 """
 
 import asyncio
@@ -15,7 +16,8 @@ from datetime import datetime
 from app.models.speed_test import (
     ScoreRequest, ScoreResponse, ModelResult, PromptResult,
     CompetitorInfo, ModelBreakdown, PromptCategory,
-    get_category_config, CATEGORY_CONFIG
+    BrandContext, PROMPT_TEMPLATES, build_prompt_with_context,
+    generate_questions_for_brand
 )
 
 # Import AI service
@@ -32,24 +34,16 @@ class SpeedTestService:
     AI Visibility Score Service
     
     Runs comprehensive visibility tests across multiple AI models.
-    Target: Complete test in under 15 seconds.
+    Now with smart, context-aware prompt generation.
     """
     
     # Fast, cheap models for speed testing
+    # Using models that are more likely to be available
     MODELS = [
         {"id": "gpt-4o-mini", "provider": "openai", "name": "ChatGPT", "icon": "🤖"},
-        {"id": "claude-3-haiku-20240307", "provider": "anthropic", "name": "Claude", "icon": "🧠"},
-        {"id": "gemini-1.5-flash", "provider": "google", "name": "Gemini", "icon": "💎"},
+        {"id": "claude-3-5-sonnet-20241022", "provider": "anthropic", "name": "Claude", "icon": "🧠"},
+        {"id": "gemini-2.0-flash", "provider": "google", "name": "Gemini", "icon": "💎"},
     ]
-    
-    # System prompt to encourage brand mentions
-    SYSTEM_PROMPT = """You are a helpful shopping and product advisor. When someone asks for recommendations:
-1. Always mention specific brand names
-2. Explain why you recommend each brand
-3. List brands in order of your recommendation
-4. Be specific and helpful
-
-Provide genuine, useful recommendations based on quality, value, and reputation."""
 
     def __init__(self):
         self.ai_service = ai_service
@@ -58,33 +52,56 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         self,
         brand: str,
         category: str,
-        location: Optional[str] = None
+        location: Optional[str] = None,
+        website_url: Optional[str] = None,
+        brand_context: Optional[BrandContext] = None,
+        custom_questions: Optional[List[str]] = None
     ) -> ScoreResponse:
         """
         Main entry point - runs complete visibility test.
         
         Args:
-            brand: Brand name to test (e.g., "Nike")
-            category: Product/service category (e.g., "running shoes")
+            brand: Brand name to test
+            category: Product/service description (be specific!)
             location: Optional location for local businesses
+            website_url: Optional website URL for context
+            brand_context: Optional pre-analyzed brand context
+            custom_questions: Optional custom questions to test
         
         Returns:
             ScoreResponse with complete test results
         """
         start_time = time.time()
         
-        # 1. Generate smart prompts
-        prompts = self._generate_prompts(brand, category, location)
+        # 1. Build or use brand context
+        if not brand_context:
+            brand_context = BrandContext(
+                brand_name=brand,
+                website_url=website_url,
+                product_category=category,
+                location=location
+            )
+        
+        # 2. Generate prompts (use custom questions if provided)
+        if custom_questions:
+            prompts = [
+                {"text": q, "category": self._guess_prompt_category(q)}
+                for q in custom_questions[:6]
+            ]
+        else:
+            prompts = self._generate_prompts(brand_context)
+        
+        questions_tested = [p["text"] for p in prompts]
         logger.info(f"Generated {len(prompts)} prompts for {brand} in {category}")
         
-        # 2. Run ALL queries in parallel
-        all_results = await self._query_all_parallel(prompts, brand)
+        # 3. Run ALL queries in parallel
+        all_results = await self._query_all_parallel(prompts, brand_context)
         
         # Filter out errors
         valid_results = [r for r in all_results if r and not r.error]
         logger.info(f"Got {len(valid_results)} valid results from {len(all_results)} queries")
         
-        # 3. Calculate score and analyze results
+        # 4. Calculate score and analyze results
         score, verdict, verdict_emoji, grade = self._calculate_score(valid_results)
         competitors = self._extract_competitors(valid_results, brand)
         prompt_results = self._group_by_prompt(prompts, all_results)
@@ -93,22 +110,23 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         killer_quote = self._extract_killer_quote(valid_results, brand, competitors)
         example_response = self._get_example_response(valid_results, brand)
         
-        # 4. Calculate comparison with top competitor
+        # 5. Calculate comparison with top competitor
         you_vs_top = None
         if competitors:
             top_comp = competitors[0]
+            your_rate = int(len([r for r in valid_results if r.mentioned]) / len(valid_results) * 100) if valid_results else 0
             you_vs_top = {
                 "competitor": top_comp.name,
                 "their_rate": top_comp.rate,
-                "your_rate": int(len([r for r in valid_results if r.mentioned]) / len(valid_results) * 100) if valid_results else 0,
-                "gap": top_comp.rate - (int(len([r for r in valid_results if r.mentioned]) / len(valid_results) * 100) if valid_results else 0)
+                "your_rate": your_rate,
+                "gap": top_comp.rate - your_rate
             }
         
-        # 5. Generate share text
+        # 6. Generate share text
         mention_rate = len([r for r in valid_results if r.mentioned]) / len(valid_results) if valid_results else 0
         share_text = self._generate_share_text(brand, category, score, competitors, mention_rate)
         
-        # 6. Build response
+        # 7. Build response
         test_duration_ms = int((time.time() - start_time) * 1000)
         
         return ScoreResponse(
@@ -131,40 +149,64 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
             example_response=example_response,
             share_text=share_text,
             tested_at=datetime.now(),
-            test_duration_ms=test_duration_ms
+            test_duration_ms=test_duration_ms,
+            questions_tested=questions_tested
         )
     
-    def _generate_prompts(
-        self,
-        brand: str,
-        category: str,
-        location: Optional[str]
-    ) -> List[Dict[str, Any]]:
-        """Generate diverse prompts covering different search intents"""
+    def _guess_prompt_category(self, question: str) -> PromptCategory:
+        """Guess the category of a question based on keywords"""
+        q_lower = question.lower()
         
-        prompts = [
-            {
-                "text": f"What are the best {category}?",
-                "category": PromptCategory.RECOMMENDATION
-            },
-            {
-                "text": f"Top {category} brands in 2025",
-                "category": PromptCategory.RECOMMENDATION
-            },
-            {
-                "text": f"Is {brand} good for {category}? What are the alternatives?",
-                "category": PromptCategory.REPUTATION
-            },
-            {
-                "text": f"Where should I buy {category}? What brands do you recommend?",
-                "category": PromptCategory.PURCHASE
-            },
-        ]
+        if any(w in q_lower for w in ['vs', 'compare', 'versus', 'or', 'better']):
+            return PromptCategory.COMPARISON
+        elif any(w in q_lower for w in ['is', 'good', 'review', 'worth', 'should']):
+            return PromptCategory.REPUTATION
+        elif any(w in q_lower for w in ['buy', 'where', 'purchase', 'get', 'shop']):
+            return PromptCategory.PURCHASE
+        else:
+            return PromptCategory.RECOMMENDATION
+    
+    def _generate_prompts(self, brand_context: BrandContext) -> List[Dict[str, Any]]:
+        """Generate smart prompts based on brand context"""
+        
+        prompts = []
+        category = brand_context.product_category
+        brand = brand_context.brand_name
+        
+        # Recommendation prompts (most important)
+        prompts.append({
+            "text": f"What are the best {category}?",
+            "category": PromptCategory.RECOMMENDATION
+        })
+        prompts.append({
+            "text": f"Top {category} brands in 2025",
+            "category": PromptCategory.RECOMMENDATION
+        })
+        
+        # Reputation prompt
+        prompts.append({
+            "text": f"Is {brand} good for {category}? What are the alternatives?",
+            "category": PromptCategory.REPUTATION
+        })
+        
+        # Purchase prompt
+        prompts.append({
+            "text": f"Where should I buy {category}? What brands do you recommend?",
+            "category": PromptCategory.PURCHASE
+        })
+        
+        # Comparison prompt (if we have competitors)
+        if brand_context.known_competitors:
+            competitor = brand_context.known_competitors[0]
+            prompts.append({
+                "text": f"{brand} vs {competitor} - which is better for {category}?",
+                "category": PromptCategory.COMPARISON
+            })
         
         # Add location-specific prompt if provided
-        if location:
+        if brand_context.location:
             prompts.append({
-                "text": f"Best {category} in {location}",
+                "text": f"Best {category} in {brand_context.location}",
                 "category": PromptCategory.RECOMMENDATION
             })
         
@@ -173,7 +215,7 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
     async def _query_all_parallel(
         self,
         prompts: List[Dict[str, Any]],
-        brand: str
+        brand_context: BrandContext
     ) -> List[ModelResult]:
         """Run ALL AI queries in parallel using asyncio.gather"""
         
@@ -185,7 +227,7 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
                     prompt=prompt["text"],
                     prompt_category=prompt["category"],
                     model=model,
-                    brand=brand
+                    brand_context=brand_context
                 )
                 tasks.append(task)
         
@@ -198,7 +240,6 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         for i, result in enumerate(results):
             if isinstance(result, Exception):
                 logger.error(f"Query {i} failed: {result}")
-                # Create error result
                 prompt_idx = i // len(self.MODELS)
                 model_idx = i % len(self.MODELS)
                 processed_results.append(ModelResult(
@@ -219,9 +260,9 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         prompt: str,
         prompt_category: PromptCategory,
         model: Dict[str, str],
-        brand: str
+        brand_context: BrandContext
     ) -> ModelResult:
-        """Query a single AI model and analyze the response"""
+        """Query a single AI model with context-aware prompting"""
         
         start = time.time()
         response = ""
@@ -231,9 +272,28 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
             if not self.ai_service:
                 raise Exception("AI service not available")
             
+            # Build context-aware system prompt
+            template = PROMPT_TEMPLATES.get(prompt_category, PROMPT_TEMPLATES[PromptCategory.RECOMMENDATION])
+            system_prompt = template["system_prompt"]
+            
+            # Add brand context to the prompt
+            context_parts = []
+            if brand_context.product_category:
+                context_parts.append(f"Category: {brand_context.product_category}")
+            if brand_context.brand_description:
+                context_parts.append(f"About {brand_context.brand_name}: {brand_context.brand_description}")
+            if brand_context.location:
+                context_parts.append(f"Location: {brand_context.location}")
+            
+            context_str = "\n".join(context_parts) if context_parts else ""
+            
+            full_prompt = f"{prompt}"
+            if context_str:
+                full_prompt = f"Context:\n{context_str}\n\nQuestion: {prompt}"
+            
             response = await self.ai_service.generate_with_model(
-                prompt=prompt,
-                system_prompt=self.SYSTEM_PROMPT,
+                prompt=full_prompt,
+                system_prompt=system_prompt,
                 model=model["id"],
                 provider=model["provider"],
                 max_tokens=600,
@@ -250,6 +310,7 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
             response = ""
         
         # Analyze the response
+        brand = brand_context.brand_name
         mentioned = self._brand_in_response(brand, response) if response else False
         position = self._find_position(brand, response) if mentioned else None
         competitors = self._extract_brands_from_response(response, brand) if response else []
@@ -283,13 +344,13 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         if brand_lower in response_lower:
             return True
         
-        # Match without spaces (e.g., "NewBalance" matches "New Balance")
+        # Match without spaces
         brand_no_space = brand_lower.replace(" ", "")
         response_no_space = response_lower.replace(" ", "")
         if brand_no_space in response_no_space:
             return True
         
-        # Match with common variations
+        # Match with hyphen
         brand_hyphenated = brand_lower.replace(" ", "-")
         if brand_hyphenated in response_lower:
             return True
@@ -301,42 +362,27 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         if not response:
             return None
         
-        # Look for numbered lists
         lines = response.split('\n')
         brand_lower = brand.lower()
         
         for i, line in enumerate(lines):
             line_lower = line.lower()
             
-            # Check if this line contains the brand
             if brand_lower in line_lower or brand_lower.replace(" ", "") in line_lower.replace(" ", ""):
                 # Try to extract position from numbered list
                 match = re.match(r'^[\s]*(\d+)[.\):\-]', line)
                 if match:
                     return int(match.group(1))
                 
-                # Check for bullet points and count position
+                # Check for bullet points
                 if line.strip().startswith(('-', '*', '•')):
-                    # Count bullet points before this one
                     bullet_count = 0
                     for j in range(i + 1):
                         if lines[j].strip().startswith(('-', '*', '•')):
                             bullet_count += 1
                     return bullet_count
         
-        # If no numbered list, find first mention position
-        response_lower = response.lower()
-        brand_pos = response_lower.find(brand_lower)
-        
-        if brand_pos == -1:
-            return None
-        
-        # Count how many other brand-like words appear before
-        text_before = response_lower[:brand_pos]
-        # Simple heuristic: count capitalized words that might be brands
-        potential_brands = re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', response[:brand_pos])
-        
-        return len(potential_brands) + 1
+        return None
     
     def _extract_brands_from_response(self, response: str, user_brand: str) -> List[str]:
         """Extract brand names mentioned in the response"""
@@ -346,50 +392,51 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         brands_found = []
         user_brand_lower = user_brand.lower()
         
-        # Common brand indicators
+        # Common brand patterns
         brand_patterns = [
+            r'\*\*([A-Z][a-zA-Z\s&]+?)\*\*',  # **Brand Name**
             r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b',  # Capitalized words
-            r'(?:recommend|suggest|try|consider|check out)\s+([A-Z][a-zA-Z\s]+)',  # After recommendation words
-            r'(?:\d+[.\)]\s*)([A-Z][a-zA-Z\s]+)',  # In numbered lists
+            r'(?:\d+[.\)]\s*)([A-Z][a-zA-Z\s&]+)',  # In numbered lists
         ]
+        
+        # Skip words that aren't brands
+        skip_words = {
+            'the', 'and', 'for', 'with', 'this', 'that', 'these', 'those',
+            'here', 'there', 'when', 'what', 'which', 'who', 'how', 'why',
+            'best', 'top', 'great', 'good', 'nice', 'quality', 'price',
+            'overall', 'however', 'although', 'because', 'since', 'while',
+            'brand', 'brands', 'product', 'products', 'option', 'options',
+            'choice', 'choices', 'alternative', 'alternatives', 'recommend',
+            'known', 'popular', 'famous', 'leading', 'premier', 'luxury',
+            'high', 'low', 'mid', 'range', 'end', 'tier', 'level',
+            'why', 'pros', 'cons', 'features', 'benefits', 'quality'
+        }
         
         for pattern in brand_patterns:
             matches = re.findall(pattern, response)
             for match in matches:
-                # Clean up the match
                 brand = match.strip()
                 brand_lower = brand.lower()
                 
-                # Filter out common non-brand words
-                skip_words = [
-                    'the', 'and', 'for', 'with', 'this', 'that', 'these', 'those',
-                    'here', 'there', 'when', 'what', 'which', 'who', 'how', 'why',
-                    'best', 'top', 'great', 'good', 'nice', 'quality', 'price',
-                    'overall', 'however', 'although', 'because', 'since', 'while',
-                    'running', 'shoes', 'brand', 'brands', 'product', 'products',
-                    'option', 'options', 'choice', 'choices', 'alternative',
-                    'i', 'you', 'we', 'they', 'it', 'my', 'your', 'our', 'their'
-                ]
-                
+                # Skip common words
                 if brand_lower in skip_words:
                     continue
                 
-                # Skip if it's the user's brand
-                if brand_lower == user_brand_lower:
+                # Skip user's brand
+                if brand_lower == user_brand_lower or user_brand_lower in brand_lower:
                     continue
                 
-                # Skip very short or very long matches
+                # Skip very short or very long
                 if len(brand) < 3 or len(brand) > 30:
                     continue
                 
-                # Skip if contains numbers (probably not a brand)
+                # Skip if contains numbers
                 if re.search(r'\d', brand):
                     continue
                 
                 if brand not in brands_found:
                     brands_found.append(brand)
         
-        # Limit to top 10 most likely brands
         return brands_found[:10]
     
     def _analyze_sentiment(self, response: str, brand: str) -> str:
@@ -397,10 +444,7 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         if not response:
             return "neutral"
         
-        response_lower = response.lower()
         brand_lower = brand.lower()
-        
-        # Find sentences containing the brand
         sentences = re.split(r'[.!?]', response)
         brand_sentences = [s for s in sentences if brand_lower in s.lower()]
         
@@ -409,20 +453,15 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         
         text = ' '.join(brand_sentences).lower()
         
-        # Positive indicators
         positive_words = [
             'best', 'excellent', 'great', 'top', 'leading', 'recommend',
             'outstanding', 'innovative', 'quality', 'trusted', 'reliable',
-            'popular', 'favorite', 'preferred', 'award', 'premium',
-            'highly', 'loved', 'amazing', 'fantastic', 'superior'
+            'popular', 'favorite', 'preferred', 'premium', 'loved'
         ]
         
-        # Negative indicators
         negative_words = [
             'bad', 'poor', 'avoid', 'problem', 'issue', 'complaint',
-            'expensive', 'overpriced', 'disappointing', 'lacks', 'limited',
-            'controversy', 'criticism', 'negative', 'worst', 'inferior',
-            'cheap', 'low-quality', 'unreliable'
+            'expensive', 'overpriced', 'disappointing', 'lacks', 'limited'
         ]
         
         positive_count = sum(1 for w in positive_words if w in text)
@@ -434,18 +473,13 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
             return "negative"
         return "neutral"
     
-    def _extract_relevant_sentence(
-        self,
-        response: str,
-        competitors: List[str]
-    ) -> Optional[str]:
-        """Extract the most relevant/shareable sentence from response"""
+    def _extract_relevant_sentence(self, response: str, competitors: List[str]) -> Optional[str]:
+        """Extract the most relevant sentence from response"""
         if not response:
             return None
         
         sentences = re.split(r'[.!?]', response)
         
-        # Priority 1: Sentence with recommendation + competitor
         for sentence in sentences:
             sentence_lower = sentence.lower()
             has_recommendation = any(w in sentence_lower for w in ['recommend', 'suggest', 'best', 'top'])
@@ -454,12 +488,10 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
             if has_recommendation and has_competitor:
                 return sentence.strip() + "."
         
-        # Priority 2: First sentence with a competitor
         for sentence in sentences:
             if any(comp.lower() in sentence.lower() for comp in competitors[:3]):
                 return sentence.strip() + "."
         
-        # Priority 3: First substantial sentence
         for sentence in sentences:
             if len(sentence.strip()) > 50:
                 return sentence.strip() + "."
@@ -467,15 +499,7 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         return None
     
     def _calculate_score(self, results: List[ModelResult]) -> Tuple[int, str, str, str]:
-        """
-        Calculate visibility score with bonus factors.
-        
-        Score formula:
-        - Base: mention_rate * 60 (0-60 points)
-        - Position bonus: +20 if avg position <= 2
-        - Sentiment bonus: +10 if mostly positive
-        - Consistency bonus: +10 if mentioned across multiple providers
-        """
+        """Calculate visibility score with bonus factors"""
         if not results:
             return 0, "invisible", "🔴", "F"
         
@@ -502,9 +526,7 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         
         score = min(100, int(base + position_bonus + sentiment_bonus + consistency_bonus))
         
-        # Get verdict
         verdict, verdict_emoji, grade = self._get_verdict(score)
-        
         return score, verdict, verdict_emoji, grade
     
     def _get_verdict(self, score: int) -> Tuple[str, str, str]:
@@ -520,11 +542,7 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         else:
             return "authority", "💚", "A"
     
-    def _extract_competitors(
-        self,
-        results: List[ModelResult],
-        brand: str
-    ) -> List[CompetitorInfo]:
+    def _extract_competitors(self, results: List[ModelResult], brand: str) -> List[CompetitorInfo]:
         """Find all competitors mentioned and rank by frequency"""
         competitor_counts: Dict[str, int] = {}
         brand_lower = brand.lower()
@@ -532,15 +550,12 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         for result in results:
             for comp in result.competitors_found:
                 comp_lower = comp.lower()
-                # Skip user's brand
                 if comp_lower == brand_lower or brand_lower in comp_lower:
                     continue
                 
-                # Normalize competitor name
                 comp_normalized = comp.title()
                 competitor_counts[comp_normalized] = competitor_counts.get(comp_normalized, 0) + 1
         
-        # Sort by mention count
         sorted_comps = sorted(competitor_counts.items(), key=lambda x: x[1], reverse=True)
         
         total = len(results)
@@ -553,11 +568,7 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
             for name, count in sorted_comps[:5]
         ]
     
-    def _group_by_prompt(
-        self,
-        prompts: List[Dict[str, Any]],
-        results: List[ModelResult]
-    ) -> List[PromptResult]:
+    def _group_by_prompt(self, prompts: List[Dict[str, Any]], results: List[ModelResult]) -> List[PromptResult]:
         """Group results by prompt"""
         prompt_results = []
         
@@ -565,15 +576,12 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
             prompt_text = prompt["text"]
             prompt_category = prompt["category"]
             
-            # Find results for this prompt
             matching_results = [r for r in results if r.prompt == prompt_text]
             
-            # Calculate mention rate for this prompt
             mentions = sum(1 for r in matching_results if r.mentioned)
             total = len(matching_results)
             mention_rate = mentions / total if total > 0 else 0
             
-            # Find best position
             positions = [r.position for r in matching_results if r.position]
             best_position = min(positions) if positions else None
             
@@ -622,7 +630,6 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         if not prompt_results:
             return None
         
-        # Sort by mention rate (ascending)
         sorted_prompts = sorted(prompt_results, key=lambda x: x.mention_rate)
         
         worst = sorted_prompts[0]
@@ -642,28 +649,20 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
     ) -> Optional[str]:
         """Find the most impactful quote showing competitor over user"""
         
-        # Find a response where competitor is mentioned but user isn't
         for result in results:
             if not result.mentioned and result.competitors_found:
                 top_comp = result.competitors_found[0]
                 return f'When asked "{result.prompt}", {result.model_name} recommended {top_comp}. You were not mentioned.'
         
-        # If user is always mentioned, find where they're ranked low
         for result in results:
             if result.mentioned and result.position and result.position > 3:
                 return f'When asked "{result.prompt}", {result.model_name} mentioned you at position #{result.position}.'
         
-        # If no bad results, return None (user is doing well!)
         return None
     
-    def _get_example_response(
-        self,
-        results: List[ModelResult],
-        brand: str
-    ) -> Optional[Dict[str, Any]]:
+    def _get_example_response(self, results: List[ModelResult], brand: str) -> Optional[Dict[str, Any]]:
         """Get an example AI response to show the user"""
         
-        # Prefer a response where brand is NOT mentioned (more impactful)
         for result in results:
             if not result.mentioned and result.full_response and not result.error:
                 return {
@@ -673,7 +672,6 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
                     "mentioned": False
                 }
         
-        # Fall back to any response with content
         for result in results:
             if result.full_response and not result.error:
                 return {
@@ -696,9 +694,8 @@ Provide genuine, useful recommendations based on quality, value, and reputation.
         """Generate viral share text for LinkedIn"""
         
         if score < 30:
-            # Bad score - trigger concern
             top_comp = competitors[0].name if competitors else "competitors"
-            return f"""I just checked my AI Visibility Score with Dwight — only {score}%! 😱
+            return f"""I just checked my AI Visibility Score — only {score}%! 😱
 
 When people ask AI for "{category}", {top_comp} shows up but {brand} doesn't.
 
@@ -707,7 +704,6 @@ When people ask AI for "{category}", {top_comp} shows up but {brand} doesn't.
 Check your brand's AI visibility for free 👇
 """
         elif score < 60:
-            # Medium score - room for improvement
             return f"""Just discovered my AI Visibility Score is {score}% 📊
 
 When customers ask ChatGPT, Claude, and Gemini about "{category}", I'm only mentioned {int(mention_rate * 100)}% of the time.
@@ -715,7 +711,6 @@ When customers ask ChatGPT, Claude, and Gemini about "{category}", I'm only ment
 Time to optimize for AI search. Check your score 👇
 """
         else:
-            # Good score - humble brag
             return f"""Just checked my AI Visibility Score — {score}%! 🎉
 
 {brand} is recommended by {int(mention_rate * 100)}% of AI models when people ask about "{category}".
@@ -726,4 +721,3 @@ Curious about your brand's AI visibility? Check free 👇
 
 # Singleton instance
 speed_test_service = SpeedTestService()
-

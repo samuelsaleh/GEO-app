@@ -101,7 +101,7 @@ export default function Home() {
 
   const faqs = [
     {
-      question: "What exactly does the GEO Health Check analyze?",
+      question: "What exactly does the AI Website Audit analyze?",
       answer: "We check 6 key areas: content structure (headings, word count), schema markup, citability (how quotable your content is), authority signals, freshness indicators, and technical accessibility. You get a score out of 100 with specific fixes."
     },
     {
@@ -118,7 +118,7 @@ export default function Home() {
     },
     {
       question: "Is there really a free plan?",
-      answer: "Yes. You get 3 health checks and 5 schema generations per month, forever free. No credit card required. Upgrade only when you need unlimited access."
+      answer: "Yes. You get 3 website audits and 5 schema generations per month, forever free. No credit card required. Upgrade only when you need unlimited access."
     }
   ]
 
@@ -304,7 +304,7 @@ export default function Home() {
               <ul className="space-y-4 text-sm">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">3 GEO Health Checks per month</span>
+                  <span className="text-ink-700">3 AI Website Audits per month</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
@@ -346,7 +346,7 @@ export default function Home() {
               <ul className="space-y-4 text-sm">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700">Unlimited GEO Health Checks</span>
+                  <span className="text-ink-700">Unlimited AI Website Audits</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
@@ -430,12 +430,12 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
-            {/* GEO Health Check */}
+            {/* AI Website Audit */}
             <div className="card-elevated p-10">
               <div className="w-14 h-14 border border-claude-200 flex items-center justify-center mb-8">
                 <Search className="w-6 h-6 text-claude-500" />
               </div>
-              <h3 className="font-display text-2xl mb-4 text-ink-900">GEO Health Check</h3>
+              <h3 className="font-display text-2xl mb-4 text-ink-900">AI Website Audit</h3>
               <p className="text-ink-600 leading-relaxed mb-6">
                 Scan any webpage and get a detailed report on how AI-ready it is. We check for schema markup, content structure, citations, and more.
               </p>
@@ -540,13 +540,13 @@ export default function Home() {
             Your competitors are invisible to AI. Are you?
           </h2>
           <p className="text-lg text-ink-400 mb-12">
-            Run your first health check in 30 seconds. No signup required.
+            Run your first audit in 30 seconds. No signup required.
           </p>
           <Link
             href="/tools/health-check"
             className="inline-block bg-claude-500 text-white px-12 py-4 hover:bg-claude-600 transition text-sm tracking-wider uppercase font-medium"
           >
-            Check Your Site Free
+            Audit Your Site Free
           </Link>
         </div>
       </section>
