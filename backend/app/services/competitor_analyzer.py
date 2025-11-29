@@ -174,38 +174,38 @@ Always return valid JSON only, no explanations or markdown."""
         response = None
 
         try:
-            # 1. Try Claude 3 Haiku first
+            # 1. Try Claude Sonnet 4 first (best for analysis)
             if "anthropic" in available_providers:
-                logger.info("🧠 Trying Claude 3 Haiku for competitor discovery...")
+                logger.info("🧠 Trying Claude Sonnet 4 for competitor discovery...")
                 try:
                     response = await self.ai.generate_with_model(
                         prompt=prompt,
                         system_prompt=system_prompt,
-                        model="claude-3-haiku-20240307",
+                        model="claude-sonnet-4-20250514",
                         provider="anthropic",
                         max_tokens=3000,
                         temperature=0.3
                     )
                     if response:
-                        logger.info("✅ Claude 3 Haiku responded successfully")
+                        logger.info("✅ Claude Sonnet 4 responded successfully")
                 except Exception as e:
                     logger.warning(f"❌ Claude failed: {e}")
                     response = None
             
-            # 2. Fallback to Gemini 2.5 Pro
+            # 2. Fallback to Gemini 2.5 Flash
             if not response and "google" in available_providers:
-                logger.info("💎 Trying Gemini 2.5 Pro for competitor discovery...")
+                logger.info("💎 Trying Gemini 2.5 Flash for competitor discovery...")
                 try:
                     response = await self.ai.generate_with_model(
                         prompt=prompt,
                         system_prompt=system_prompt,
-                        model="gemini-2.5-pro",
+                        model="gemini-2.5-flash",
                         provider="google",
                         max_tokens=3000,
                         temperature=0.3
                     )
                     if response:
-                        logger.info("✅ Gemini 2.5 Pro responded successfully")
+                        logger.info("✅ Gemini 2.5 Flash responded successfully")
                 except Exception as e:
                     logger.warning(f"❌ Gemini failed: {e}")
                     response = None

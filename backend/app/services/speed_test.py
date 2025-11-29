@@ -37,11 +37,10 @@ class SpeedTestService:
     Now with smart, context-aware prompt generation.
     """
     
-    # One model per provider for speed and simplicity
+    # Best models from each provider
     MODELS = [
         {"id": "gpt-4o", "provider": "openai", "name": "GPT-4o", "icon": "🤖"},
-        {"id": "claude-3-haiku-20240307", "provider": "anthropic", "name": "Claude 3 Haiku", "icon": "🧠"},
-        {"id": "gemini-2.0-flash", "provider": "google", "name": "Gemini 2.0 Flash", "icon": "💎"},
+        {"id": "claude-sonnet-4-20250514", "provider": "anthropic", "name": "Claude Sonnet 4", "icon": "🧠"},
     ]
 
     def __init__(self):

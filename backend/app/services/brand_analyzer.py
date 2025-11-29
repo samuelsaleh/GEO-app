@@ -263,11 +263,11 @@ Return ONLY valid JSON, no markdown or explanation."""
             available = self.ai.get_available_providers()
             
             if "anthropic" in available:
-                logger.info("Using Claude for brand analysis")
+                logger.info("Using Claude Sonnet 4 for brand analysis")
                 response = await self.ai.generate_with_model(
                     prompt=prompt,
                     system_prompt="You are a brand strategist expert who deeply understands brand positioning and market segments. Extract precise, insightful business information. Return only valid JSON.",
-                    model="claude-3-haiku-20240307",
+                    model="claude-sonnet-4-20250514",
                     provider="anthropic",
                     max_tokens=800,
                     temperature=0.3
