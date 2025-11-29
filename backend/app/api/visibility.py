@@ -9,10 +9,11 @@ from pydantic import BaseModel
 from typing import List, Optional
 import logging
 
-from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult, MultiModelResult, AI_MODELS
+from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult, MultiModelResult, AI_MODELS, FREE_MODELS, PAID_MODELS
 from app.services.speed_test import speed_test_service
 from app.services.brand_analyzer import brand_analyzer
 from app.services.website_analyzer import website_analyzer
+from app.services.email_service import email_service
 from app.models.speed_test import (
     ScoreRequest, ScoreResponse, 
     AnalyzeSiteRequest, AnalyzeSiteResponse,
@@ -615,5 +616,78 @@ async def get_suggested_prompts(industry: str, brand: str = "your brand"):
         "brand": brand,
         "prompts": prompts,
         "count": len(prompts)
+    }
+
+
+# =============================================================================
+# EMAIL REPORT - Send visibility results via email
+# =============================================================================
+
+class EmailReportRequest(BaseModel):
+    """Request to send visibility report via email"""
+    email: str
+    brand_name: str
+    overall_score: int
+    grade: str
+    category_results: List[dict]
+    strengths: List[dict]
+    weaknesses: List[dict]
+    recommendations: List[str]
+
+
+@router.post("/email-report")
+async def send_visibility_report_email(request: EmailReportRequest):
+    """
+    Send the visibility report to user's email.
+    
+    Called when user clicks "Email Me This Report" button.
+    """
+    try:
+        import os
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+        
+        success = email_service.send_visibility_report(
+            to_email=request.email,
+            brand_name=request.brand_name,
+            overall_score=request.overall_score,
+            grade=request.grade,
+            category_results=request.category_results,
+            strengths=request.strengths,
+            weaknesses=request.weaknesses,
+            recommendations=request.recommendations,
+            frontend_url=frontend_url
+        )
+        
+        if success:
+            return {"success": True, "message": "Report sent to your email!"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to send email")
+            
+    except Exception as e:
+        logger.error(f"Error sending email report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# MODEL TIERS - Get models for free vs paid tiers
+# =============================================================================
+
+@router.get("/models/free")
+async def get_free_tier_models():
+    """Get models available in free tier"""
+    return {
+        "models": [m for m in AI_MODELS if m["id"] in FREE_MODELS],
+        "total": len(FREE_MODELS),
+        "tier": "free"
+    }
+
+
+@router.get("/models/paid")
+async def get_paid_tier_models():
+    """Get all models available in paid tier"""
+    return {
+        "models": AI_MODELS,
+        "total": len(AI_MODELS),
+        "tier": "paid"
     }
 

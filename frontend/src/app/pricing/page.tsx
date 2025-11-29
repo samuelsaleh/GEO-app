@@ -153,9 +153,208 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Pricing Cards */}
-      <section className="pb-20 px-4">
+      {/* AI Visibility Testing - One-Time Services */}
+      <section className="pb-16 px-4">
         <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 mb-4 px-5 py-2 border border-purple-200 bg-purple-50">
+              <span className="text-purple-600 text-sm tracking-wider uppercase font-medium">AI Visibility Testing</span>
+            </div>
+            <h2 className="font-display text-3xl font-medium text-ink-900">See How AI Recommends Your Brand</h2>
+            <p className="text-ink-600 mt-3">One-time competitive analysis across multiple AI models</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free Quick Check */}
+            <div className="card-elevated p-10 border border-cream-300 hover:border-purple-300 transition flex flex-col">
+              <h3 className="font-display text-2xl text-ink-900 mb-3">Quick Check</h3>
+              <div className="flex items-baseline gap-2 mb-3">
+                <span className="text-5xl font-display font-medium text-ink-900">FREE</span>
+              </div>
+              <p className="text-ink-500 mb-8 text-sm tracking-wider uppercase font-medium">One-time</p>
+              <p className="text-ink-600 mb-8 leading-relaxed">
+                See if AI knows your brand. Get your visibility score in 2 minutes.
+              </p>
+              
+              <Link
+                href="/tools/ai-visibility"
+                className="block w-full text-center uppercase text-sm tracking-wider font-medium border border-purple-500 text-purple-500 px-6 py-4 mb-8 hover:bg-purple-500 hover:text-white transition-all duration-300"
+              >
+                Try Free Now
+              </Link>
+
+              <ul className="space-y-4 text-sm flex-1">
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">5 category visibility test</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">2 AI models (GPT-4o + Claude)</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Compare vs 2 competitors</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Visual comparison chart</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Email report</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Competitive Test - €97 */}
+            <div className="card-elevated p-10 border-2 border-purple-500 relative flex flex-col">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-5 py-1.5 text-xs tracking-wider uppercase font-semibold whitespace-nowrap">
+                Most Value
+              </div>
+              <h3 className="font-display text-2xl text-ink-900 mb-3">Competitive Test</h3>
+              <div className="flex items-baseline gap-2 mb-3">
+                <span className="text-5xl font-display font-medium text-ink-900">€97</span>
+              </div>
+              <p className="text-ink-500 mb-8 text-sm tracking-wider uppercase font-medium">One-time</p>
+              <p className="text-ink-600 mb-8 leading-relaxed">
+                Full competitive analysis. See exactly where you rank vs 10 competitors.
+              </p>
+              
+              <Link
+                href="/contact"
+                className="block w-full text-center uppercase text-sm tracking-wider font-medium bg-purple-500 text-white px-6 py-4 mb-8 hover:bg-purple-600 transition-all duration-300"
+              >
+                Get Full Report
+              </Link>
+
+              <ul className="space-y-4 text-sm flex-1">
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">5 categories × 10 prompts</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700"><strong>All 6 AI models</strong></span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700"><strong>Rank vs 10 competitors</strong></span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Detailed category insights</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Actionable recommendations</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">PDF report</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Full Audit - €2,400 */}
+            <div className="card-elevated p-10 border border-cream-300 hover:border-purple-300 transition flex flex-col">
+              <h3 className="font-display text-2xl text-ink-900 mb-3">Full Audit</h3>
+              <div className="flex items-baseline gap-2 mb-3">
+                <span className="text-5xl font-display font-medium text-ink-900">€2,400</span>
+              </div>
+              <p className="text-ink-500 mb-8 text-sm tracking-wider uppercase font-medium">One-time</p>
+              <p className="text-ink-600 mb-8 leading-relaxed">
+                Complete audit with implementation roadmap and 1-hour strategy call.
+              </p>
+              
+              <Link
+                href="/contact"
+                className="block w-full text-center uppercase text-sm tracking-wider font-medium bg-purple-500 text-white px-6 py-4 mb-8 hover:bg-purple-600 transition-all duration-300"
+              >
+                Book Audit
+              </Link>
+
+              <ul className="space-y-4 text-sm flex-1">
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Everything in Competitive Test</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700"><strong>20+ competitor analysis</strong></span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700"><strong>Implementation roadmap</strong></span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700"><strong>1-hour strategy call</strong></span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">Content optimization guide</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-ink-700">30-day email support</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Monitoring Bundles */}
+      <section className="pb-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <h3 className="font-display text-2xl font-medium text-ink-900">Save with Bundles</h3>
+            <p className="text-ink-600 mt-2">Audit + ongoing monitoring packages</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="card-elevated p-8 border-2 border-purple-300">
+              <h4 className="font-display text-xl text-ink-900 mb-2">Audit + 3 Months Monitoring</h4>
+              <div className="flex items-baseline gap-3 mb-4">
+                <span className="text-3xl font-display font-medium text-ink-900">€4,900</span>
+                <span className="text-ink-400 line-through">€5,500</span>
+                <span className="bg-green-100 text-green-700 text-xs px-2 py-1 font-medium">Save €600</span>
+              </div>
+              <p className="text-ink-600 text-sm mb-6">Full audit + weekly tracking for 3 months</p>
+              <Link href="/contact" className="block w-full text-center border border-purple-500 text-purple-500 px-6 py-3 hover:bg-purple-500 hover:text-white transition-all duration-300 text-sm tracking-wider uppercase font-medium">
+                Get Started
+              </Link>
+            </div>
+            
+            <div className="card-elevated p-8 border-2 border-purple-500">
+              <div className="inline-block bg-purple-500 text-white text-xs px-3 py-1 font-medium mb-3">BEST VALUE</div>
+              <h4 className="font-display text-xl text-ink-900 mb-2">Audit + 12 Months Monitoring</h4>
+              <div className="flex items-baseline gap-3 mb-4">
+                <span className="text-3xl font-display font-medium text-ink-900">€15,000</span>
+                <span className="text-ink-400 line-through">€18,400</span>
+                <span className="bg-green-100 text-green-700 text-xs px-2 py-1 font-medium">Save €3,400</span>
+              </div>
+              <p className="text-ink-600 text-sm mb-6">Full audit + weekly tracking for 12 months + priority support</p>
+              <Link href="/contact" className="block w-full text-center bg-purple-500 text-white px-6 py-3 hover:bg-purple-600 transition-all duration-300 text-sm tracking-wider uppercase font-medium">
+                Get Started
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Platform Subscriptions */}
+      <section className="py-20 px-4 bg-cream-100">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 mb-4 px-5 py-2 border border-claude-200 bg-white">
+              <span className="text-claude-600 text-sm tracking-wider uppercase font-medium">Platform Access</span>
+            </div>
+            <h2 className="font-display text-3xl font-medium text-ink-900">Monthly Platform Plans</h2>
+            <p className="text-ink-600 mt-3">Unlimited access to all tools with monthly subscription</p>
+          </div>
+          
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Free */}
             <div className="card-elevated p-10 border border-cream-300 hover:border-claude-300 transition flex flex-col">

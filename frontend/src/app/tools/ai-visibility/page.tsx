@@ -5,7 +5,7 @@ import {
   ArrowLeft, ArrowRight, Loader, CheckCircle, XCircle, 
   Sparkles, TrendingUp, Plus, Trash2, Eye, Globe, 
   Building2, Target, Edit2, Check, RefreshCw, Lock,
-  Lightbulb, AlertTriangle, Award, BarChart3, Mail
+  Lightbulb, AlertTriangle, Award, BarChart3, Mail, Users
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -62,6 +62,13 @@ interface CategoryResult {
   status: 'strong' | 'moderate' | 'weak'
 }
 
+interface CompetitorScore {
+  name: string
+  overallScore: number
+  categoryScores: Record<string, number>
+  grade: string
+}
+
 // =============================================================================
 // FIXED CATEGORIES (5 required + 2 custom)
 // =============================================================================
@@ -70,6 +77,7 @@ const FIXED_CATEGORIES = [
   {
     id: 'recommendation',
     label: '🎯 Recommendation',
+    shortLabel: 'Recommend',
     description: 'When users ask AI for advice',
     template: 'What {category} do you recommend?',
     example: 'What ticket resale platform do you recommend?'
@@ -77,6 +85,7 @@ const FIXED_CATEGORIES = [
   {
     id: 'best_of',
     label: '🏆 Best Of',
+    shortLabel: 'Best Of',
     description: 'When users search for the best option',
     template: 'What is the best {category} for {use_case}?',
     example: 'What is the best site to buy concert tickets?'
@@ -84,6 +93,7 @@ const FIXED_CATEGORIES = [
   {
     id: 'comparison',
     label: '⚖️ Comparison',
+    shortLabel: 'Compare',
     description: 'When users compare options',
     template: 'Compare different {category} options',
     example: 'Compare ticket resale websites'
@@ -91,6 +101,7 @@ const FIXED_CATEGORIES = [
   {
     id: 'problem_solution',
     label: '🔧 Problem/Solution',
+    shortLabel: 'Solution',
     description: 'When users need to solve a problem',
     template: 'How can I {solve_problem}?',
     example: 'How can I find last-minute concert tickets?'
@@ -98,6 +109,7 @@ const FIXED_CATEGORIES = [
   {
     id: 'alternative',
     label: '🔄 Alternative',
+    shortLabel: 'Alternative',
     description: 'When users look for alternatives',
     template: 'What are alternatives to {competitor}?',
     example: 'What are alternatives to StubHub?'
@@ -116,6 +128,16 @@ const STEP_INFO = {
   prompts: { number: 3, title: 'Select Prompts', icon: Target },
   testing: { number: 4, title: 'Testing', icon: Loader },
   results: { number: 4, title: 'Results', icon: TrendingUp }
+}
+
+// =============================================================================
+// COLORS FOR CHART
+// =============================================================================
+
+const BRAND_COLORS = {
+  user: '#7c3aed',      // Purple for user
+  comp1: '#f97316',     // Orange for competitor 1
+  comp2: '#06b6d4',     // Cyan for competitor 2
 }
 
 // =============================================================================
@@ -145,9 +167,12 @@ export default function AIVisibilityTool() {
   
   // Step 4: Results
   const [testing, setTesting] = useState(false)
-  const [testProgress, setTestProgress] = useState({ current: 0, total: 5 })
+  const [testProgress, setTestProgress] = useState({ current: 0, total: 5, phase: 'user' as 'user' | 'competitors' })
   const [categoryResults, setCategoryResults] = useState<CategoryResult[]>([])
+  const [competitorScores, setCompetitorScores] = useState<CompetitorScore[]>([])
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
   // =============================================================================
   // STEP 1: Analyze Brand
@@ -238,27 +263,34 @@ export default function AIVisibilityTool() {
   }
 
   // =============================================================================
-  // STEP 4: Run Tests (2 models only for free tier)
+  // STEP 4: Run Tests (User + 2 Competitors)
   // =============================================================================
   
   const runTests = async () => {
     if (!profile) return
     
     setTesting(true)
-    setTestProgress({ current: 0, total: 5 })
+    setTestProgress({ current: 0, total: 5, phase: 'user' })
     setCategoryResults([])
+    setCompetitorScores([])
     setStep('testing')
     
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-    const competitorNames = profile.competitors.map(c => c.name)
+    const competitorNames = profile.competitors.slice(0, 2).map(c => c.name) // Top 2 competitors
     const results: CategoryResult[] = []
     
-    // Test each of the 5 fixed categories
+    // Initialize competitor score tracking
+    const compScoreTracking: Record<string, { scores: number[], name: string }> = {}
+    competitorNames.forEach(name => {
+      compScoreTracking[name] = { scores: [], name }
+    })
+    
+    // Test each of the 5 fixed categories for USER
     for (let i = 0; i < FIXED_CATEGORIES.length; i++) {
       const category = FIXED_CATEGORIES[i]
       const prompt = categoryPrompts[category.id] || category.template
       
-      setTestProgress({ current: i + 1, total: 5 })
+      setTestProgress({ current: i + 1, total: 5, phase: 'user' })
       
       try {
         const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
@@ -268,7 +300,7 @@ export default function AIVisibilityTool() {
             prompt: prompt,
             brand: profile.brand_name,
             competitors: competitorNames,
-            models: ['gpt-4o', 'claude-sonnet'] // Only 2 models for free tier
+            models: ['gpt-4o', 'claude-sonnet-4'] // Only 2 models for free tier
           })
         })
         
@@ -278,6 +310,15 @@ export default function AIVisibilityTool() {
         const score = Math.round(data.mention_rate)
         const status = score >= 70 ? 'strong' : score >= 40 ? 'moderate' : 'weak'
         const insight = generateCategoryInsight(category.id, score, profile.brand_name)
+        
+        // Also check competitor mentions in the responses
+        competitorNames.forEach(compName => {
+          const compMentioned = data.results.filter(r => 
+            r.full_response.toLowerCase().includes(compName.toLowerCase())
+          ).length
+          const compScore = Math.round((compMentioned / data.results.length) * 100)
+          compScoreTracking[compName].scores.push(compScore)
+        })
         
         results.push({
           category: category.id,
@@ -295,6 +336,55 @@ export default function AIVisibilityTool() {
       }
     }
     
+    // Now test competitors directly for more accurate scores
+    setTestProgress({ current: 0, total: competitorNames.length, phase: 'competitors' })
+    
+    for (let c = 0; c < competitorNames.length; c++) {
+      const compName = competitorNames[c]
+      setTestProgress({ current: c + 1, total: competitorNames.length, phase: 'competitors' })
+      
+      // Test one prompt for each competitor to get accurate score
+      try {
+        const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: `What ${profile.industry || 'product'} do you recommend?`,
+            brand: compName,
+            competitors: [profile.brand_name],
+            models: ['gpt-4o', 'claude-sonnet-4']
+          })
+        })
+        
+        const data: MultiModelResponse = await response.json()
+        
+        // Update competitor's recommendation score with accurate data
+        compScoreTracking[compName].scores[0] = Math.round(data.mention_rate)
+      } catch (error) {
+        console.error(`Error testing competitor ${compName}:`, error)
+      }
+    }
+    
+    // Calculate final competitor scores
+    const finalCompScores: CompetitorScore[] = competitorNames.map(name => {
+      const scores = compScoreTracking[name].scores
+      const categoryScores: Record<string, number> = {}
+      FIXED_CATEGORIES.forEach((cat, i) => {
+        categoryScores[cat.id] = scores[i] || 0
+      })
+      const overall = scores.length > 0 
+        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        : 0
+      
+      return {
+        name,
+        overallScore: overall,
+        categoryScores,
+        grade: getGrade(overall).grade
+      }
+    })
+    
+    setCompetitorScores(finalCompScores)
     setTesting(false)
     setStep('results')
   }
@@ -343,11 +433,11 @@ export default function AIVisibilityTool() {
   }
   
   const getGrade = (score: number) => {
-    if (score >= 80) return { grade: 'A', label: 'Excellent', color: 'text-green-600' }
-    if (score >= 60) return { grade: 'B', label: 'Good', color: 'text-blue-600' }
-    if (score >= 40) return { grade: 'C', label: 'Average', color: 'text-yellow-600' }
-    if (score >= 20) return { grade: 'D', label: 'Poor', color: 'text-orange-600' }
-    return { grade: 'F', label: 'Invisible', color: 'text-red-600' }
+    if (score >= 80) return { grade: 'A', label: 'Excellent', color: 'text-green-600', bg: 'bg-green-100' }
+    if (score >= 60) return { grade: 'B', label: 'Good', color: 'text-blue-600', bg: 'bg-blue-100' }
+    if (score >= 40) return { grade: 'C', label: 'Average', color: 'text-yellow-600', bg: 'bg-yellow-100' }
+    if (score >= 20) return { grade: 'D', label: 'Poor', color: 'text-orange-600', bg: 'bg-orange-100' }
+    return { grade: 'F', label: 'Invisible', color: 'text-red-600', bg: 'bg-red-100' }
   }
   
   const getStrengths = () => {
@@ -404,6 +494,74 @@ export default function AIVisibilityTool() {
       return "Your brand has low visibility. AI rarely mentions you. Significant content improvements needed."
     }
     return "Your brand is nearly invisible to AI. Urgent action required to build AI presence."
+  }
+  
+  const getRanking = () => {
+    const userScore = getOverallScore()
+    const allScores = [
+      { name: profile?.brand_name || 'You', score: userScore, isUser: true },
+      ...competitorScores.map(c => ({ name: c.name, score: c.overallScore, isUser: false }))
+    ].sort((a, b) => b.score - a.score)
+    
+    return allScores
+  }
+  
+  // =============================================================================
+  // EMAIL REPORT
+  // =============================================================================
+  
+  const sendEmailReport = async () => {
+    if (!email || !profile || categoryResults.length === 0) {
+      alert('Please enter your email address in step 1')
+      return
+    }
+    
+    setSendingEmail(true)
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      
+      const response = await fetch(`${apiUrl}/api/visibility/email-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          brand_name: profile.brand_name,
+          overall_score: getOverallScore(),
+          grade: getGrade(getOverallScore()).grade,
+          category_results: categoryResults.map(r => ({
+            category: r.category,
+            categoryLabel: r.categoryLabel,
+            score: r.score,
+            status: r.status,
+            insight: r.insight
+          })),
+          strengths: getStrengths().map(s => ({
+            category: s.category,
+            categoryLabel: s.categoryLabel,
+            score: s.score
+          })),
+          weaknesses: getWeaknesses().map(w => ({
+            category: w.category,
+            categoryLabel: w.categoryLabel,
+            score: w.score
+          })),
+          recommendations: getRecommendations()
+        })
+      })
+      
+      if (response.ok) {
+        setEmailSent(true)
+        setTimeout(() => setEmailSent(false), 5000) // Reset after 5 seconds
+      } else {
+        throw new Error('Failed to send email')
+      }
+    } catch (error) {
+      console.error('Error sending email:', error)
+      alert('Failed to send email. Please try again.')
+    } finally {
+      setSendingEmail(false)
+    }
   }
 
   // =============================================================================
@@ -575,12 +733,12 @@ export default function AIVisibilityTool() {
                 {FIXED_CATEGORIES.map((cat, i) => (
                   <div key={cat.id} className="text-center">
                     <div className="text-2xl mb-2">{cat.label.split(' ')[0]}</div>
-                    <p className="text-xs text-slate-600">{cat.label.split(' ').slice(1).join(' ')}</p>
+                    <p className="text-xs text-slate-600">{cat.shortLabel}</p>
                   </div>
                 ))}
               </div>
               <p className="text-sm text-slate-500 mt-4 text-center">
-                We test your brand across 5 key query types to give you a consistent, comparable score
+                We test your brand + 2 competitors across 5 key query types
               </p>
             </div>
           </div>
@@ -660,18 +818,19 @@ export default function AIVisibilityTool() {
               {/* Competitors */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Competitors to Track
-                  <span className="font-normal text-slate-400 ml-2">({profile.competitors.length})</span>
+                  Competitors to Compare
+                  <span className="font-normal text-slate-400 ml-2">(top 2 will be tested)</span>
                 </label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {profile.competitors.map((comp, i) => (
                     <div
                       key={i}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm
-                        ${comp.auto_detected 
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                          : 'bg-slate-100 text-slate-700 border border-slate-200'}`}
+                        ${i < 2 
+                          ? 'bg-purple-50 text-purple-700 border-2 border-purple-300' 
+                          : 'bg-slate-100 text-slate-500 border border-slate-200'}`}
                     >
+                      {i < 2 && <span className="text-xs font-bold">#{i + 1}</span>}
                       <span>{comp.name}</span>
                       {comp.auto_detected && (
                         <span className="text-xs opacity-60">AI</span>
@@ -698,6 +857,9 @@ export default function AIVisibilityTool() {
                     }}
                   />
                 </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  ⚡ We'll test your brand against the top 2 competitors
+                </p>
               </div>
             </div>
             
@@ -756,36 +918,13 @@ export default function AIVisibilityTool() {
               ))}
             </div>
 
-            {/* Custom Prompts (Optional) */}
-            <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-              <h3 className="font-semibold text-slate-900 mb-1">Custom Prompts (Optional)</h3>
-              <p className="text-sm text-slate-500 mb-4">Add up to 2 custom prompts. These won't affect your main score.</p>
-              
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={customPrompt1}
-                  onChange={(e) => setCustomPrompt1(e.target.value)}
-                  placeholder="Custom prompt 1 (optional)"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
-                />
-                <input
-                  type="text"
-                  value={customPrompt2}
-                  onChange={(e) => setCustomPrompt2(e.target.value)}
-                  placeholder="Custom prompt 2 (optional)"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
-                />
-              </div>
-            </div>
-
             {/* Test Info & Button */}
             <div className="bg-purple-50 rounded-2xl p-6 border border-purple-100">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="font-semibold text-purple-900">Ready to test</p>
                   <p className="text-sm text-purple-700">
-                    5 categories × 2 AI models = <strong>10 tests</strong>
+                    Testing <strong>{profile.brand_name}</strong> + 2 competitors across 5 categories
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-2xl">
@@ -812,16 +951,23 @@ export default function AIVisibilityTool() {
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
               <div className="text-center mb-8">
                 <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Testing Your Visibility</h2>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">Testing Visibility</h2>
                 <p className="text-slate-500">
-                  Testing category {testProgress.current} of {testProgress.total}...
+                  {testProgress.phase === 'user' 
+                    ? `Testing your brand: category ${testProgress.current} of ${testProgress.total}...`
+                    : `Testing competitors: ${testProgress.current} of ${testProgress.total}...`
+                  }
                 </p>
               </div>
               
               <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-6">
                 <div 
                   className="h-full bg-purple-500 rounded-full transition-all duration-500"
-                  style={{ width: `${(testProgress.current / testProgress.total) * 100}%` }}
+                  style={{ 
+                    width: testProgress.phase === 'user'
+                      ? `${(testProgress.current / testProgress.total) * 70}%`
+                      : `${70 + (testProgress.current / testProgress.total) * 30}%`
+                  }}
                 />
               </div>
               
@@ -847,7 +993,7 @@ export default function AIVisibilityTool() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-900">Your AI Visibility Report</h2>
-                <p className="text-slate-500">{profile.brand_name} • Tested on GPT-4o & Claude</p>
+                <p className="text-slate-500">{profile.brand_name} vs {competitorScores.length} competitors</p>
               </div>
               <button
                 onClick={() => setStep('prompts')}
@@ -874,6 +1020,131 @@ export default function AIVisibilityTool() {
                 <div className="text-right">
                   <Award className="w-16 h-16 text-purple-300" />
                 </div>
+              </div>
+            </div>
+
+            {/* COMPETITIVE COMPARISON CHART */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-600" />
+                Competitive Comparison
+              </h3>
+              
+              {/* Bar Chart Comparison */}
+              <div className="space-y-6">
+                {/* Legend */}
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: BRAND_COLORS.user }} />
+                    <span className="text-sm font-medium">{profile.brand_name} (You)</span>
+                  </div>
+                  {competitorScores.slice(0, 2).map((comp, i) => (
+                    <div key={comp.name} className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded" style={{ backgroundColor: i === 0 ? BRAND_COLORS.comp1 : BRAND_COLORS.comp2 }} />
+                      <span className="text-sm font-medium">{comp.name}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Chart */}
+                <div className="space-y-4">
+                  {FIXED_CATEGORIES.map((cat) => {
+                    const userScore = categoryResults.find(r => r.category === cat.id)?.score || 0
+                    const comp1Score = competitorScores[0]?.categoryScores[cat.id] || 0
+                    const comp2Score = competitorScores[1]?.categoryScores[cat.id] || 0
+                    
+                    return (
+                      <div key={cat.id} className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium text-slate-700">{cat.shortLabel}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {/* User bar */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-20 text-xs text-slate-500 truncate">{profile.brand_name}</div>
+                            <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                                style={{ width: `${Math.max(userScore, 5)}%`, backgroundColor: BRAND_COLORS.user }}
+                              >
+                                <span className="text-xs font-bold text-white">{userScore}%</span>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Competitor 1 bar */}
+                          {competitorScores[0] && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-20 text-xs text-slate-500 truncate">{competitorScores[0].name}</div>
+                              <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                                  style={{ width: `${Math.max(comp1Score, 5)}%`, backgroundColor: BRAND_COLORS.comp1 }}
+                                >
+                                  <span className="text-xs font-bold text-white">{comp1Score}%</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {/* Competitor 2 bar */}
+                          {competitorScores[1] && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-20 text-xs text-slate-500 truncate">{competitorScores[1].name}</div>
+                              <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                                  style={{ width: `${Math.max(comp2Score, 5)}%`, backgroundColor: BRAND_COLORS.comp2 }}
+                                >
+                                  <span className="text-xs font-bold text-white">{comp2Score}%</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* RANKING TABLE */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-purple-600" />
+                Overall Ranking
+              </h3>
+              <div className="space-y-2">
+                {getRanking().map((item, idx) => (
+                  <div 
+                    key={item.name}
+                    className={`flex items-center justify-between p-4 rounded-xl border-2 ${
+                      item.isUser 
+                        ? 'bg-purple-50 border-purple-300' 
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
+                        idx === 0 ? 'bg-yellow-400 text-yellow-900' :
+                        idx === 1 ? 'bg-slate-300 text-slate-700' :
+                        idx === 2 ? 'bg-orange-300 text-orange-900' :
+                        'bg-slate-200 text-slate-600'
+                      }`}>
+                        #{idx + 1}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {item.name}
+                          {item.isUser && <span className="ml-2 text-xs bg-purple-600 text-white px-2 py-0.5 rounded">YOU</span>}
+                        </p>
+                        <p className="text-sm text-slate-500">Grade {getGrade(item.score).grade}</p>
+                      </div>
+                    </div>
+                    <div className={`text-2xl font-bold ${getGrade(item.score).color}`}>
+                      {item.score}%
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1040,7 +1311,7 @@ export default function AIVisibilityTool() {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
-                      <span>Competitor ranking - see where you stand vs 10 competitors</span>
+                      <span>Full competitor ranking with 10 competitors</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
@@ -1059,9 +1330,27 @@ export default function AIVisibilityTool() {
                       Get Full Report - €97
                       <ArrowRight className="w-4 h-4" />
                     </a>
-                    <button className="inline-flex items-center gap-2 bg-white/20 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition">
-                      <Mail className="w-4 h-4" />
-                      Email Me This Report
+                    <button 
+                      onClick={sendEmailReport}
+                      disabled={sendingEmail || emailSent}
+                      className="inline-flex items-center gap-2 bg-white/20 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition disabled:opacity-50"
+                    >
+                      {sendingEmail ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : emailSent ? (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          Email Sent!
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4" />
+                          Email Me This Report
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1077,6 +1366,7 @@ export default function AIVisibilityTool() {
                   setWebsiteUrl('')
                   setProfile(null)
                   setCategoryResults([])
+                  setCompetitorScores([])
                 }}
                 className="text-purple-600 hover:text-purple-700 font-medium"
               >

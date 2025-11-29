@@ -73,10 +73,21 @@ class MultiModelResult(BaseModel):
 
 
 # Available AI models to test - best from each provider
+# FREE tier uses first 2, PAID tier uses all 6
 AI_MODELS = [
+    # FREE TIER MODELS (first 2)
     {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai", "icon": "🤖"},
     {"id": "claude-sonnet-4", "name": "Claude Sonnet 4", "provider": "anthropic", "icon": "🧠"},
+    # PAID TIER MODELS (additional 4)
+    {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai", "icon": "⚡"},
+    {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "provider": "google", "icon": "💎"},
+    {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "provider": "google", "icon": "✨"},
+    {"id": "claude-3.5-sonnet", "name": "Claude 3.5 Sonnet", "provider": "anthropic", "icon": "🎭"},
 ]
+
+# Model sets for different tiers
+FREE_MODELS = ["gpt-4o", "claude-sonnet-4"]
+PAID_MODELS = [m["id"] for m in AI_MODELS]  # All models
 
 
 class VisibilityMonitor:
