@@ -141,9 +141,12 @@ async def discover_competitors(request: DiscoverCompetitorsRequest):
     """
     🔍 DISCOVER COMPETITORS - AI-powered competitor discovery
     
-    Uses Gemini 1.5 Pro to find the top 10 competitors:
-    - 5 LOCAL/REGIONAL competitors (same market/geography)
-    - 5 GLOBAL competitors (major international players)
+    Uses AI to find the top 10 competitors (5 local + 5 global).
+    
+    Priority order:
+    1. 🧠 Claude Sonnet 4 (best for analysis)
+    2. 💎 Gemini 1.5 Pro (fallback)
+    3. 🤖 Any available provider
     
     Example:
     ```json
@@ -165,8 +168,7 @@ async def discover_competitors(request: DiscoverCompetitorsRequest):
         result = await competitor_analyzer.discover_top_competitors(
             brand=request.brand,
             category=request.category,
-            location=request.location,
-            use_gemini=True  # Prefer Gemini for this task
+            location=request.location
         )
         
         logger.info(f"Found {result.total_found} competitors for {request.brand}")

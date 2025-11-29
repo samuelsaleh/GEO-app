@@ -72,19 +72,20 @@ class CompetitorAnalyzer:
         self,
         brand: str,
         category: str,
-        location: Optional[str] = None,
-        use_gemini: bool = True
+        location: Optional[str] = None
     ) -> CompetitorDiscoveryResult:
         """
         Discover top 10 competitors: 5 local + 5 global scale.
         
-        Uses Gemini 1.5 Pro by default for best analysis.
+        Priority order:
+        1. Claude Sonnet 4 (best for analysis)
+        2. Gemini 1.5 Pro (fallback)
+        3. Any available provider
         
         Args:
             brand: The brand name to find competitors for
             category: Product/service category (e.g., "fashion clothing", "running shoes")
             location: Optional location for local competitors (e.g., "France", "New York")
-            use_gemini: Whether to prefer Gemini for this task
             
         Returns:
             CompetitorDiscoveryResult with local and global competitors
@@ -141,23 +142,49 @@ IMPORTANT:
 You have extensive knowledge of brands across all industries worldwide.
 Always return valid JSON only, no explanations or markdown."""
 
+        available_providers = self.ai.get_available_providers()
+        response = None
+
         try:
-            # Try to use Gemini if available and requested
-            response = None
-            if use_gemini and "google" in self.ai.get_available_providers():
-                logger.info("Using Gemini for competitor discovery")
-                response = await self.ai.generate_with_model(
-                    prompt=prompt,
-                    system_prompt=system_prompt,
-                    model="gemini-1.5-pro-latest",
-                    provider="google",
-                    max_tokens=1500,
-                    temperature=0.3
-                )
+            # 1. Try Claude Sonnet 4 first (best for analysis)
+            if "anthropic" in available_providers:
+                logger.info("🧠 Trying Claude Sonnet 4 for competitor discovery...")
+                try:
+                    response = await self.ai.generate_with_model(
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        model="claude-sonnet-4-20250514",
+                        provider="anthropic",
+                        max_tokens=1500,
+                        temperature=0.3
+                    )
+                    if response:
+                        logger.info("✅ Claude Sonnet 4 responded successfully")
+                except Exception as e:
+                    logger.warning(f"❌ Claude failed: {e}")
+                    response = None
             
-            # Fallback to default provider order if Gemini didn't work
+            # 2. Fallback to Gemini 1.5 Pro
+            if not response and "google" in available_providers:
+                logger.info("💎 Trying Gemini 1.5 Pro for competitor discovery...")
+                try:
+                    response = await self.ai.generate_with_model(
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        model="gemini-1.5-pro-latest",
+                        provider="google",
+                        max_tokens=1500,
+                        temperature=0.3
+                    )
+                    if response:
+                        logger.info("✅ Gemini 1.5 Pro responded successfully")
+                except Exception as e:
+                    logger.warning(f"❌ Gemini failed: {e}")
+                    response = None
+            
+            # 3. Final fallback to any available provider
             if not response:
-                logger.info("Using default AI provider for competitor discovery")
+                logger.info("🤖 Using default AI provider for competitor discovery...")
                 response = await self.ai.generate(
                     prompt=prompt,
                     system_prompt=system_prompt,
@@ -166,7 +193,7 @@ Always return valid JSON only, no explanations or markdown."""
                 )
             
             if not response:
-                logger.warning("No response from AI for competitor discovery")
+                logger.warning("No response from any AI provider for competitor discovery")
                 return CompetitorDiscoveryResult(brand=brand, category=category, location=location)
             
             # Parse the JSON response
