@@ -72,14 +72,11 @@ class MultiModelResult(BaseModel):
     summary: Dict[str, Any]
 
 
-# Available AI models to test
+# Available AI models to test - one per provider
 AI_MODELS = [
     {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai", "icon": "🤖"},
-    {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai", "icon": "🤖"},
-    {"id": "claude-sonnet", "name": "Claude Sonnet 4", "provider": "anthropic", "icon": "🧠"},
-    {"id": "claude-haiku", "name": "Claude 3.5 Sonnet", "provider": "anthropic", "icon": "🧠"},
-    {"id": "gemini-pro", "name": "Gemini 2.0 Flash", "provider": "google", "icon": "💎"},
-    {"id": "gemini-flash", "name": "Gemini 1.5 Flash", "provider": "google", "icon": "⚡"},
+    {"id": "claude-sonnet", "name": "Claude 3.5 Sonnet", "provider": "anthropic", "icon": "🧠"},
+    {"id": "gemini-flash", "name": "Gemini 1.5 Flash", "provider": "google", "icon": "💎"},
 ]
 
 
@@ -405,6 +402,13 @@ class VisibilityMonitor:
     ) -> Optional[str]:
         """Call a specific AI model."""
         if not self.ai_service:
+            logger.warning("AI service not available")
+            return None
+        
+        # Check if provider is configured
+        available_providers = self.ai_service.get_available_providers()
+        if provider not in available_providers:
+            logger.warning(f"Provider '{provider}' not configured. Add API key to .env file.")
             return None
         
         system_prompt = "You are a helpful assistant providing recommendations. Be specific and mention relevant brands when appropriate."
@@ -413,11 +417,8 @@ class VisibilityMonitor:
             # Map model IDs to actual model names
             model_mapping = {
                 "gpt-4o": "gpt-4o",
-                "gpt-4o-mini": "gpt-4o-mini",
-                "claude-sonnet": "claude-sonnet-4-20250514",
-                "claude-haiku": "claude-3-5-sonnet-20241022",
-                "gemini-pro": "gemini-2.0-flash-exp",
-                "gemini-flash": "gemini-1.5-flash"
+                "claude-sonnet": "claude-3-5-sonnet-20241022",
+                "gemini-flash": "gemini-1.5-flash-latest"
             }
             
             actual_model = model_mapping.get(model_id, model_id)

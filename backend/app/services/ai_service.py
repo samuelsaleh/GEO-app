@@ -98,8 +98,8 @@ class MultiProviderAI:
                 genai.configure(api_key=settings.google_api_key)
                 self.providers["google"] = {
                     "client": genai,
-                    "model": "gemini-2.0-flash",  # Latest flash model
-                    "fallback_model": "gemini-1.5-flash-latest",
+                    "model": "gemini-1.5-flash-latest",  # Most reliable model
+                    "fallback_model": "gemini-1.5-pro-latest",
                     "name": "Gemini"
                 }
                 logger.info("✅ Google (Gemini) initialized")

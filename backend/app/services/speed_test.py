@@ -37,12 +37,11 @@ class SpeedTestService:
     Now with smart, context-aware prompt generation.
     """
     
-    # Fast, cheap models for speed testing
-    # Using models that are more likely to be available
+    # One model per provider for speed and simplicity
     MODELS = [
-        {"id": "gpt-4o-mini", "provider": "openai", "name": "ChatGPT", "icon": "🤖"},
-        {"id": "claude-3-5-sonnet-20241022", "provider": "anthropic", "name": "Claude", "icon": "🧠"},
-        {"id": "gemini-2.0-flash", "provider": "google", "name": "Gemini", "icon": "💎"},
+        {"id": "gpt-4o", "provider": "openai", "name": "GPT-4o", "icon": "🤖"},
+        {"id": "claude-3-5-sonnet-20241022", "provider": "anthropic", "name": "Claude 3.5 Sonnet", "icon": "🧠"},
+        {"id": "gemini-1.5-flash-latest", "provider": "google", "name": "Gemini 1.5 Flash", "icon": "💎"},
     ]
 
     def __init__(self):
@@ -271,6 +270,22 @@ class SpeedTestService:
         try:
             if not self.ai_service:
                 raise Exception("AI service not available")
+            
+            # Check if the provider is available before calling
+            provider = model["provider"]
+            available_providers = self.ai_service.get_available_providers()
+            if provider not in available_providers:
+                error = f"Provider '{provider}' not configured. Add API key to .env file."
+                logger.warning(f"Skipping {model['name']}: {error}")
+                return ModelResult(
+                    model_id=model["id"],
+                    model_name=model["name"],
+                    provider=model["provider"],
+                    mentioned=False,
+                    prompt=prompt,
+                    error=error,
+                    response_time_ms=int((time.time() - start) * 1000)
+                )
             
             # Build context-aware system prompt
             template = PROMPT_TEMPLATES.get(prompt_category, PROMPT_TEMPLATES[PromptCategory.RECOMMENDATION])

@@ -82,6 +82,48 @@ async def get_available_models():
     }
 
 
+@router.get("/status")
+async def get_api_status():
+    """
+    Check which AI providers are properly configured.
+    
+    Returns which API keys are set up and working.
+    Useful for debugging when models aren't responding.
+    """
+    from app.services.ai_service import ai_service
+    
+    available = ai_service.get_available_providers() if ai_service else []
+    
+    providers_status = {
+        "openai": {
+            "configured": "openai" in available,
+            "models": ["GPT-4o", "GPT-4o Mini"],
+            "get_key_url": "https://platform.openai.com/api-keys"
+        },
+        "anthropic": {
+            "configured": "anthropic" in available,
+            "models": ["Claude Sonnet 4", "Claude 3.5 Sonnet"],
+            "get_key_url": "https://console.anthropic.com/"
+        },
+        "google": {
+            "configured": "google" in available,
+            "models": ["Gemini 2.0 Flash", "Gemini 1.5 Flash"],
+            "get_key_url": "https://makersuite.google.com/app/apikey"
+        }
+    }
+    
+    configured_count = len(available)
+    total_providers = 3
+    
+    return {
+        "status": "ready" if configured_count > 0 else "no_providers",
+        "configured_providers": available,
+        "providers": providers_status,
+        "message": f"{configured_count}/{total_providers} AI providers configured",
+        "recommendation": "Add API keys to backend/.env file" if configured_count < total_providers else "All providers configured!"
+    }
+
+
 # =============================================================================
 # WEBSITE ANALYSIS - Extract brand context for smart prompts
 # =============================================================================
