@@ -23,10 +23,25 @@ interface BrandProfile {
   brand_name: string
   website_url: string
   industry: string
+  business_type?: string
+  is_local_business?: boolean
+  location?: {
+    city?: string
+    region?: string
+    country?: string
+  }
+  segment?: string
+  cuisine_or_style?: string
+  positioning?: string
   products_services: string[]
   value_proposition: string
   target_audience: string
   competitors: CompetitorInfo[]
+  suggested_prompts?: Array<{
+    prompt: string
+    category: string
+    selected: boolean
+  }>
 }
 
 interface ModelResult {
@@ -79,42 +94,115 @@ const FIXED_CATEGORIES = [
     label: '🎯 Recommendation',
     shortLabel: 'Recommend',
     description: 'When users ask AI for advice',
-    template: 'What {category} do you recommend?',
-    example: 'What ticket resale platform do you recommend?'
   },
   {
     id: 'best_of',
     label: '🏆 Best Of',
     shortLabel: 'Best Of',
     description: 'When users search for the best option',
-    template: 'What is the best {category} for {use_case}?',
-    example: 'What is the best site to buy concert tickets?'
   },
   {
     id: 'comparison',
     label: '⚖️ Comparison',
     shortLabel: 'Compare',
     description: 'When users compare options',
-    template: 'Compare different {category} options',
-    example: 'Compare ticket resale websites'
   },
   {
     id: 'problem_solution',
     label: '🔧 Problem/Solution',
     shortLabel: 'Solution',
     description: 'When users need to solve a problem',
-    template: 'How can I {solve_problem}?',
-    example: 'How can I find last-minute concert tickets?'
   },
   {
-    id: 'alternative',
-    label: '🔄 Alternative',
-    shortLabel: 'Alternative',
-    description: 'When users look for alternatives',
-    template: 'What are alternatives to {competitor}?',
-    example: 'What are alternatives to StubHub?'
+    id: 'reputation',
+    label: '⭐ Reputation',
+    shortLabel: 'Reputation',
+    description: 'When users check reviews/quality',
   }
 ]
+
+// Generate SMART prompts based on business profile
+const generateSmartPrompts = (profile: BrandProfile): Record<string, string> => {
+  const { 
+    brand_name, 
+    industry, 
+    business_type,
+    is_local_business, 
+    location, 
+    segment, 
+    cuisine_or_style,
+    products_services,
+    target_audience,
+    competitors
+  } = profile
+  
+  const city = location?.city || ''
+  const country = location?.country || ''
+  const style = cuisine_or_style || segment || industry
+  const mainProduct = products_services?.[0] || industry
+  const topCompetitor = competitors?.[0]?.name || 'competitors'
+  
+  // For LOCAL businesses (restaurants, hotels, stores, etc.)
+  if (is_local_business && city) {
+    const localType = business_type || industry
+    
+    return {
+      recommendation: `What ${style} ${localType} do you recommend in ${city}?`,
+      best_of: `What is the best ${style} ${localType} in ${city}${country ? `, ${country}` : ''}?`,
+      comparison: `Compare ${style} ${localType}s in ${city}. Which are the top options?`,
+      problem_solution: `I'm looking for a great ${style} experience in ${city}. Where should I go?`,
+      reputation: `Is ${brand_name} in ${city} worth visiting? What are people saying about it?`
+    }
+  }
+  
+  // For SAAS / Software businesses
+  if (industry?.toLowerCase().includes('software') || 
+      industry?.toLowerCase().includes('saas') ||
+      industry?.toLowerCase().includes('technology')) {
+    return {
+      recommendation: `What ${mainProduct} do you recommend for ${target_audience || 'businesses'}?`,
+      best_of: `What is the best ${mainProduct} solution in ${new Date().getFullYear()}?`,
+      comparison: `Compare ${brand_name} vs ${topCompetitor}. Which is better for ${target_audience || 'my needs'}?`,
+      problem_solution: `I need ${mainProduct} for my team. What should I consider and which tools are best?`,
+      reputation: `Is ${brand_name} reliable? What do users think about their ${mainProduct}?`
+    }
+  }
+  
+  // For E-COMMERCE / Retail
+  if (industry?.toLowerCase().includes('retail') || 
+      industry?.toLowerCase().includes('commerce') ||
+      industry?.toLowerCase().includes('fashion')) {
+    return {
+      recommendation: `What ${style} brands do you recommend for ${target_audience || 'quality products'}?`,
+      best_of: `What are the best ${mainProduct} brands to buy from?`,
+      comparison: `How does ${brand_name} compare to ${topCompetitor}? Which offers better value?`,
+      problem_solution: `I'm looking for high-quality ${mainProduct}. What brands should I consider?`,
+      reputation: `Is ${brand_name} a reputable brand? How is their quality and service?`
+    }
+  }
+  
+  // For SERVICES (consulting, agencies, etc.)
+  if (industry?.toLowerCase().includes('service') || 
+      industry?.toLowerCase().includes('consulting') ||
+      industry?.toLowerCase().includes('agency')) {
+    return {
+      recommendation: `What ${mainProduct} provider do you recommend for ${target_audience || 'businesses'}?`,
+      best_of: `Who are the best ${mainProduct} companies to work with?`,
+      comparison: `Compare ${brand_name} with other ${mainProduct} providers. What are the pros and cons?`,
+      problem_solution: `I need help with ${mainProduct}. Which companies are known for excellent results?`,
+      reputation: `What's the reputation of ${brand_name}? Do they deliver good results?`
+    }
+  }
+  
+  // DEFAULT - Generic but still personalized
+  return {
+    recommendation: `What ${segment || industry || 'options'} do you recommend? I'm looking for something like ${brand_name}.`,
+    best_of: `What is the best ${mainProduct} in the market? How does ${brand_name} compare?`,
+    comparison: `Compare different ${industry || 'options'} in this space. Where does ${brand_name} fit?`,
+    problem_solution: `I'm looking for ${mainProduct}. What should I know and what are the best options?`,
+    reputation: `Is ${brand_name} a good choice? What do people say about them?`
+  }
+}
 
 // =============================================================================
 // WIZARD STEPS
@@ -136,8 +224,17 @@ const STEP_INFO = {
 
 const BRAND_COLORS = {
   user: '#7c3aed',      // Purple for user
-  comp1: '#f97316',     // Orange for competitor 1
-  comp2: '#06b6d4',     // Cyan for competitor 2
+  competitors: [
+    '#f97316',     // Orange
+    '#06b6d4',     // Cyan
+    '#10b981',     // Green
+    '#f43f5e',     // Rose
+    '#8b5cf6',     // Violet
+  ]
+}
+
+const getCompetitorColor = (index: number): string => {
+  return BRAND_COLORS.competitors[index % BRAND_COLORS.competitors.length]
 }
 
 // =============================================================================
@@ -215,16 +312,9 @@ export default function AIVisibilityTool() {
   }
   
   const generateDefaultPrompts = (profile: BrandProfile) => {
-    const category = profile.industry || 'this product'
-    const competitor = profile.competitors?.[0]?.name || 'the market leader'
-    
-    setCategoryPrompts({
-      recommendation: `What ${category} do you recommend?`,
-      best_of: `What is the best ${category}?`,
-      comparison: `Compare different ${category} options`,
-      problem_solution: `How do I find the best ${category}?`,
-      alternative: `What are alternatives to ${competitor}?`
-    })
+    // Use the smart prompt generator to create context-aware prompts
+    const smartPrompts = generateSmartPrompts(profile)
+    setCategoryPrompts(smartPrompts)
   }
 
   // =============================================================================
@@ -251,13 +341,14 @@ export default function AIVisibilityTool() {
   
   const addCompetitor = (name: string) => {
     if (profile && name.trim()) {
+      // Add user-added competitors at the BEGINNING so they're used for comparison
       setProfile({
         ...profile,
-        competitors: [...profile.competitors, {
+        competitors: [{
           name: name.trim(),
           reason: 'Added manually',
           auto_detected: false
-        }]
+        }, ...profile.competitors]
       })
     }
   }
@@ -276,7 +367,9 @@ export default function AIVisibilityTool() {
     setStep('testing')
     
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-    const competitorNames = profile.competitors.slice(0, 2).map(c => c.name) // Top 2 competitors
+    // Test against up to 5 competitors (free tier: 2, paid: up to 5)
+    const maxCompetitors = 5 // Can be changed based on tier
+    const competitorNames = profile.competitors.slice(0, maxCompetitors).map(c => c.name)
     const results: CategoryResult[] = []
     
     // Initialize competitor score tracking
@@ -819,35 +912,14 @@ export default function AIVisibilityTool() {
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Competitors to Compare
-                  <span className="font-normal text-slate-400 ml-2">(top 2 will be tested)</span>
+                  <span className="font-normal text-slate-400 ml-2">(select up to 5 - top ones will be tested)</span>
                 </label>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {profile.competitors.map((comp, i) => (
-                    <div
-                      key={i}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm
-                        ${i < 2 
-                          ? 'bg-purple-50 text-purple-700 border-2 border-purple-300' 
-                          : 'bg-slate-100 text-slate-500 border border-slate-200'}`}
-                    >
-                      {i < 2 && <span className="text-xs font-bold">#{i + 1}</span>}
-                      <span>{comp.name}</span>
-                      {comp.auto_detected && (
-                        <span className="text-xs opacity-60">AI</span>
-                      )}
-                      <button
-                        onClick={() => removeCompetitor(i)}
-                        className="text-slate-400 hover:text-red-500"
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
+                
+                {/* Add competitor input - at the top so user-added appear first */}
+                <div className="flex gap-2 mb-4">
                   <input
                     type="text"
-                    placeholder="Add competitor..."
+                    placeholder="Add your own competitor..."
                     className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -856,9 +928,107 @@ export default function AIVisibilityTool() {
                       }
                     }}
                   />
+                  <button
+                    onClick={(e) => {
+                      const input = (e.currentTarget.previousSibling as HTMLInputElement)
+                      if (input.value) {
+                        addCompetitor(input.value)
+                        input.value = ''
+                      }
+                    }}
+                    className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
                 </div>
-                <p className="text-xs text-slate-500 mt-2">
-                  ⚡ We'll test your brand against the top 2 competitors
+                
+                {/* Show local vs international breakdown */}
+                {profile.is_local_business && profile.location?.city && (
+                  <div className="flex gap-2 mb-3 text-xs">
+                    <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded">
+                      🏠 Local ({profile.location.city})
+                    </span>
+                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                      🌍 International
+                    </span>
+                  </div>
+                )}
+                
+                {/* Competitor list - click to select for comparison */}
+                <div className="space-y-2 mb-3">
+                  {profile.competitors.map((comp, i) => {
+                    const isLocal = comp.reason?.includes('🏠 Local') || comp.reason?.includes('local')
+                    const isInternational = comp.reason?.includes('🌍 International') || comp.reason?.includes('international')
+                    const isSelected = i < Math.min(profile.competitors.length, 5)
+                    
+                    return (
+                      <div
+                        key={i}
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition
+                          ${isSelected 
+                            ? 'bg-purple-100 border-2 border-purple-400' 
+                            : 'bg-slate-50 border border-slate-200 hover:border-purple-300'}`}
+                        onClick={() => {
+                          if (!isSelected) {
+                            // Move this competitor to position 0 (top)
+                            const newCompetitors = [...profile.competitors]
+                            const [moved] = newCompetitors.splice(i, 1)
+                            newCompetitors.unshift(moved)
+                            setProfile({ ...profile, competitors: newCompetitors })
+                          }
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          {isSelected ? (
+                            <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                              {i + 1}
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center text-xs">
+                              +
+                            </div>
+                          )}
+                          <div>
+                            <span className={`font-medium ${isSelected ? 'text-purple-900' : 'text-slate-700'}`}>
+                              {comp.name}
+                            </span>
+                            <div className="flex gap-1 mt-0.5">
+                              {!comp.auto_detected && (
+                                <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded">Your pick</span>
+                              )}
+                              {comp.auto_detected && isLocal && (
+                                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🏠 Local</span>
+                              )}
+                              {comp.auto_detected && isInternational && (
+                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">🌍 International</span>
+                              )}
+                              {comp.auto_detected && !isLocal && !isInternational && (
+                                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">AI found</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!isSelected && (
+                            <span className="text-xs text-slate-400">Click to add</span>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              removeCompetitor(i)
+                            }}
+                            className="text-slate-400 hover:text-red-500 p-1"
+                          >
+                          <XCircle className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <p className="text-xs text-slate-500 bg-purple-50 p-2 rounded-lg">
+                  💡 <strong>How it works:</strong> We find 3 local competitors (same city/region) + 2 international competitors (global players). 
+                  Add your own to prioritize them! Click any competitor to move it up for comparison.
                 </p>
               </div>
             </div>
@@ -1038,9 +1208,9 @@ export default function AIVisibilityTool() {
                     <div className="w-4 h-4 rounded" style={{ backgroundColor: BRAND_COLORS.user }} />
                     <span className="text-sm font-medium">{profile.brand_name} (You)</span>
                   </div>
-                  {competitorScores.slice(0, 2).map((comp, i) => (
+                  {competitorScores.map((comp, i) => (
                     <div key={comp.name} className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded" style={{ backgroundColor: i === 0 ? BRAND_COLORS.comp1 : BRAND_COLORS.comp2 }} />
+                      <div className="w-4 h-4 rounded" style={{ backgroundColor: getCompetitorColor(i) }} />
                       <span className="text-sm font-medium">{comp.name}</span>
                     </div>
                   ))}
@@ -1050,8 +1220,6 @@ export default function AIVisibilityTool() {
                 <div className="space-y-4">
                   {FIXED_CATEGORIES.map((cat) => {
                     const userScore = categoryResults.find(r => r.category === cat.id)?.score || 0
-                    const comp1Score = competitorScores[0]?.categoryScores[cat.id] || 0
-                    const comp2Score = competitorScores[1]?.categoryScores[cat.id] || 0
                     
                     return (
                       <div key={cat.id} className="space-y-2">
@@ -1061,8 +1229,8 @@ export default function AIVisibilityTool() {
                         <div className="space-y-1">
                           {/* User bar */}
                           <div className="flex items-center gap-2">
-                            <div className="w-20 text-xs text-slate-500 truncate">{profile.brand_name}</div>
-                            <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="w-24 text-xs text-slate-500 truncate">{profile.brand_name}</div>
+                            <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
                               <div 
                                 className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
                                 style={{ width: `${Math.max(userScore, 5)}%`, backgroundColor: BRAND_COLORS.user }}
@@ -1071,34 +1239,23 @@ export default function AIVisibilityTool() {
                               </div>
                             </div>
                           </div>
-                          {/* Competitor 1 bar */}
-                          {competitorScores[0] && (
-                            <div className="flex items-center gap-2">
-                              <div className="w-20 text-xs text-slate-500 truncate">{competitorScores[0].name}</div>
-                              <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
-                                  style={{ width: `${Math.max(comp1Score, 5)}%`, backgroundColor: BRAND_COLORS.comp1 }}
-                                >
-                                  <span className="text-xs font-bold text-white">{comp1Score}%</span>
+                          {/* Dynamic competitor bars */}
+                          {competitorScores.map((comp, i) => {
+                            const compScore = comp.categoryScores[cat.id] || 0
+                            return (
+                              <div key={comp.name} className="flex items-center gap-2">
+                                <div className="w-24 text-xs text-slate-500 truncate">{comp.name}</div>
+                                <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                                    style={{ width: `${Math.max(compScore, 5)}%`, backgroundColor: getCompetitorColor(i) }}
+                                  >
+                                    <span className="text-xs font-bold text-white">{compScore}%</span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
-                          {/* Competitor 2 bar */}
-                          {competitorScores[1] && (
-                            <div className="flex items-center gap-2">
-                              <div className="w-20 text-xs text-slate-500 truncate">{competitorScores[1].name}</div>
-                              <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
-                                  style={{ width: `${Math.max(comp2Score, 5)}%`, backgroundColor: BRAND_COLORS.comp2 }}
-                                >
-                                  <span className="text-xs font-bold text-white">{comp2Score}%</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                            )
+                          })}
                         </div>
                       </div>
                     )

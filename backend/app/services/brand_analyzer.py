@@ -215,6 +215,7 @@ class BrandAnalyzer:
         """
         Use AI to analyze the website content and extract detailed business information.
         Focus on showing the customer we REALLY understand their business.
+        Includes LOCAL BUSINESS detection (restaurants, hotels, stores, etc.)
         """
         if not self.ai.is_available:
             logger.warning("AI not available, using fallback analysis")
@@ -233,27 +234,38 @@ Website Content:
 - Main Heading: {website_context.get('h1', 'N/A')}
 - Section Headings: {', '.join(website_context.get('h2s', []))}
 - Content Preview: {website_context.get('content_preview', 'N/A')[:800]}
+- Schema Types Found: {', '.join(website_context.get('schema_types', []))}
 
 Extract and return JSON with:
 {{
-    "industry": "broad category (e.g., 'fashion', 'technology', 'jewelry')",
-    "segment": "SPECIFIC niche within the industry - be precise! (e.g., 'French casual basics for modern women', 'sustainable premium denim', 'minimalist Scandinavian furniture')",
-    "positioning": "market position (e.g., 'Affordable luxury', 'Premium minimalist', 'Sustainable premium', 'Accessible designer')",
+    "industry": "broad category (e.g., 'restaurant', 'fashion', 'technology', 'hotel', 'retail')",
+    "business_type": "specific type (e.g., 'restaurant', 'hotel', 'retail store', 'e-commerce', 'SaaS', 'service provider')",
+    "is_local_business": true/false,
+    "location": {{
+        "city": "city name if detectable (e.g., 'Antwerp', 'Paris', 'New York')",
+        "region": "region/state if detectable",
+        "country": "country if detectable"
+    }},
+    "segment": "SPECIFIC niche - be precise! (e.g., 'Mediterranean restaurant', 'French bistro', 'Italian fine dining', 'Japanese ramen shop')",
+    "cuisine_or_style": "For restaurants: cuisine type (e.g., 'Mediterranean', 'Italian', 'Japanese', 'Belgian'). For fashion: style (e.g., 'minimalist', 'streetwear'). For hotels: type (e.g., 'boutique', 'business')",
+    "positioning": "market position (e.g., 'Casual dining', 'Fine dining', 'Fast casual', 'Affordable luxury')",
     "price_tier": "budget | mid-range | premium | luxury",
-    "brand_personality": ["3-5 personality traits", "e.g. minimalist", "effortless", "Parisian", "timeless"],
-    "differentiators": ["2-3 things that make them unique", "e.g. 'French heritage'", "'Organic cotton focus'"],
-    "products_services": ["list", "of", "3-5", "main", "product categories"],
+    "brand_personality": ["3-5 personality traits"],
+    "differentiators": ["2-3 things that make them unique"],
+    "products_services": ["list of main offerings (dishes for restaurants, products for retail, services, etc.)"],
     "value_proposition": "one sentence describing their unique value",
-    "target_audience": "specific description of ideal customer (e.g., 'Urban millennials seeking effortless everyday style')",
-    "brand_summary": "One compelling sentence that shows we GET this brand (e.g., 'Premium French basics brand known for effortless minimalist style and quality materials')",
+    "target_audience": "specific description of ideal customer",
+    "brand_summary": "One compelling sentence that shows we GET this brand",
     "keywords": ["5-7", "relevant", "keywords"],
     "confidence": 0.8
 }}
 
-IMPORTANT: 
-- The "segment" should be VERY specific - not just "fashion" but "French casual unisex basics"
-- The "brand_summary" should sound like you're describing them to a friend
-- Be precise about the price_tier based on the brand positioning
+IMPORTANT FOR LOCAL BUSINESSES (restaurants, hotels, stores):
+- ALWAYS try to detect the city/location from the website content, address, or URL
+- For restaurants: identify the CUISINE TYPE (Mediterranean, Italian, Asian, Belgian, etc.)
+- For hotels: identify the TYPE (boutique, business, resort, etc.)
+- The "segment" should include location + style (e.g., "Mediterranean restaurant in Antwerp")
+- Think about what local competitors would be relevant (same cuisine, same city)
 
 Return ONLY valid JSON, no markdown or explanation."""
 
@@ -305,7 +317,11 @@ Return ONLY valid JSON, no markdown or explanation."""
         industry = industry_hint or "general"
         return {
             "industry": industry,
+            "business_type": industry,
+            "is_local_business": False,
+            "location": {"city": "", "region": "", "country": ""},
             "segment": f"{brand_name} in {industry}",
+            "cuisine_or_style": "",
             "positioning": "Quality brand",
             "price_tier": "mid-range",
             "brand_personality": ["quality", "reliable"],
@@ -326,6 +342,8 @@ Return ONLY valid JSON, no markdown or explanation."""
     ) -> List[CompetitorInfo]:
         """
         Use AI to suggest competitors based on business context.
+        For LOCAL businesses: 3 local + 2 international competitors
+        For GLOBAL businesses: 5 direct competitors
         """
         competitors = []
         
@@ -340,16 +358,65 @@ Return ONLY valid JSON, no markdown or explanation."""
         if not self.ai.is_available:
             return competitors
         
-        prompt = f"""Identify 3-5 direct competitors for this business:
+        # Check if this is a local business
+        is_local = business_info.get('is_local_business', False)
+        location = business_info.get('location', {})
+        city = location.get('city', '') if isinstance(location, dict) else ''
+        country = location.get('country', '') if isinstance(location, dict) else ''
+        cuisine_or_style = business_info.get('cuisine_or_style', '')
+        segment = business_info.get('segment', '')
+        
+        if is_local and city:
+            # LOCAL BUSINESS: Find 3 local + 2 international competitors
+            prompt = f"""Identify competitors for this LOCAL business:
+
+Brand: {brand_name}
+Business Type: {business_info.get('business_type', 'business')}
+Industry: {business_info.get('industry', 'unknown')}
+Style/Cuisine: {cuisine_or_style}
+Segment: {segment}
+Location: {city}, {country}
+Products/Services: {', '.join(business_info.get('products_services', []))}
+
+Find REAL competitors in two groups:
+
+1. LOCAL COMPETITORS (3): Other {business_info.get('business_type', 'businesses')} in {city} with similar style/cuisine ({cuisine_or_style})
+   - Must be REAL businesses that exist in {city}
+   - Same or similar cuisine/style/category
+   
+2. INTERNATIONAL COMPETITORS (2): Well-known {business_info.get('business_type', 'businesses')} outside {city} with similar concept
+   - Famous/well-known brands with similar positioning
+   - Could be in other cities or countries
+
+Return JSON array:
+[
+    {{"name": "Local Restaurant 1", "reason": "Mediterranean restaurant in {city}", "type": "local"}},
+    {{"name": "Local Restaurant 2", "reason": "Similar cuisine in {city}", "type": "local"}},
+    {{"name": "Local Restaurant 3", "reason": "Competitor in {city}", "type": "local"}},
+    {{"name": "Famous International Brand", "reason": "Well-known {cuisine_or_style} concept", "type": "international"}},
+    {{"name": "Another International", "reason": "Similar positioning globally", "type": "international"}}
+]
+
+IMPORTANT: 
+- Local competitors MUST be real businesses in {city}
+- For restaurants: find same cuisine type in the same city
+- For hotels: find same category in the same city
+- International competitors should be recognizable brands
+
+Return ONLY valid JSON array, no markdown."""
+        else:
+            # GLOBAL BUSINESS: Find 5 direct competitors
+            prompt = f"""Identify 5 direct competitors for this business:
 
 Brand: {brand_name}
 Industry: {business_info.get('industry', 'unknown')}
+Segment: {segment}
 Products/Services: {', '.join(business_info.get('products_services', []))}
 Target Audience: {business_info.get('target_audience', 'unknown')}
 
 Return JSON array with competitors:
 [
-    {{"name": "Competitor Name", "reason": "Brief reason why they compete"}},
+    {{"name": "Competitor Name", "reason": "Brief reason why they compete", "type": "direct"}},
     ...
 ]
 
@@ -357,12 +424,27 @@ Focus on REAL companies that directly compete in the same market.
 Return ONLY valid JSON array, no markdown."""
 
         try:
-            response = await self.ai.generate(
-                prompt=prompt,
-                system_prompt="You are a competitive analysis expert. Identify real competitor companies. Return only valid JSON.",
-                max_tokens=400,
-                temperature=0.4
-            )
+            # Use Claude for better local knowledge
+            response = None
+            available = self.ai.get_available_providers()
+            
+            if "anthropic" in available:
+                response = await self.ai.generate_with_model(
+                    prompt=prompt,
+                    system_prompt="You are a local market expert with deep knowledge of businesses worldwide. For local businesses, you know real restaurants, hotels, and stores in specific cities. Identify real competitor companies. Return only valid JSON.",
+                    model="claude-sonnet-4-20250514",
+                    provider="anthropic",
+                    max_tokens=500,
+                    temperature=0.4
+                )
+            
+            if not response:
+                response = await self.ai.generate(
+                    prompt=prompt,
+                    system_prompt="You are a competitive analysis expert. Identify real competitor companies. Return only valid JSON.",
+                    max_tokens=500,
+                    temperature=0.4
+                )
             
             if response:
                 cleaned = response.strip()
@@ -374,9 +456,16 @@ Return ONLY valid JSON array, no markdown."""
                 
                 for comp in ai_competitors:
                     if comp.get("name") and comp["name"] not in known_competitors:
+                        comp_type = comp.get("type", "direct")
+                        reason = comp.get("reason", "AI detected competitor")
+                        if comp_type == "local":
+                            reason = f"🏠 Local: {reason}"
+                        elif comp_type == "international":
+                            reason = f"🌍 International: {reason}"
+                        
                         competitors.append(CompetitorInfo(
                             name=comp["name"],
-                            reason=comp.get("reason", "AI detected competitor"),
+                            reason=reason,
                             auto_detected=True
                         ))
                         
