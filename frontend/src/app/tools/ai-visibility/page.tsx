@@ -381,7 +381,7 @@ export default function AIVisibilityTool() {
     // Test each of the 5 fixed categories for USER
     for (let i = 0; i < FIXED_CATEGORIES.length; i++) {
       const category = FIXED_CATEGORIES[i]
-      const prompt = categoryPrompts[category.id] || category.template
+      const prompt = categoryPrompts[category.id] || ''
       
       setTestProgress({ current: i + 1, total: 5, phase: 'user' })
       
@@ -1082,7 +1082,7 @@ export default function AIVisibilityTool() {
                       ...categoryPrompts,
                       [category.id]: e.target.value
                     })}
-                    placeholder={category.example}
+                    placeholder={category.description}
                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
