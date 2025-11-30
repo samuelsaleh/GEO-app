@@ -87,15 +87,15 @@ export default function HealthCheck() {
 
     if (lower.includes('structured data') || lower.includes('schema.org')) {
       return {
-        why: `${brand} is much harder for AI assistants and search engines to understand without schema markup. Right now, they mostly see raw text – they don't get a clear signal that ${pageUrl} is a brand, product, or service page, so your content competes on equal footing with less relevant pages. Schema is a core input into GEO schema and authority scores, and it is one of the strongest ranking and citation hints for ChatGPT, Perplexity, and Gemini.`,
-        how: 'Add JSON-LD schema (at minimum Organization, and Product or Article for key pages) into the <head> of this page. Include your brand name, URL, concise description, logo, and relevant properties (price, category, location, etc.). Then validate it with Google\'s Rich Results Test and roll the same schema pattern out across your main commercial and content URLs.'
+        why: `${brand} is much harder for AI assistants and search engines to understand without schema markup ON THIS SPECIFIC PAGE. Even if you have schema elsewhere, AI models often land directly here. Right now, they see raw text without a clear signal that ${pageUrl} is a brand, product, or service page. Schema is a core input into GEO schema and authority scores.`,
+        how: 'Add JSON-LD schema (Organization, Product, or Article) into the <head> of THIS page. Include your brand name, URL, and description. Then validate it with Google\'s Rich Results Test. This ensures AI models get structured data no matter which entry point they find.'
       }
     }
 
     if (lower.includes('faq section')) {
       return {
-        why: 'FAQ content is one of the easiest formats for AI to quote because it mirrors how users naturally ask questions. When someone types a question into ChatGPT or Perplexity, those models look for clean Q&A structures they can lift directly. Without a visible FAQ section, your page has fewer clearly quotable chunks and loses potential citability points in the GEO score.',
-        how: `Add a dedicated FAQ block on ${pageUrl} with 5–10 real customer questions (ideally including the question you entered in the form) and short, specific answers. Mark this block up with FAQPage schema so AI can treat each Q&A as a structured answer and is more likely to surface your site as a cited source when users ask those questions.`
+        why: 'FAQ content is the easiest format for AI to quote. When users ask questions, models look for clean Q&A structures on the landing page itself. Without a visible FAQ section HERE, this specific page loses "citability" points, even if you have a separate FAQ page elsewhere.',
+        how: `Add a dedicated FAQ block to ${pageUrl} with 5–10 specific questions relevant to this page's topic. Mark it up with FAQPage schema so AI treats each Q&A as a structured answer. Don't rely on a separate /faq page alone.`
       }
     }
 
@@ -460,7 +460,7 @@ export default function HealthCheck() {
 {`<section class="faq">
   <h2>Frequently Asked Questions</h2>
   <div class="faq-item">
-    <h3>${question || 'How do I choose the right option?'}</h3>
+    <h3>${question && question.length > 10 ? question : 'How do I choose the right option?'}</h3>
     <p>Short, direct answer here.</p>
   </div>
 </section>`}
