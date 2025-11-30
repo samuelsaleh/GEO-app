@@ -76,17 +76,17 @@ class MultiModelResult(BaseModel):
 # FREE tier uses first 2, PAID tier uses all 6
 AI_MODELS = [
     # FREE TIER MODELS (first 2)
-    {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai", "icon": "🤖"},
+    {"id": "gpt-5.1", "name": "GPT-5.1", "provider": "openai", "icon": "🤖"},
     {"id": "claude-sonnet-4", "name": "Claude Sonnet 4", "provider": "anthropic", "icon": "🧠"},
     # PAID TIER MODELS (additional 4)
-    {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai", "icon": "⚡"},
+    {"id": "gpt-5.1-mini", "name": "GPT-5.1 Mini", "provider": "openai", "icon": "⚡"},
     {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "provider": "google", "icon": "💎"},
     {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "provider": "google", "icon": "✨"},
     {"id": "claude-3.5-sonnet", "name": "Claude 3.5 Sonnet", "provider": "anthropic", "icon": "🎭"},
 ]
 
 # Model sets for different tiers
-FREE_MODELS = ["gpt-4o", "claude-sonnet-4"]
+FREE_MODELS = ["gpt-5.1", "claude-sonnet-4"]
 PAID_MODELS = [m["id"] for m in AI_MODELS]  # All models
 
 
@@ -351,14 +351,9 @@ class VisibilityMonitor:
                         response_preview=response[:300] + "..." if len(response) > 300 else response,
                         full_response=response
                     ))
-                else:
-                    results.append(ModelResult(
-                        model_id=model_info["id"],
-                        model_name=model_info["name"],
-                        provider=model_info["provider"],
-                        brand_mentioned=False,
-                        response_preview="[Model unavailable]"
-                    ))
+                # If the model didn't return anything (e.g. provider not configured),
+                # we simply skip adding a result for that model instead of showing
+                # a noisy "[Model unavailable]" card in the UI.
                     
             except Exception as e:
                 logger.error(f"Error testing {model_info['name']}: {e}")
@@ -426,8 +421,8 @@ class VisibilityMonitor:
         try:
             # Map short IDs to actual API model names
             model_mapping = {
-                "gpt-4o": "gpt-4o",
-                "gpt-4o-mini": "gpt-4o-mini",
+                "gpt-5.1": "gpt-5.1",
+                "gpt-5.1-mini": "gpt-5.1-mini",
                 "claude-sonnet-4": "claude-sonnet-4-20250514",
                 "claude-3.5-sonnet": "claude-3-5-sonnet-20241022",
                 "gemini-2.0-flash": "gemini-2.0-flash",

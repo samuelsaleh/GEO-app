@@ -147,7 +147,7 @@ Purchase intent:
 ### Automated Monitoring
 
 Track responses from:
-- ChatGPT (GPT-4, GPT-4o)
+- ChatGPT (GPT-5.1)
 - Bing Copilot
 - Google Gemini
 - Perplexity

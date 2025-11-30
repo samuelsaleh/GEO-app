@@ -3,7 +3,7 @@ Multi-Provider AI Service
 
 Supports the BEST models from:
 - Anthropic: Claude Opus 4 / Claude 3.5 Sonnet
-- OpenAI: GPT-4o / GPT-4o-mini
+- OpenAI: GPT-5.1 / GPT-5.1-mini
 - Google: Gemini 2.5 Pro / Gemini 2.5 Flash
 
 Uses fallback system: tries providers in order until one succeeds.
@@ -33,8 +33,8 @@ class AIModel:
     CLAUDE_SONNET_35 = ("anthropic", "claude-3-5-sonnet-20241022", "Claude 3.5 Sonnet")
     
     # OpenAI Models (Great all-around)
-    GPT_4O = ("openai", "gpt-4o", "GPT-4o")
-    GPT_4O_MINI = ("openai", "gpt-4o-mini", "GPT-4o Mini")
+    GPT_5_1 = ("openai", "gpt-5.1", "GPT-5.1")
+    GPT_5_1_MINI = ("openai", "gpt-5.1-mini", "GPT-5.1 Mini")
     
     # Google Models (Fast & cost-effective)
     GEMINI_PRO = ("google", "gemini-1.5-pro", "Gemini 1.5 Pro")
@@ -47,7 +47,7 @@ class MultiProviderAI:
     
     Priority order (configurable):
     1. Anthropic Claude - Best for nuanced analysis
-    2. OpenAI GPT-4o - Great all-around
+    2. OpenAI GPT-5.1 - Great all-around
     3. Google Gemini - Fast and reliable
     """
     
@@ -77,17 +77,17 @@ class MultiProviderAI:
             except Exception as e:
                 logger.warning(f"❌ Failed to initialize Anthropic: {e}")
         
-        # Initialize OpenAI (GPT-4)
+        # Initialize OpenAI (GPT-5.1)
         if settings.openai_api_key:
             try:
                 from openai import OpenAI
                 self.providers["openai"] = {
                     "client": OpenAI(api_key=settings.openai_api_key),
-                    "model": "gpt-4o",  # Best model
-                    "fallback_model": "gpt-4o-mini",
-                    "name": "GPT-4o"
+                    "model": "gpt-5.1",  # Latest GPT-5.1 model
+                    "fallback_model": "gpt-5.1-mini",  # Faster, cheaper variant
+                    "name": "GPT-5.1"
                 }
-                logger.info("✅ OpenAI (GPT-4o) initialized")
+                logger.info("✅ OpenAI (GPT-5.1) initialized")
             except Exception as e:
                 logger.warning(f"❌ Failed to initialize OpenAI: {e}")
         
@@ -188,7 +188,7 @@ class MultiProviderAI:
         self,
         prompt: str,
         system_prompt: str = "You are a helpful assistant.",
-        model: str = "gpt-4o",
+        model: str = "gpt-5.1",
         provider: str = "openai",
         max_tokens: int = 1000,
         temperature: float = 0.3

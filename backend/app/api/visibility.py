@@ -99,7 +99,7 @@ async def get_api_status():
     providers_status = {
         "openai": {
             "configured": "openai" in available,
-            "models": ["GPT-4o", "GPT-4o Mini"],
+            "models": ["GPT-5.1", "GPT-5.1 Mini"],
             "get_key_url": "https://platform.openai.com/api-keys"
         },
         "anthropic": {

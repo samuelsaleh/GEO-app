@@ -273,7 +273,7 @@ class ScoreRequest(BaseModel):
 
 class ModelResult(BaseModel):
     """Result from a single AI model query"""
-    model_id: str                           # "gpt-4o-mini"
+    model_id: str                           # "gpt-5.1-mini"
     model_name: str                         # "ChatGPT"
     provider: str                           # "openai"
     mentioned: bool                         # True/False

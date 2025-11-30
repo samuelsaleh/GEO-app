@@ -47,15 +47,15 @@ export default function ToolsPage() {
               <BarChart3 className="w-6 h-6 text-claude-600" />
             </div>
             <h2 className="font-display text-xl font-medium mb-3 text-ink-900 group-hover:text-claude-600 transition">
-              GEO Score
+              AI Visibility Score
             </h2>
             <p className="text-ink-500 mb-5 leading-relaxed text-sm">
-              Test how ChatGPT, Claude, and Gemini recommend your brand. Get a score out of 100 with actionable insights.
+              See how GPT-5.1 and Claude talk about your brand versus key competitors. Get a 0–100 visibility score with a simple action plan.
             </p>
             <ul className="text-xs text-ink-600 space-y-1 mb-5">
-              <li>✓ 6 AI models tested</li>
-              <li>✓ Competitor comparison</li>
-              <li>✓ GEO strategy action plan</li>
+              <li>✓ Tests GPT-5.1 + Claude Sonnet 4</li>
+              <li>✓ Competitor comparison (up to 5 brands)</li>
+              <li>✓ GEO visibility action plan</li>
             </ul>
             <div className="flex items-center gap-2 text-claude-600 text-xs tracking-widest uppercase font-medium">
               Get Your GEO Score
@@ -63,8 +63,11 @@ export default function ToolsPage() {
             </div>
           </Link>
 
-          {/* GEO Audit - LOCKED */}
-          <div className="card-elevated p-8 relative opacity-75 hover:opacity-100 transition-opacity">
+          {/* GEO Audit - PREMIUM TOOL */}
+          <Link
+            href="/tools/health-check"
+            className="card-elevated p-8 relative hover:opacity-100 transition-opacity group"
+          >
             <div className="absolute top-4 right-4 bg-gray-100 text-ink-500 text-[10px] px-3 py-1 tracking-widest uppercase font-medium flex items-center gap-1">
               <Lock className="w-3 h-3" /> Premium
             </div>
@@ -75,26 +78,26 @@ export default function ToolsPage() {
               GEO Audit
             </h2>
             <p className="text-ink-500 mb-5 leading-relaxed text-sm">
-              Deep analysis of your website's AI-readiness. Check schema, content structure, and citations.
+              Deep analysis of a page&apos;s AI-readiness: structure, schema, readability, and citations.
             </p>
-            <ul className="text-xs text-ink-400 space-y-1 mb-5">
-              <li>○ Technical GEO analysis</li>
-              <li>○ Content optimization tips</li>
-              <li>○ Priority fixes list</li>
+            <ul className="text-xs text-ink-600 space-y-1 mb-5">
+              <li>✓ Technical GEO analysis (structure, schema, accessibility)</li>
+              <li>✓ Content &amp; readability review</li>
+              <li>✓ Prioritized fixes list</li>
             </ul>
-            <Link 
-              href="/pricing"
-              className="flex items-center gap-2 text-ink-400 text-xs tracking-widest uppercase font-medium hover:text-claude-600 transition"
-            >
-              Unlock in Pro Plan
-              <Lock className="w-3 h-3" />
-            </Link>
-          </div>
+            <div className="flex items-center gap-2 text-claude-600 text-xs tracking-widest uppercase font-medium">
+              Run GEO Audit
+              <span className="group-hover:translate-x-1 transition">→</span>
+            </div>
+          </Link>
 
-          {/* Schema Generator - LOCKED */}
-          <div className="card-elevated p-8 relative opacity-75 hover:opacity-100 transition-opacity">
-            <div className="absolute top-4 right-4 bg-gray-100 text-ink-500 text-[10px] px-3 py-1 tracking-widest uppercase font-medium flex items-center gap-1">
-              <Lock className="w-3 h-3" /> Premium
+          {/* Schema Generator - FREE TOOL */}
+          <Link
+            href="/tools/schema-generator"
+            className="card-elevated p-8 relative hover:opacity-100 transition-opacity group"
+          >
+            <div className="absolute top-4 right-4 bg-claude-500 text-white text-[10px] px-3 py-1 tracking-widest uppercase font-medium">
+              Free
             </div>
             <div className="w-14 h-14 border border-cream-300 flex items-center justify-center mb-6 bg-cream-50">
               <Code className="w-6 h-6 text-ink-400" />
@@ -103,21 +106,18 @@ export default function ToolsPage() {
               Schema Generator
             </h2>
             <p className="text-ink-500 mb-5 leading-relaxed text-sm">
-              Create structured data that AI understands. Copy-paste ready JSON-LD for your website.
+              Create structured data that AI understands. Generate copy‑paste ready JSON-LD for your key pages.
             </p>
-            <ul className="text-xs text-ink-400 space-y-1 mb-5">
-              <li>○ 7 schema types</li>
-              <li>○ Valid JSON-LD output</li>
-              <li>○ Implementation guide</li>
+            <ul className="text-xs text-ink-600 space-y-1 mb-5">
+              <li>✓ 7 high-impact schema types</li>
+              <li>✓ Valid JSON-LD output</li>
+              <li>✓ Copy-paste implementation tips</li>
             </ul>
-            <Link 
-              href="/pricing"
-              className="flex items-center gap-2 text-ink-400 text-xs tracking-widest uppercase font-medium hover:text-claude-600 transition"
-            >
-              Unlock in Pro Plan
-              <Lock className="w-3 h-3" />
-            </Link>
-          </div>
+            <div className="flex items-center gap-2 text-claude-600 text-xs tracking-widest uppercase font-medium">
+              Open Schema Generator
+              <span className="group-hover:translate-x-1 transition">→</span>
+            </div>
+          </Link>
         </div>
 
         {/* GEO Strategies Section */}

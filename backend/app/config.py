@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     from_email: str = ""
     
     # AI APIs - Best models from each provider
-    openai_api_key: str = ""           # For GPT-4o
+    openai_api_key: str = ""           # For GPT-5.1
     anthropic_api_key: str = ""        # For Claude Opus 4.5 / Sonnet
     google_api_key: str = ""           # For Gemini Pro
     

@@ -43,7 +43,7 @@ class CompetitorAnalyzer:
     """Analyze and discover competitors using multi-provider AI"""
     
     def __init__(self):
-        # Uses the multi-provider AI service (Claude, GPT-4o, Gemini)
+        # Uses the multi-provider AI service (Claude, GPT-5.1, Gemini)
         self.ai = ai_service
         logger.info(f"CompetitorAnalyzer using providers: {self.ai.get_available_providers()}")
     
@@ -56,7 +56,7 @@ class CompetitorAnalyzer:
         """
         Use AI to discover potential competitors based on website content.
         
-        Uses multi-provider AI (Claude, GPT-4o, Gemini) with automatic fallback.
+        Uses multi-provider AI (Claude, GPT-5.1, Gemini) with automatic fallback.
         
         Returns list of competitor suggestions with name and URL
         """

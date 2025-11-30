@@ -380,24 +380,31 @@ export default function AIVisibilityTool() {
   
   const removeCompetitor = (index: number) => {
     if (profile) {
-      setProfile({
+      const updatedProfile: BrandProfile = {
         ...profile,
         competitors: profile.competitors.filter((_, i) => i !== index)
-      })
+      }
+      setProfile(updatedProfile)
+      // Regenerate prompts so comparison/alternatives questions reflect
+      // the latest competitor list rather than the original AI guesses.
+      generateDefaultPrompts(updatedProfile)
     }
   }
   
   const addCompetitor = (name: string) => {
     if (profile && name.trim()) {
       // Add user-added competitors at the BEGINNING so they're used for comparison
-      setProfile({
+      const updatedProfile: BrandProfile = {
         ...profile,
         competitors: [{
           name: name.trim(),
           reason: 'Added manually',
           auto_detected: false
         }, ...profile.competitors]
-      })
+      }
+      setProfile(updatedProfile)
+      // Update prompts so comparison/alternatives use the user-added names.
+      generateDefaultPrompts(updatedProfile)
     }
   }
 
@@ -441,7 +448,7 @@ export default function AIVisibilityTool() {
             prompt: prompt,
             brand: profile.brand_name,
             competitors: competitorNames,
-            models: ['gpt-4o', 'claude-sonnet-4'] // Only 2 models for free tier
+            models: ['gpt-5.1', 'claude-sonnet-4'] // Only 2 models for free tier
           })
         })
         
@@ -493,7 +500,7 @@ export default function AIVisibilityTool() {
             prompt: `What ${profile.industry || 'product'} do you recommend?`,
             brand: compName,
             competitors: [profile.brand_name],
-            models: ['gpt-4o', 'claude-sonnet-4']
+            models: ['gpt-5.1', 'claude-sonnet-4']
           })
         })
         
@@ -1147,7 +1154,7 @@ export default function AIVisibilityTool() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-2xl">
-                  <span title="GPT-4o">🤖</span>
+                  <span title="GPT-5.1">🤖</span>
                   <span title="Claude">🧠</span>
                 </div>
               </div>
@@ -1190,15 +1197,8 @@ export default function AIVisibilityTool() {
                 />
               </div>
               
-              {/* Show results as they come in */}
-              <div className="space-y-3">
-                {categoryResults.map((result, idx) => (
-                  <div key={idx} className={`flex items-center justify-between p-3 border ${getCategoryColor(result.status)}`}>
-                    <span className="font-body font-medium">{result.categoryLabel}</span>
-                    <span className="font-body font-bold">{result.score}%</span>
-                  </div>
-                ))}
-              </div>
+              {/* While testing, we keep things simple and only show progress.
+                  Detailed scores and breakdowns are revealed on the results step. */}
             </div>
           </div>
         )}
@@ -1427,9 +1427,9 @@ export default function AIVisibilityTool() {
                                   <XCircle className="w-4 h-4 text-red-500" />
                                 )}
                               </div>
-                              <p className="text-xs text-[#6B5D52] line-clamp-2 font-body">
-                                {modelResult.response_preview}
-                              </p>
+                              <div className="mt-1 max-h-40 overflow-y-auto text-xs text-[#6B5D52] font-body whitespace-pre-wrap">
+                                {modelResult.full_response || modelResult.response_preview}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1513,7 +1513,7 @@ export default function AIVisibilityTool() {
                   <ul className="space-y-2 mb-6">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
-                      <span>All 6 AI models (GPT-4, GPT-4o, Claude, Gemini Pro & Flash, Perplexity)</span>
+                      <span>All 6 AI models (GPT-5.1, Claude, Gemini Pro & Flash, Perplexity)</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />

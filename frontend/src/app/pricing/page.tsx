@@ -235,7 +235,7 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-ink-700"><strong>2 AI models (GPT-4o + Claude)</strong></span>
+                  <span className="text-ink-700"><strong>2 AI models (GPT-5.1 + Claude)</strong></span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-claude-500 flex-shrink-0 mt-0.5" />

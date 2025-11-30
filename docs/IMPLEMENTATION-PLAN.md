@@ -9,7 +9,7 @@
 ### Frontend - AI Visibility Tool Enhanced
 - [x] 5 fixed scoring categories (Recommendation, Best Of, Comparison, Problem/Solution, Alternative)
 - [x] 2 optional custom prompt slots
-- [x] Limited to 2 AI models for free tier (GPT-4o + Claude)
+- [x] Limited to 2 AI models for free tier (GPT-5.1 + Claude)
 - [x] Email capture field
 - [x] Results page with analysis & interpretation
 - [x] Category breakdown with insights
@@ -115,7 +115,7 @@ While user is away, implement:
 - [ ] Brand analysis works
 - [ ] Profile review works  
 - [ ] 5 category prompts generated correctly
-- [ ] Tests run on exactly 2 models (GPT-4o + Claude)
+- [ ] Tests run on exactly 2 models (GPT-5.1 + Claude)
 - [ ] Results show analysis & interpretation
 - [ ] Email capture saves email
 - [ ] "Email Me Report" sends email

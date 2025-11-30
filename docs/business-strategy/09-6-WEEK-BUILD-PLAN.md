@@ -554,7 +554,7 @@ def send_quick_check_results(self, to_email: str, brand: str, score: int, grade:
                     <li>🔒 How you rank vs 10 competitors</li>
                     <li>🔒 Which types of queries you're winning/losing</li>
                     <li>🔒 Specific recommendations to improve your score</li>
-                    <li>🔒 Testing across multiple AI models (GPT-4o, Claude, Gemini)</li>
+                    <li>🔒 Testing across multiple AI models (GPT-5.1, Claude, Gemini)</li>
                 </ul>
                 
                 <center>
@@ -683,7 +683,7 @@ async def full_competitive_test(request: CompetitiveTestRequest, background_task
     1. Verify Stripe payment
     2. Discover competitors (if not provided)
     3. Generate 10 neutral prompts
-    4. Test on GPT-4o + Claude Sonnet (10 × 2 = 20 API calls)
+    4. Test on GPT-5.1 + Claude Sonnet (10 × 2 = 20 API calls)
     5. Calculate scores for all 11 brands
     6. Generate rankings
     7. Create PDF report
@@ -720,12 +720,12 @@ async def full_competitive_test(request: CompetitiveTestRequest, background_task
             brand_positions = []
             
             for prompt in prompts:
-                # Test on GPT-4o
+                # Test on GPT-5.1
                 result_gpt = await visibility_monitor.test_prompt(
                     prompt=prompt,
                     brand=brand,
                     competitors=[],
-                    model="gpt-4o"
+                    model="gpt-5.1"
                 )
                 if result_gpt.brand_mentioned:
                     brand_mentions += 1
@@ -1290,7 +1290,7 @@ Add bundle pricing section:
       </div>
       <ul className="space-y-3 mb-8">
         <li>✅ 10 strategic prompts</li>
-        <li>✅ 2 AI models (GPT-4o + Claude)</li>
+        <li>✅ 2 AI models (GPT-5.1 + Claude)</li>
         <li>✅ Test vs 10 competitors</li>
         <li>✅ Full rankings</li>
         <li>✅ PDF report</li>

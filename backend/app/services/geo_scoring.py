@@ -3,7 +3,7 @@ GEO (Generative Engine Optimization) Scoring System
 
 This is the "magic formula" for scoring AI visibility.
 Based on research into what makes content get cited by AI engines like:
-- ChatGPT / GPT-4
+- ChatGPT / GPT-5.1
 - Google Gemini / Bard
 - Bing Chat / Copilot
 - Perplexity

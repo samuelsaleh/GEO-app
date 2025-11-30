@@ -73,6 +73,7 @@ class BrandAnalyzer:
         # Step 3: Detect/suggest competitors
         competitors = await self._detect_competitors(
             brand_name=brand_name,
+            website_url=website_url,
             business_info=business_info,
             known_competitors=known_competitors
         )
@@ -337,13 +338,18 @@ Return ONLY valid JSON, no markdown or explanation."""
     async def _detect_competitors(
         self,
         brand_name: str,
+        website_url: str,
         business_info: Dict[str, Any],
         known_competitors: List[str] = []
     ) -> List[CompetitorInfo]:
         """
         Use AI to suggest competitors based on business context.
-        For LOCAL businesses: 3 local + 2 international competitors
-        For GLOBAL businesses: 5 direct competitors
+        
+        - For LOCAL businesses: exactly 5 local competitors in the same city/region
+        - For GLOBAL businesses: 5 direct competitors (no special local/international split)
+        
+        The UI only needs name and site, but we also keep a simple "type"
+        tag (e.g. "local" or "direct") internally for labeling.
         """
         competitors = []
         
@@ -367,43 +373,38 @@ Return ONLY valid JSON, no markdown or explanation."""
         segment = business_info.get('segment', '')
         
         if is_local and city:
-            # LOCAL BUSINESS: Find 3 local + 2 international competitors
-            prompt = f"""Identify competitors for this LOCAL business:
+            # LOCAL BUSINESS: ask very simply for 5 local competitors based on the
+            # place name and website the user provided.
+            prompt = f"""You are a local expert for businesses in {city}, {country}.
+Find 5 real local competitors for this place in the SAME city/area.
 
-Brand: {brand_name}
-Business Type: {business_info.get('business_type', 'business')}
-Industry: {business_info.get('industry', 'unknown')}
-Style/Cuisine: {cuisine_or_style}
-Segment: {segment}
-Location: {city}, {country}
-Products/Services: {', '.join(business_info.get('products_services', []))}
+Place: {brand_name}
+Website: {website_url}
+City: {city}
+Country: {country}
+Category/segment: {segment or business_info.get('industry', 'unknown')}
 
-Find REAL competitors in two groups:
+Rules:
+- Competitors must be real, existing places in or very near {city}
+- Same type of place (restaurant/store/service) and similar style/category
+- Do NOT include {brand_name} itself
 
-1. LOCAL COMPETITORS (3): Other {business_info.get('business_type', 'businesses')} in {city} with similar style/cuisine ({cuisine_or_style})
-   - Must be REAL businesses that exist in {city}
-   - Same or similar cuisine/style/category
-   
-2. INTERNATIONAL COMPETITORS (2): Well-known {business_info.get('business_type', 'businesses')} outside {city} with similar concept
-   - Famous/well-known brands with similar positioning
-   - Could be in other cities or countries
+Return ONLY a JSON array with exactly 5 items.
+Each item must have:
+- "name": competitor name
+- "website_url": main website URL (full https URL)
+- "type": "local"
 
-Return JSON array:
+Example:
 [
-    {{"name": "Local Restaurant 1", "reason": "Mediterranean restaurant in {city}", "type": "local"}},
-    {{"name": "Local Restaurant 2", "reason": "Similar cuisine in {city}", "type": "local"}},
-    {{"name": "Local Restaurant 3", "reason": "Competitor in {city}", "type": "local"}},
-    {{"name": "Famous International Brand", "reason": "Well-known {cuisine_or_style} concept", "type": "international"}},
-    {{"name": "Another International", "reason": "Similar positioning globally", "type": "international"}}
+  {{"name": "Local Competitor 1", "website_url": "https://example-local1.com", "type": "local"}},
+  {{"name": "Local Competitor 2", "website_url": "https://example-local2.com", "type": "local"}},
+  {{"name": "Local Competitor 3", "website_url": "https://example-local3.com", "type": "local"}},
+  {{"name": "Local Competitor 4", "website_url": "https://example-local4.com", "type": "local"}},
+  {{"name": "Local Competitor 5", "website_url": "https://example-local5.com", "type": "local"}}
 ]
 
-IMPORTANT: 
-- Local competitors MUST be real businesses in {city}
-- For restaurants: find same cuisine type in the same city
-- For hotels: find same category in the same city
-- International competitors should be recognizable brands
-
-Return ONLY valid JSON array, no markdown."""
+Return ONLY the JSON array, no explanation or markdown."""
         else:
             # GLOBAL BUSINESS: Find 5 direct competitors
             prompt = f"""Identify 5 direct competitors for this business:
@@ -416,7 +417,7 @@ Target Audience: {business_info.get('target_audience', 'unknown')}
 
 Return JSON array with competitors:
 [
-    {{"name": "Competitor Name", "reason": "Brief reason why they compete", "type": "direct"}},
+    {{"name": "Competitor Name", "website_url": "https://example.com", "reason": "Brief reason why they compete", "type": "direct"}},
     ...
 ]
 
@@ -424,26 +425,48 @@ Focus on REAL companies that directly compete in the same market.
 Return ONLY valid JSON array, no markdown."""
 
         try:
-            # Use Claude for better local knowledge
+            # Prefer GPT-5.1 for competitor discovery (great at recommendations),
+            # then fall back to Claude / default provider if needed.
             response = None
             available = self.ai.get_available_providers()
             
-            if "anthropic" in available:
-                response = await self.ai.generate_with_model(
-                    prompt=prompt,
-                    system_prompt="You are a local market expert with deep knowledge of businesses worldwide. For local businesses, you know real restaurants, hotels, and stores in specific cities. Identify real competitor companies. Return only valid JSON.",
-                    model="claude-sonnet-4-20250514",
-                    provider="anthropic",
-                    max_tokens=500,
-                    temperature=0.4
-                )
+            # 1) Try OpenAI GPT-5.1 first
+            if "openai" in available:
+                try:
+                    response = await self.ai.generate_with_model(
+                        prompt=prompt,
+                        system_prompt="You are a local market expert with deep knowledge of restaurants and local businesses. Identify real competitor places. Return only valid JSON.",
+                        model="gpt-5.1",
+                        provider="openai",
+                        max_tokens=600,
+                        temperature=0.3,
+                    )
+                except Exception as e:
+                    logger.warning(f"GPT-5.1 competitor discovery failed: {e}")
+                    response = None
             
+            # 2) Fallback to Claude Sonnet 4
+            if not response and "anthropic" in available:
+                try:
+                    response = await self.ai.generate_with_model(
+                        prompt=prompt,
+                        system_prompt="You are a local market expert with deep knowledge of businesses worldwide. For local businesses, you know real restaurants, hotels, and stores in specific cities. Identify real competitor companies. Return only valid JSON.",
+                        model="claude-sonnet-4-20250514",
+                        provider="anthropic",
+                        max_tokens=600,
+                        temperature=0.3,
+                    )
+                except Exception as e:
+                    logger.warning(f"Claude competitor discovery failed: {e}")
+                    response = None
+            
+            # 3) Final fallback to default provider chain
             if not response:
                 response = await self.ai.generate(
                     prompt=prompt,
                     system_prompt="You are a competitive analysis expert. Identify real competitor companies. Return only valid JSON.",
-                    max_tokens=500,
-                    temperature=0.4
+                    max_tokens=600,
+                    temperature=0.3,
                 )
             
             if response:
@@ -454,20 +477,36 @@ Return ONLY valid JSON array, no markdown."""
                 
                 ai_competitors = json.loads(cleaned)
                 
+                # Support both flat array and grouped structures if the model returns them
+                if isinstance(ai_competitors, dict):
+                    flat_list = []
+                    for value in ai_competitors.values():
+                        if isinstance(value, list):
+                            flat_list.extend(value)
+                    ai_competitors = flat_list
+                
                 for comp in ai_competitors:
-                    if comp.get("name") and comp["name"] not in known_competitors:
-                        comp_type = comp.get("type", "direct")
-                        reason = comp.get("reason", "AI detected competitor")
-                        if comp_type == "local":
-                            reason = f"🏠 Local: {reason}"
-                        elif comp_type == "international":
-                            reason = f"🌍 International: {reason}"
-                        
-                        competitors.append(CompetitorInfo(
-                            name=comp["name"],
-                            reason=reason,
-                            auto_detected=True
-                        ))
+                    name = comp.get("name")
+                    if not name or name in known_competitors:
+                        continue
+                    
+                    comp_type = comp.get("type", "direct")
+                    base_reason = comp.get("reason", "AI detected competitor")
+                    if comp_type == "local":
+                        reason = f"🏠 Local: {base_reason}"
+                    elif comp_type == "international":
+                        reason = f"🌍 International: {base_reason}"
+                    else:
+                        reason = base_reason
+                    
+                    website_url = comp.get("website_url") or comp.get("website") or None
+                    
+                    competitors.append(CompetitorInfo(
+                        name=name,
+                        reason=reason,
+                        website_url=website_url,
+                        auto_detected=True
+                    ))
                         
         except Exception as e:
             logger.error(f"Competitor detection failed: {e}")

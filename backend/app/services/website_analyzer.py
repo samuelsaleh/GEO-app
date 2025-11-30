@@ -213,7 +213,7 @@ Focus on what makes this specific brand unique, not generic category info."""
             response = await ai_service.generate_with_model(
                 prompt=prompt,
                 system_prompt="You are a brand analyst. Extract structured information from website content. Always respond with valid JSON only.",
-                model="gpt-4o-mini",
+                model="gpt-5.1-mini",
                 provider="openai",
                 max_tokens=800,
                 temperature=0.2
