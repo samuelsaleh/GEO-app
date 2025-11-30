@@ -240,6 +240,8 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
   const [email, setEmail] = useState('')
   const [industryInput, setIndustryInput] = useState('')
   const [subIndustryInput, setSubIndustryInput] = useState('')
+  const [scope, setScope] = useState<'global' | 'national' | 'local'>('global')
+  const [location, setLocation] = useState('')
   const [analyzing, setAnalyzing] = useState(false)
   const [analyzeError, setAnalyzeError] = useState<string | null>(null)
   const [profile, setProfile] = useState<BrandProfile | null>(null)
@@ -268,6 +270,11 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
       if (subIndustryInput) {
         industryHint += ` (Sub-industry: ${subIndustryInput})`
       }
+      
+      // Add scope context to help analysis
+      if (scope !== 'global' || location) {
+         industryHint += ` (Targeting: ${scope} market` + (location ? ` in ${location}` : '') + `)`
+      }
 
       const response = await fetch(`${apiUrl}/api/visibility/analyze-brand`, {
         method: 'POST',
@@ -281,11 +288,18 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
       })
       const data = await response.json()
       if (data.success && data.profile) {
-        setProfile(data.profile)
+        setProfile({
+            ...data.profile,
+            // Ensure location is passed through if user specified it
+            location: location ? { city: location } : data.profile.location
+        })
         // Set sub-industry if detected, otherwise empty
         setSubIndustry(data.profile.sub_industry || '')
         
-        const smartPrompts = generateSmartPrompts(data.profile)
+        const smartPrompts = generateSmartPrompts({
+            ...data.profile,
+            location: location ? { city: location } : data.profile.location
+        })
         setCategoryPrompts(smartPrompts)
         setStep('profile')
       } else {
@@ -753,6 +767,38 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
                       className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
+                       Scope
+                     </label>
+                     <div className="relative">
+                       <select 
+                         value={scope}
+                         onChange={(e) => setScope(e.target.value as any)}
+                         className={`w-full appearance-none ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'} bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-claude-500/20`}
+                       >
+                         <option value="global">Global</option>
+                         <option value="national">National</option>
+                         <option value="local">Local</option>
+                       </select>
+                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                     </div>
+                   </div>
+                   <div>
+                     <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
+                       {scope === 'global' ? 'Region (Optional)' : scope === 'national' ? 'Country' : 'City/Area'}
+                     </label>
+                     <input
+                       type="text"
+                       value={location}
+                       onChange={(e) => setLocation(e.target.value)}
+                       placeholder={scope === 'global' ? 'e.g. Europe' : scope === 'national' ? 'e.g. USA' : 'e.g. New York, NY'}
+                       className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
+                     />
+                   </div>
                 </div>
                 
                 <div>
