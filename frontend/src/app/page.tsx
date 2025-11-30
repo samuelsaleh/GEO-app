@@ -147,34 +147,30 @@ export default function Home() {
       </section>
 
       {/* Marquee Section */}
-      <div className="border-y border-ink/5 bg-white/30 backdrop-blur-sm py-12 overflow-hidden relative">
+      <div className="border-y border-ink/5 bg-white/80 backdrop-blur-md py-12 overflow-hidden relative z-20">
         <div className="max-w-7xl mx-auto px-4 text-center mb-8">
           <p className="text-sm font-bold text-ink-muted uppercase tracking-widest">Optimized for all major AI Engines</p>
         </div>
-        <div className="flex justify-center items-center gap-12 md:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+        <div className="flex justify-center items-center gap-12 md:gap-24">
            <div className="flex items-center gap-2">
-             <div className="w-8 h-8 relative">
+             <div className="w-16 h-16 relative">
                <Image src="/logos/chatgpt.png" alt="ChatGPT" fill className="object-contain" />
              </div>
-             <span className="text-xl font-bold text-ink font-display">ChatGPT</span>
            </div>
            <div className="flex items-center gap-2">
-             <div className="w-8 h-8 relative">
+             <div className="w-16 h-16 relative">
                <Image src="/logos/perplexity.png" alt="Perplexity" fill className="object-contain" />
              </div>
-             <span className="text-xl font-bold text-ink font-display">Perplexity</span>
            </div>
            <div className="flex items-center gap-2">
-             <div className="w-8 h-8 relative">
+             <div className="w-16 h-16 relative">
                <Image src="/logos/claude.png" alt="Claude" fill className="object-contain" />
              </div>
-             <span className="text-xl font-bold text-ink font-display">Claude</span>
            </div>
            <div className="flex items-center gap-2">
-             <div className="w-8 h-8 relative">
+             <div className="w-16 h-16 relative">
                <Image src="/logos/gemini.png" alt="Gemini" fill className="object-contain" />
              </div>
-             <span className="text-xl font-bold text-ink font-display">Gemini</span>
            </div>
         </div>
       </div>
