@@ -85,10 +85,7 @@ export default function Home() {
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'glass-nav py-3' : 'py-6 bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <Link href="/" className="font-display text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
-            <div className="w-8 h-8 bg-claude-500 rounded-lg flex items-center justify-center text-white">
-              <Sparkles className="w-4 h-4" fill="currentColor" />
-            </div>
-            dwight
+            Miageru (見上げる)
           </Link>
           
           <div className="hidden md:flex items-center gap-8">
@@ -129,7 +126,7 @@ export default function Home() {
 
           <p className="text-xl text-ink-light/80 mb-12 max-w-2xl mx-auto leading-relaxed animate-enter delay-200 text-balance">
             Millions now ask ChatGPT & Perplexity instead of Google. <br className="hidden md:block" />
-            Dwight analyzes your brand's visibility in AI answers and tells you exactly how to rank.
+            Miageru analyzes your brand's visibility in AI answers and tells you exactly how to rank.
           </p>
 
           <div className="mt-12 animate-enter delay-300 text-left">
@@ -151,24 +148,24 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 text-center mb-8">
           <p className="text-sm font-bold text-ink-muted uppercase tracking-widest">Optimized for all major AI Engines</p>
         </div>
-        <div className="flex justify-center items-center gap-12 md:gap-24">
+        <div className="flex justify-center items-center gap-12 md:gap-32 w-full max-w-6xl mx-auto px-4">
            <div className="flex items-center gap-2">
-             <div className="w-16 h-16 relative">
+             <div className="w-32 h-16 relative">
                <Image src="/logos/chatgpt.png" alt="ChatGPT" fill className="object-contain" />
              </div>
            </div>
            <div className="flex items-center gap-2">
-             <div className="w-16 h-16 relative">
+             <div className="w-32 h-16 relative">
                <Image src="/logos/perplexity.png" alt="Perplexity" fill className="object-contain" />
              </div>
            </div>
            <div className="flex items-center gap-2">
-             <div className="w-16 h-16 relative">
+             <div className="w-32 h-16 relative">
                <Image src="/logos/claude.png" alt="Claude" fill className="object-contain" />
              </div>
            </div>
            <div className="flex items-center gap-2">
-             <div className="w-16 h-16 relative">
+             <div className="w-32 h-16 relative">
                <Image src="/logos/gemini.png" alt="Gemini" fill className="object-contain" />
              </div>
            </div>
@@ -250,7 +247,7 @@ export default function Home() {
                     <Zap className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2 text-ink">Schema Generator</h3>
-                  <p className="text-ink-light max-w-md">
+                  <p className="text-ink-light max-w-sm relative z-20">
                     Generate perfect JSON-LD to help AI parse your content.
                   </p>
                 </div>
@@ -347,8 +344,8 @@ export default function Home() {
       <footer className="py-20 border-t border-ink/10 bg-white/40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
-            <div className="font-display text-2xl font-bold text-ink mb-2">dwight</div>
-            <p className="text-sm text-ink-muted">© 2025 Dwight. All rights reserved.</p>
+            <div className="font-display text-2xl font-bold text-ink mb-2">Miageru (見上げる)</div>
+            <p className="text-sm text-ink-muted">© 2025 Miageru. All rights reserved.</p>
           </div>
           <div className="flex gap-8 text-sm font-medium text-ink-light">
             <Link href="/" className="hover:text-claude-500 transition-colors">Home</Link>
