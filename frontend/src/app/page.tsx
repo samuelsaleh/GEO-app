@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Search, BarChart3, CheckCircle, ArrowRight, Sparkles, Zap, Target, TrendingUp, ArrowUpRight, Globe, Lock } from 'lucide-react'
 import Link from 'next/link'
-import { waitlistAPI } from '@/lib/api'
+import { AIVisibilityTool } from '@/components/AIVisibilityTool'
 
 // --- SVG Logos ---
 
@@ -173,13 +173,8 @@ export default function Home() {
             Dwight analyzes your brand's visibility in AI answers and tells you exactly how to rank.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-enter delay-300">
-            <Link href="/tools/ai-visibility" className="btn-primary w-full sm:w-auto text-lg px-8 py-4">
-              Run Free Audit
-            </Link>
-            <Link href="/pricing" className="btn-secondary w-full sm:w-auto text-lg px-8 py-4 flex items-center gap-2 justify-center group">
-              View Pricing <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+          <div className="mt-12 animate-enter delay-300 text-left">
+            <AIVisibilityTool hideHeader={true} />
           </div>
 
           {/* Floating UI Elements (Decorative) */}
