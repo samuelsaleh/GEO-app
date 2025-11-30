@@ -140,26 +140,31 @@ const getCategoriesForProfile = (profile: BrandProfile) => {
 
 const generateSmartPrompts = (profile: BrandProfile): Record<string, string[]> => {
   const { brand_name, location, products_services, industry, business_type, competitors } = profile
-  const city = location?.city || 'your area'
+  const city = location?.city && location.city.trim().length > 0 ? location.city : 'your area'
   const type = (business_type || industry || '').toLowerCase()
   const mainItem = products_services?.[0] || industry || 'service'
-  const competitorName = competitors?.[0]?.name || 'competitors'
+  const hasCompetitors = competitors && competitors.length > 0
+  const competitorName = hasCompetitors 
+    ? competitors.slice(0, 3).map(c => c.name).join(' vs ')
+    : 'competitors'
+
+  const locationPhrase = city === 'your area' ? 'nearby' : `in ${city}`
 
   // 🍽️ RESTAURANT PROMPTS
   if (type.includes('restaurant') || type.includes('cafe') || type.includes('food')) {
     return {
       vibe_check: [
-        `I'm looking for a nice ${type} in ${city} for a date night. Where should I go?`,
-        `What are the best atmosphere restaurants in ${city}?`,
+        `I'm looking for a nice ${type} ${locationPhrase} for a date night. Where should I go?`,
+        `What are the best atmosphere restaurants ${locationPhrase}?`,
         `Is ${brand_name} a good place for a special occasion?`
       ],
       best_dish: [
-        `Who has the best ${mainItem} in ${city}?`,
-        `Where can I get authentic ${mainItem} in ${city}?`,
+        `Who has the best ${mainItem} ${locationPhrase}?`,
+        `Where can I get authentic ${mainItem} ${locationPhrase}?`,
         `What is the signature dish at ${brand_name}?`
       ],
       consensus: [
-        `Is ${brand_name} in ${city} actually good? What do reviews say?`,
+        `Is ${brand_name} ${locationPhrase} actually good? What do reviews say?`,
         `Compare ${brand_name} vs ${competitorName}. Which has better food?`,
         `What are the most common complaints about ${brand_name}?`
       ]
@@ -170,12 +175,12 @@ const generateSmartPrompts = (profile: BrandProfile): Record<string, string[]> =
   if (type.includes('retail') || type.includes('shop') || type.includes('store')) {
     return {
       local_find: [
-        `Where can I buy ${mainItem} in ${city}?`,
+        `Where can I buy ${mainItem} ${locationPhrase}?`,
         `Best shops for ${mainItem} near me.`,
-        `Is there a ${brand_name} store in ${city}?`
+        `Is there a ${brand_name} store ${locationPhrase}?`
       ],
       quality_audit: [
-        `Who sells high-quality ${mainItem} in ${city}?`,
+        `Who sells high-quality ${mainItem} ${locationPhrase}?`,
         `Is ${brand_name} considered a good brand for ${mainItem}?`,
         `What is the quality of ${brand_name} products like?`
       ],
@@ -190,17 +195,17 @@ const generateSmartPrompts = (profile: BrandProfile): Record<string, string[]> =
   // 💼 SERVICE PROMPTS (Default)
   return {
     urgent_need: [
-      `I need a ${mainItem} in ${city} immediately. Who do you recommend?`,
-      `Who is the fastest ${mainItem} service in ${city}?`,
-      `Emergency ${mainItem} in ${city} reviews.`,
+      `I need a ${mainItem} ${locationPhrase} immediately. Who do you recommend?`,
+      `Who is the fastest ${mainItem} service ${locationPhrase}?`,
+      `Emergency ${mainItem} ${locationPhrase} reviews.`,
     ],
     trust_check: [
-      `Who is the most reliable ${mainItem} in ${city}?`,
+      `Who is the most reliable ${mainItem} ${locationPhrase}?`,
       `Is ${brand_name} a trustworthy company?`,
       `Does ${brand_name} have good reviews?`
     ],
     competitor_battle: [
-      `Compare ${brand_name} vs ${competitorName} in ${city}.`,
+      `Compare ${brand_name} vs ${competitorName} ${locationPhrase}.`,
       `Why should I choose ${brand_name} over ${competitorName}?`,
       `Who is better: ${brand_name} or ${competitorName}?`
     ]
@@ -466,7 +471,7 @@ export function AIVisibilityTool({ hideHeader = false }: { hideHeader?: boolean 
             prompt: prompt,
             brand: profile.brand_name,
             competitors: competitorNames,
-            models: ['gpt-5.1', 'claude-sonnet-4']
+            // models: ['gpt-5.1', 'claude-sonnet-4'] // Let backend use all available models
             })
           }).then(r => r.json())
         ))
@@ -576,6 +581,30 @@ export function AIVisibilityTool({ hideHeader = false }: { hideHeader?: boolean 
       recommendations.push('Maintain your strong visibility with regular updates')
     }
     return recommendations.slice(0, 5)
+  }
+
+  const getModelPerformance = () => {
+    const stats: Record<string, { name: string, icon: string, mentions: number, total: number }> = {}
+    
+    categoryResults.forEach(cat => {
+      cat.results.forEach(r => {
+        if (!stats[r.model_id]) {
+          stats[r.model_id] = { 
+            name: r.model_name, 
+            icon: r.icon, 
+            mentions: 0, 
+            total: 0 
+          }
+        }
+        stats[r.model_id].total += 1
+        if (r.brand_mentioned) stats[r.model_id].mentions += 1
+      })
+    })
+    
+    return Object.values(stats).map(s => ({
+      ...s,
+      score: s.total > 0 ? Math.round((s.mentions / s.total) * 100) : 0
+    })).sort((a, b) => b.score - a.score)
   }
 
   const getRanking = () => {
@@ -1012,6 +1041,26 @@ export function AIVisibilityTool({ hideHeader = false }: { hideHeader?: boolean 
                       </div>
                       <span className="font-bold text-ink w-12 text-right">{item.score}%</span>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 3.5 AI MODEL PERFORMANCE */}
+            <div className="glass-card p-8 rounded-[2rem]">
+              <div className="flex items-center gap-3 mb-6">
+                <Sparkles className="w-6 h-6 text-claude-500" />
+                <h3 className="text-xl font-bold text-ink">AI Model Performance</h3>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {getModelPerformance().map((model, i) => (
+                  <div key={i} className="p-4 bg-white/50 border border-white/60 rounded-xl text-center">
+                    <div className="text-2xl mb-2">{model.icon || '🤖'}</div>
+                    <div className="font-bold text-sm text-ink mb-1 truncate" title={model.name}>{model.name}</div>
+                    <div className={`text-lg font-bold ${model.score >= 50 ? 'text-green-600' : 'text-rose-600'}`}>
+                      {model.score}%
+                    </div>
+                    <div className="text-[10px] text-ink-muted uppercase tracking-wider">Visibility</div>
                   </div>
                 ))}
               </div>
