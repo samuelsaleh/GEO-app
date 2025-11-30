@@ -132,7 +132,8 @@ class VisibilityMonitor:
             response = await self.ai_service.generate(
                 prompt=prompt,
                 system_prompt="You are a helpful assistant providing recommendations and information. Be specific and mention relevant brands, products, or companies when appropriate.",
-                max_tokens=1000
+                max_tokens=1000,
+                web_search=True  # Enable live web search to simulate real user behavior
             )
             
             if not response:
@@ -462,11 +463,15 @@ class VisibilityMonitor:
             actual_model = model_mapping.get(model_id, model_id)
             
             # Use the AI service's generate method with specific provider
+            # Enable web search for providers that support it (Google, OpenAI) to simulate live lookups
+            use_web_search = provider in ["google", "openai"]
+            
             response = await self.ai_service.generate_with_model(
                 prompt=prompt,
                 system_prompt=system_prompt,
                 model=actual_model,
-                provider=provider
+                provider=provider,
+                web_search=use_web_search
             )
             return response
             

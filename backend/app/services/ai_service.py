@@ -280,16 +280,34 @@ class MultiProviderAI:
                 )
                 
             elif provider == "google":
-                genai = self.providers["google"]["client"]
-                model_obj = genai.GenerativeModel(model)
-                response = model_obj.generate_content(
-                    f"{system_prompt}\n\n{prompt}",
-                    generation_config=genai.types.GenerationConfig(
-                        max_output_tokens=max_tokens,
-                        temperature=temperature
+                client = self.providers["google"]["client"]
+                is_new_sdk = False
+                # Check global genai import and type
+                if genai and isinstance(client, genai.Client):
+                    is_new_sdk = True
+
+                if is_new_sdk:
+                    tools = [{"google_search": {}}] if web_search else None
+                    response = client.models.generate_content(
+                        model=model,
+                        contents=f"{system_prompt}\n\n{prompt}",
+                        config=genai.types.GenerateContentConfig(
+                            max_output_tokens=max_tokens,
+                            temperature=temperature,
+                            tools=tools
+                        )
                     )
-                )
-                return response.text
+                    return response.text
+                else:
+                    model_obj = client.GenerativeModel(model)
+                    response = model_obj.generate_content(
+                        f"{system_prompt}\n\n{prompt}",
+                        generation_config={
+                            "max_output_tokens": max_tokens,
+                            "temperature": temperature
+                        }
+                    )
+                    return response.text
 
             elif provider == "perplexity":
                 client = self.providers["perplexity"]["client"]
