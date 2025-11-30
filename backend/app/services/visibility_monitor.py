@@ -671,10 +671,11 @@ class VisibilityMonitor:
                     for i, q in enumerate(questions):
                         prompt_text = q.get("query", "")
                         
-                        # Add Reddit to every 3rd prompt or if category is 'social' or 'reviews'
-                        if i % 3 == 0 or q.get("intent") in ["reviews", "social_proof"]:
+                        # Ensure last prompt is Reddit/social specific
+                        if i == len(questions) - 1:
                             if "reddit" not in prompt_text.lower():
-                                prompt_text += " Check Reddit threads for user opinions."
+                                prompt_text = f"What are people on Reddit saying about {brand} for {industry}?"
+                            q["intent"] = "reddit_sentiment"
                         
                         mapped_prompts.append({
                             "prompt": prompt_text,
@@ -701,8 +702,9 @@ class VisibilityMonitor:
         Generate template-based prompts as fallback.
         
         6-Category Framework:
-        - 5 categories are UNBIASED (test organic visibility)
+        - 4 categories are UNBIASED (test organic visibility)
         - 1 category (Comparison) INCLUDES all brands (test positioning)
+        - 1 category (Reddit) checks social sentiment specifically
         """
         
         # Build competitor list (without brand)
@@ -716,35 +718,35 @@ class VisibilityMonitor:
         templates = {
             "jewelry": [
                 {"prompt": "What are the best luxury jewelry brands?", "category": "recommendation"},
-                {"prompt": "What are the top jewelry brands for engagement rings in 2024? Check Reddit threads too.", "category": "best_of"},
+                {"prompt": "What are the top jewelry brands for engagement rings in 2024?", "category": "best_of"},
                 {"prompt": f"Compare {all_brands}. What are the pros and cons of each jewelry brand?", "category": "comparison"},
                 {"prompt": f"I like {comp_list}. Are there other luxury jewelry brands I should consider?", "category": "alternatives"},
-                {"prompt": "I want to buy a quality engagement ring. What brands should I look at? Include Reddit discussions.", "category": "problem_solution"},
-                {"prompt": "Which jewelry brands have the best reputation for quality and craftsmanship?", "category": "reputation"},
+                {"prompt": "I want to buy a quality engagement ring. What brands should I look at?", "category": "problem_solution"},
+                {"prompt": f"What is the general sentiment on Reddit about {brand} jewelry?", "category": "reddit_sentiment"},
             ],
             "saas": [
-                {"prompt": f"What {industry} software do you recommend for small businesses? Look at Reddit for real user feedback.", "category": "recommendation"},
+                {"prompt": f"What {industry} software do you recommend for small businesses?", "category": "recommendation"},
                 {"prompt": f"What is the best {industry} solution in {year}?", "category": "best_of"},
                 {"prompt": f"Compare {all_brands}. Which {industry} tool is best and why?", "category": "comparison"},
                 {"prompt": f"I'm considering {comp_list}. Are there better {industry} alternatives?", "category": "alternatives"},
-                {"prompt": f"I need {industry} for my team. What are my options? Search Reddit for advice.", "category": "problem_solution"},
-                {"prompt": f"Which {industry} tools have the best reputation for reliability?", "category": "reputation"},
+                {"prompt": f"I need {industry} for my team. What are my options?", "category": "problem_solution"},
+                {"prompt": f"Search Reddit for reviews of {brand} {industry} software. Is it recommended?", "category": "reddit_sentiment"},
             ],
             "ecommerce": [
                 {"prompt": f"What are the best online stores for {industry}?", "category": "recommendation"},
-                {"prompt": f"What are the top {industry} sites in {year}? Check Reddit for reviews.", "category": "best_of"},
+                {"prompt": f"What are the top {industry} sites in {year}?", "category": "best_of"},
                 {"prompt": f"Compare {all_brands}. Which offers the best value?", "category": "comparison"},
                 {"prompt": f"I know about {comp_list}. Are there other {industry} sites I should check?", "category": "alternatives"},
-                {"prompt": f"I want to buy {industry} products online. Where should I shop? Include Reddit recommendations.", "category": "problem_solution"},
-                {"prompt": f"Which {industry} stores are most trustworthy?", "category": "reputation"},
+                {"prompt": f"I want to buy {industry} products online. Where should I shop?", "category": "problem_solution"},
+                {"prompt": f"What are Reddit users saying about {brand}? Is it a scam or legit?", "category": "reddit_sentiment"},
             ],
             "default": [
-                {"prompt": f"What {industry} brands do you recommend? Check Reddit threads.", "category": "recommendation"},
+                {"prompt": f"What {industry} brands do you recommend?", "category": "recommendation"},
                 {"prompt": f"What is the best {industry} option in the market right now?", "category": "best_of"},
                 {"prompt": f"Compare {all_brands}. What are the key differences?", "category": "comparison"},
                 {"prompt": f"I'm looking at {comp_list}. Are there better alternatives?", "category": "alternatives"},
-                {"prompt": f"I'm looking for {industry}. What are my best options? Look up recent Reddit discussions.", "category": "problem_solution"},
-                {"prompt": f"Which {industry} brands have the best reputation?", "category": "reputation"},
+                {"prompt": f"I'm looking for {industry}. What are my best options?", "category": "problem_solution"},
+                {"prompt": f"Check Reddit for reviews of {brand}. What is the consensus?", "category": "reddit_sentiment"},
             ]
         }
         
