@@ -823,7 +823,7 @@ export default function ScorePage() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 py-8 mt-12">
         <div className="max-w-5xl mx-auto px-4 text-center text-slate-500 text-sm">
-          <p>© 2025 Dwight. Free AI Visibility Tools for Everyone.</p>
+          <p>© 2025 Miageru. Free AI Visibility Tools for Everyone.</p>
         </div>
       </footer>
     </div>

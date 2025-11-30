@@ -32,9 +32,9 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="pt-24 pb-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="font-display text-5xl md:text-6xl font-light mb-8 text-ink-900 tracking-wide">About Dwight</h1>
+          <h1 className="font-display text-5xl md:text-6xl font-light mb-8 text-ink-900 tracking-wide">About Miageru</h1>
           <p className="text-lg text-ink-500 leading-relaxed font-light tracking-wide">
-            We built Dwight because we noticed something: businesses spend millions on SEO, 
+            We built Miageru because we noticed something: businesses spend millions on SEO, 
             but have zero visibility into how AI assistants describe their brand. That's a problem.
           </p>
         </div>
@@ -163,7 +163,7 @@ export default function AboutPage() {
             </div>
             <p className="mt-12 text-center text-ink-400 max-w-3xl mx-auto font-light leading-relaxed">
               The way people discover brands is changing faster than businesses can adapt. 
-              We built Dwight to help you keep up.
+              We built Miageru to help you keep up.
             </p>
           </div>
         </div>

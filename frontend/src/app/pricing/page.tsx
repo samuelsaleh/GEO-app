@@ -244,7 +244,7 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
             <div className="font-display text-2xl font-bold text-ink mb-2">dwight</div>
-            <p className="text-sm text-ink-muted">© 2025 Dwight. All rights reserved.</p>
+            <p className="text-sm text-ink-muted">© 2025 Miageru. All rights reserved.</p>
           </div>
           <div className="flex gap-8 text-sm font-medium text-ink-light">
             <Link href="/" className="hover:text-claude-500 transition-colors">Home</Link>
