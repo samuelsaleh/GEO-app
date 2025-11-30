@@ -80,7 +80,7 @@ async def get_available_models():
     return {
         "models": AI_MODELS,
         "total": len(AI_MODELS),
-        "providers": ["openai", "anthropic", "google"]
+        "providers": ["openai", "anthropic", "google", "perplexity"]
     }
 
 
@@ -111,11 +111,16 @@ async def get_api_status():
             "configured": "google" in available,
             "models": ["Gemini 2.0 Flash", "Gemini 1.5 Flash"],
             "get_key_url": "https://makersuite.google.com/app/apikey"
+        },
+        "perplexity": {
+            "configured": "perplexity" in available,
+            "models": ["Sonar", "Sonar Pro"],
+            "get_key_url": "https://www.perplexity.ai/settings/api"
         }
     }
     
     configured_count = len(available)
-    total_providers = 3
+    total_providers = 4
     
     return {
         "status": "ready" if configured_count > 0 else "no_providers",

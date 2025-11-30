@@ -83,6 +83,7 @@ AI_MODELS = [
     {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "provider": "google", "icon": "💎"},
     {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "provider": "google", "icon": "✨"},
     {"id": "claude-3.5-sonnet", "name": "Claude 3.5 Sonnet", "provider": "anthropic", "icon": "🎭"},
+    {"id": "sonar", "name": "Perplexity Sonar", "provider": "perplexity", "icon": "🔍"},
 ]
 
 # Model sets for different tiers
@@ -138,7 +139,7 @@ class VisibilityMonitor:
                 return self._mock_result(prompt, brand, competitors)
             
             # Analyze the response
-            return self._analyze_response(
+            return await self._analyze_response(
                 prompt=prompt,
                 response=response,
                 brand=brand,
@@ -182,7 +183,7 @@ class VisibilityMonitor:
         
         return False
     
-    def _analyze_response(
+    async def _analyze_response(
         self,
         prompt: str,
         response: str,
@@ -192,6 +193,33 @@ class VisibilityMonitor:
     ) -> PromptResult:
         """Analyze AI response for brand mentions, position, sentiment."""
         
+        # 1. Try AI-based analysis (More accurate)
+        if self.ai_service:
+            try:
+                analysis = await self.ai_service.analyze_search_result(
+                    query=prompt,
+                    response_text=response,
+                    brand=brand,
+                    competitors=competitors
+                )
+                
+                # Extract citations/URLs (regex is still best for this)
+                citations = re.findall(r'https?://[^\s<>"{}|\\^`\[\]]+', response)
+
+                return PromptResult(
+                    prompt=prompt,
+                    model=model,
+                    response=response,
+                    brand_mentioned=analysis.get("mentioned", False),
+                    position=analysis.get("position"),
+                    sentiment=analysis.get("sentiment", "neutral"),
+                    competitors_mentioned=analysis.get("competitors_found", []),
+                    citations=citations
+                )
+            except Exception as e:
+                logger.warning(f"AI analysis failed, falling back to regex: {e}")
+        
+        # 2. Fallback to Regex/Fuzzy Matching (Fast, free, but less smart)
         response_lower = response.lower()
         brand_lower = brand.lower()
         
@@ -245,6 +273,7 @@ class VisibilityMonitor:
             competitors_mentioned=competitors_mentioned,
             citations=citations
         )
+
     
     def _analyze_sentiment(self, response: str, brand: str) -> str:
         """Simple sentiment analysis for brand mentions."""
@@ -332,7 +361,7 @@ class VisibilityMonitor:
                 
                 if response:
                     # Analyze the response
-                    analysis = self._analyze_response(
+                    analysis = await self._analyze_response(
                         prompt=prompt,
                         response=response,
                         brand=brand,
@@ -427,6 +456,7 @@ class VisibilityMonitor:
                 "claude-3.5-sonnet": "claude-3-5-sonnet-20241022",
                 "gemini-2.0-flash": "gemini-2.0-flash",
                 "gemini-1.5-flash": "gemini-1.5-flash",
+                "sonar": "sonar",
             }
             
             actual_model = model_mapping.get(model_id, model_id)
@@ -620,47 +650,29 @@ class VisibilityMonitor:
         # First try to generate with AI
         if self.ai_service:
             try:
-                prompt = f"""Generate {count} search prompts to test AI visibility for a brand in the "{industry}" industry.
-
-Brand being tested: {brand}
-Competitors: {comp_list}
-
-Generate prompts in these 6 categories:
-
-1. RECOMMENDATION (NO brand mention) - "What {industry} do you recommend?"
-2. BEST OF (NO brand mention) - "What is the best {industry} in 2024?"
-3. COMPARISON (INCLUDE ALL brands: {all_brands}) - "Compare {all_brands}. Which is best?"
-4. ALTERNATIVES (Competitors only) - "I'm considering {comp_list}. Are there better alternatives?"
-5. PROBLEM/SOLUTION (NO brand mention) - "I need {industry}. What are my options?"
-6. REPUTATION (NO brand mention) - "Which {industry} brands have the best reputation?"
-
-IMPORTANT:
-- Only the COMPARISON category should mention the brand "{brand}"
-- All other categories should be neutral to test organic visibility
-- Make prompts sound like real user queries
-
-Return as JSON array with objects containing "prompt" and "category" fields.
-Example: [{{"prompt": "What are the best jewelry brands?", "category": "recommendation"}}]"""
-
-                response = await self.ai_service.generate(
-                    prompt=prompt,
-                    system_prompt="You are a marketing expert. Generate realistic search prompts following the 6-category framework exactly. Return only valid JSON array.",
-                    max_tokens=800
+                # Use the new specialized method in ai_service
+                questions = await self.ai_service.generate_search_questions(
+                    brand=brand,
+                    industry=industry,
+                    competitors=competitors,
+                    count=count
                 )
                 
-                if response:
-                    import json
-                    import re
-                    # Clean and parse JSON
-                    cleaned = response.strip()
-                    if cleaned.startswith("```"):
-                        cleaned = re.sub(r'^```(?:json)?\n?', '', cleaned)
-                        cleaned = re.sub(r'\n?```$', '', cleaned)
-                    
-                    prompts = json.loads(cleaned)
-                    return prompts[:count]
+                if questions:
+                    # Map the new format to the expected format
+                    # ai_service returns: [{"query": "...", "intent": "...", "rationale": "..."}]
+                    # we need: [{"prompt": "...", "category": "..."}]
+                    return [
+                        {
+                            "prompt": q.get("query", ""),
+                            "category": q.get("intent", "general")
+                        }
+                        for q in questions
+                    ]
             except Exception as e:
                 logger.warning(f"AI prompt generation failed: {e}")
+                # Fallthrough to template based
+
         
         # Fallback to template-based prompts
         return self._get_template_prompts(brand, competitors, industry, count)

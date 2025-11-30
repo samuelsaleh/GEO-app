@@ -5,12 +5,10 @@ import {
   ArrowLeft, ArrowRight, Loader, CheckCircle, XCircle, 
   Sparkles, TrendingUp, Plus, Trash2, Eye, Globe, 
   Building2, Target, Edit2, Check, RefreshCw, Lock,
-  Lightbulb, AlertTriangle, Award, BarChart3, Mail, Users
+  Lightbulb, AlertTriangle, Award, BarChart3, Mail, Users,
+  ChevronDown, ChevronUp, ExternalLink, MessageSquare
 } from 'lucide-react'
 import Link from 'next/link'
-
-// ... existing interfaces ...
-// (I'll keep the logic identical but wrap the UI in the new design system)
 
 interface CompetitorInfo {
   name: string
@@ -83,144 +81,138 @@ interface CompetitorScore {
   grade: string
 }
 
-const FIXED_CATEGORIES = [
-  {
-    id: 'recommendation',
-    label: '🎯 Recommendation',
-    shortLabel: 'Recommend',
-    description: 'When users ask AI for advice',
-    geoStrategy: 'Strategy #1: Turn Questions Into Content',
-    geoTip: 'Create FAQ content that mirrors real user questions',
-  },
-  {
-    id: 'best_of',
-    label: '🏆 Best Of',
-    shortLabel: 'Best Of',
-    description: 'When users search for the best option',
-    geoStrategy: 'Strategy #3: Topical Authority',
-    geoTip: 'Build content clusters to establish expertise',
-  },
-  {
-    id: 'comparison',
-    label: '⚖️ Comparison',
-    shortLabel: 'Compare',
-    description: 'Direct comparison with competitors (includes your brand)',
-    geoStrategy: 'Strategy #2: AI-Friendly Structure',
-    geoTip: 'Add comparison tables and structured data',
-  },
-  {
-    id: 'alternatives',
-    label: '🔄 Alternatives',
-    shortLabel: 'Alternatives',
-    description: 'Does AI suggest you when comparing competitors?',
-    geoStrategy: 'Strategy #4: Brand Mentions AI Trusts',
-    geoTip: 'Get cited on authoritative industry sites',
-  },
-  {
-    id: 'problem_solution',
-    label: '🔧 Problem/Solution',
-    shortLabel: 'Solution',
-    description: 'When users need to solve a problem',
-    geoStrategy: 'Strategy #1: Turn Questions Into Content',
-    geoTip: 'Publish how-to guides with step-by-step solutions',
-  },
-  {
-    id: 'reputation',
-    label: '⭐ Reputation',
-    shortLabel: 'Reputation',
-    description: 'When users check reviews/quality',
-    geoStrategy: 'Strategy #4: Brand Mentions AI Trusts',
-    geoTip: 'Build reviews across trusted platforms',
-  }
-]
+const getCategoriesForProfile = (profile: BrandProfile) => {
+  const { industry, business_type } = profile
+  const type = (business_type || industry || '').toLowerCase()
 
-const generateSmartPrompts = (profile: BrandProfile): Record<string, string> => {
-  const { 
-    brand_name,
-    industry, 
-    business_type,
-    is_local_business, 
-    location, 
-    segment, 
-    cuisine_or_style,
-    products_services,
-    target_audience,
-    competitors
-  } = profile
-  
-  const city = location?.city || ''
-  const country = location?.country || ''
-  const style = cuisine_or_style || segment || industry
-  const mainProduct = products_services?.[0] || industry
-  const year = new Date().getFullYear()
-  
-  const competitorNames = competitors?.slice(0, 3).map(c => c.name).filter(Boolean) || []
-  const competitorList = competitorNames.length > 0 
-    ? competitorNames.join(', ') 
-    : `leading ${industry || 'options'}`
-  
-  const allBrands = brand_name 
-    ? [brand_name, ...competitorNames].slice(0, 4).join(', ')
-    : competitorList
-  
-  if (is_local_business && city) {
-    const localType = business_type || industry
+  // 🍽️ RESTAURANT / HOSPITALITY
+  if (type.includes('restaurant') || type.includes('cafe') || type.includes('food') || type.includes('bar')) {
+    return [
+      {
+        id: 'vibe_check',
+        label: '🍷 Vibe & Occasion',
+        description: 'Do you appear for "best atmosphere" or date-night searches?',
+      },
+      {
+        id: 'best_dish',
+        label: '🍝 Signature Food',
+        description: 'Are you the top recommendation for your main cuisine?',
+      },
+      {
+        id: 'consensus',
+        label: '🗣️ Public Consensus',
+        description: 'What do AI models say about your food quality vs competitors?',
+      }
+    ]
+  }
+
+  // 🛍️ RETAIL / SHOPPING
+  if (type.includes('retail') || type.includes('shop') || type.includes('store') || type.includes('boutique')) {
+    return [
+      {
+        id: 'local_find',
+        label: '🛍️ Local Discovery',
+        description: 'Do shoppers find you when looking for your product category nearby?',
+      },
+      {
+        id: 'quality_audit',
+        label: '✨ Quality Check',
+        description: 'Does AI associate your brand with high quality/luxury?',
+      },
+      {
+        id: 'price_value',
+        label: '🏷️ Price Perception',
+        description: 'How does AI describe your pricing? (Expensive vs Value)',
+      }
+    ]
+  }
+
+  // 💼 SERVICES / DEFAULT (SMBs)
+  return [
+    {
+      id: 'urgent_need',
+      label: '🚨 Urgent Need',
+      description: 'Do you show up when a customer needs help RIGHT NOW?',
+    },
+    {
+      id: 'trust_check',
+      label: '🛡️ Trust & Reliability',
+      description: 'Does AI call you "reliable" or "highly rated"?',
+    },
+    {
+      id: 'competitor_battle',
+      label: '🥊 The Comparison',
+      description: 'If a user asks "Brand A or Brand B", who wins?',
+    }
+  ]
+}
+
+const generateSmartPrompts = (profile: BrandProfile): Record<string, string[]> => {
+  const { brand_name, location, products_services, industry, business_type, competitors } = profile
+  const city = location?.city || 'your area'
+  const type = (business_type || industry || '').toLowerCase()
+  const mainItem = products_services?.[0] || industry || 'service'
+  const competitorName = competitors?.[0]?.name || 'competitors'
+
+  // 🍽️ RESTAURANT PROMPTS
+  if (type.includes('restaurant') || type.includes('cafe') || type.includes('food')) {
     return {
-      recommendation: `What ${style} ${localType} do you recommend in ${city}?`,
-      best_of: `What is the best ${style} ${localType} in ${city}${country ? `, ${country}` : ''}?`,
-      comparison: `Compare ${allBrands} for ${style} in ${city}. What are the pros and cons of each?`,
-      alternatives: `I've heard of ${competitorList} in ${city}. Are there other ${style} ${localType}s I should consider?`,
-      problem_solution: `I'm visiting ${city} and want a great ${style} experience. Where should I go?`,
-      reputation: `Which ${style} ${localType}s in ${city} have the best reputation and reviews?`
+      vibe_check: [
+        `I'm looking for a nice ${type} in ${city} for a date night. Where should I go?`,
+        `What are the best atmosphere restaurants in ${city}?`,
+        `Is ${brand_name} a good place for a special occasion?`
+      ],
+      best_dish: [
+        `Who has the best ${mainItem} in ${city}?`,
+        `Where can I get authentic ${mainItem} in ${city}?`,
+        `What is the signature dish at ${brand_name}?`
+      ],
+      consensus: [
+        `Is ${brand_name} in ${city} actually good? What do reviews say?`,
+        `Compare ${brand_name} vs ${competitorName}. Which has better food?`,
+        `What are the most common complaints about ${brand_name}?`
+      ]
     }
   }
-  
-  if (industry?.toLowerCase().includes('software') || 
-      industry?.toLowerCase().includes('saas') ||
-      industry?.toLowerCase().includes('technology')) {
+
+  // 🛍️ RETAIL PROMPTS
+  if (type.includes('retail') || type.includes('shop') || type.includes('store')) {
     return {
-      recommendation: `What ${mainProduct} do you recommend for ${target_audience || 'businesses'}?`,
-      best_of: `What is the best ${mainProduct} solution in ${year}?`,
-      comparison: `Compare ${allBrands}. Which ${mainProduct} tool is best and why?`,
-      alternatives: `I'm considering ${competitorList}. Are there better ${mainProduct} alternatives I should know about?`,
-      problem_solution: `I need ${mainProduct} for my team. What are the top options and what should I consider?`,
-      reputation: `Which ${mainProduct} tools have the best reputation for reliability and support?`
+      local_find: [
+        `Where can I buy ${mainItem} in ${city}?`,
+        `Best shops for ${mainItem} near me.`,
+        `Is there a ${brand_name} store in ${city}?`
+      ],
+      quality_audit: [
+        `Who sells high-quality ${mainItem} in ${city}?`,
+        `Is ${brand_name} considered a good brand for ${mainItem}?`,
+        `What is the quality of ${brand_name} products like?`
+      ],
+      price_value: [
+        `Is ${brand_name} expensive?`,
+        `Compare prices of ${brand_name} vs ${competitorName}.`,
+        `Is ${brand_name} worth the money?`
+      ]
     }
   }
-  
-  if (industry?.toLowerCase().includes('retail') || 
-      industry?.toLowerCase().includes('commerce') ||
-      industry?.toLowerCase().includes('fashion')) {
-    return {
-      recommendation: `What ${style} brands do you recommend for ${target_audience || 'quality products'}?`,
-      best_of: `What are the best ${mainProduct} brands to buy from in ${year}?`,
-      comparison: `Compare ${allBrands}. Which offers the best value for ${mainProduct}?`,
-      alternatives: `I like ${competitorList}. What similar ${style} brands should I also check out?`,
-      problem_solution: `I'm looking for high-quality ${mainProduct}. What brands should I consider?`,
-      reputation: `Which ${style} brands have the best reputation for quality and customer service?`
-    }
-  }
-  
-  if (industry?.toLowerCase().includes('service') || 
-      industry?.toLowerCase().includes('consulting') ||
-      industry?.toLowerCase().includes('agency')) {
-    return {
-      recommendation: `What ${mainProduct} provider do you recommend for ${target_audience || 'businesses'}?`,
-      best_of: `Who are the best ${mainProduct} companies to work with in ${year}?`,
-      comparison: `Compare ${allBrands}. What are the pros and cons of each ${mainProduct} provider?`,
-      alternatives: `I know about ${competitorList}. Are there other ${mainProduct} providers worth considering?`,
-      problem_solution: `I need help with ${mainProduct}. Which companies deliver the best results?`,
-      reputation: `Which ${mainProduct} providers have the strongest reputation and client reviews?`
-    }
-  }
-  
+
+  // 💼 SERVICE PROMPTS (Default)
   return {
-    recommendation: `What ${segment || industry || 'options'} do you recommend?`,
-    best_of: `What is the best ${mainProduct} in the market right now?`,
-    comparison: `Compare ${allBrands}. What are the key differences and which is best?`,
-    alternatives: `I'm looking at ${competitorList}. Are there better alternatives I should consider?`,
-    problem_solution: `I'm looking for ${mainProduct}. What are my best options and what should I consider?`,
-    reputation: `Which ${industry || mainProduct} brands have the best reputation?`
+    urgent_need: [
+      `I need a ${mainItem} in ${city} immediately. Who do you recommend?`,
+      `Who is the fastest ${mainItem} service in ${city}?`,
+      `Emergency ${mainItem} in ${city} reviews.`,
+    ],
+    trust_check: [
+      `Who is the most reliable ${mainItem} in ${city}?`,
+      `Is ${brand_name} a trustworthy company?`,
+      `Does ${brand_name} have good reviews?`
+    ],
+    competitor_battle: [
+      `Compare ${brand_name} vs ${competitorName} in ${city}.`,
+      `Why should I choose ${brand_name} over ${competitorName}?`,
+      `Who is better: ${brand_name} or ${competitorName}?`
+    ]
   }
 }
 
@@ -259,7 +251,7 @@ export default function AIVisibilityTool() {
   const [profile, setProfile] = useState<BrandProfile | null>(null)
   const [editingIndustry, setEditingIndustry] = useState(false)
   const [tempIndustry, setTempIndustry] = useState('')
-  const [categoryPrompts, setCategoryPrompts] = useState<Record<string, string>>({})
+  const [categoryPrompts, setCategoryPrompts] = useState<Record<string, string[]>>({})
   const [testing, setTesting] = useState(false)
   const [testProgress, setTestProgress] = useState({ current: 0, total: 5, phase: 'user' as 'user' | 'competitors' })
   const [categoryResults, setCategoryResults] = useState<CategoryResult[]>([])
@@ -267,9 +259,6 @@ export default function AIVisibilityTool() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
   const [sendingEmail, setSendingEmail] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
-
-  // ... Existing API methods (analyzeBrand, runTests, etc.) ...
-  // I'll inline them briefly to keep the file complete but focus on the UI update
 
   const analyzeBrand = async () => {
     if (!brandName || !websiteUrl) return
@@ -342,31 +331,50 @@ export default function AIVisibilityTool() {
     }
   }
 
+  const calculateWeightedScore = (result: ModelResult): number => {
+    if (!result.brand_mentioned) return 0
+    
+    let score = 50 // Base score for showing up
+    
+    // Position bonus
+    if (result.position === 1) score += 40
+    else if (result.position && result.position <= 3) score += 25
+    else if (result.position && result.position <= 5) score += 15
+    else score += 5
+    
+    // Sentiment adjustment
+    if (result.sentiment === 'positive') score += 10
+    if (result.sentiment === 'negative') score -= 20
+    
+    return Math.min(Math.max(score, 0), 100)
+  }
+
   const runTests = async () => {
     if (!profile) return
     setTesting(true)
-    setTestProgress({ current: 0, total: 5, phase: 'user' })
     setCategoryResults([])
     setCompetitorScores([])
     setStep('testing')
     
+    const categories = getCategoriesForProfile(profile)
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
     const maxCompetitors = 5 
     const competitorNames = profile.competitors.slice(0, maxCompetitors).map(c => c.name)
-    const results: CategoryResult[] = []
     
     const compScoreTracking: Record<string, { scores: number[], name: string }> = {}
     competitorNames.forEach(name => {
       compScoreTracking[name] = { scores: [], name }
     })
     
-    for (let i = 0; i < FIXED_CATEGORIES.length; i++) {
-      const category = FIXED_CATEGORIES[i]
-      const prompt = categoryPrompts[category.id] || ''
-      setTestProgress({ current: i + 1, total: 5, phase: 'user' })
+    for (let i = 0; i < categories.length; i++) {
+      const cat = categories[i]
+      const prompts = categoryPrompts[cat.id] || []
+      setTestProgress({ current: i + 1, total: categories.length, phase: 'user' })
       
       try {
-        const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
+        // Run all prompts for this category in parallel
+        const promptResults = await Promise.all(prompts.map(prompt => 
+          fetch(`${apiUrl}/api/visibility/test-multi-model`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -374,64 +382,60 @@ export default function AIVisibilityTool() {
             brand: profile.brand_name,
             competitors: competitorNames,
             models: ['gpt-5.1', 'claude-sonnet-4']
+            })
+          }).then(r => r.json())
+        ))
+        
+        // Calculate average weighted score for this category
+        let totalCategoryScore = 0
+        let totalChecks = 0
+        
+        promptResults.forEach(pr => {
+          pr.results.forEach((r: ModelResult) => {
+            totalCategoryScore += calculateWeightedScore(r)
+            totalChecks++
           })
         })
         
-        const data: MultiModelResponse = await response.json()
-        const score = Math.round(data.mention_rate)
-        const status = score >= 70 ? 'strong' : score >= 40 ? 'moderate' : 'weak'
-        const insight = generateCategoryInsight(category.id, score, profile.brand_name)
+        const avgScore = totalChecks > 0 ? Math.round(totalCategoryScore / totalChecks) : 0
+        const status = avgScore >= 70 ? 'strong' : avgScore >= 40 ? 'moderate' : 'weak'
+        const insight = generateCategoryInsight(cat.id, avgScore, profile.brand_name)
         
+        // Track competitor mentions across all prompts in this category
         competitorNames.forEach(compName => {
-          const compMentioned = data.results.filter(r => 
+          let compTotalScore = 0
+          promptResults.forEach(data => {
+            const compMentioned = data.results.filter((r: ModelResult) => 
             r.full_response.toLowerCase().includes(compName.toLowerCase())
           ).length
-          const compScore = Math.round((compMentioned / data.results.length) * 100)
-          compScoreTracking[compName].scores.push(compScore)
+            compTotalScore += (compMentioned / data.results.length) * 100
+          })
+          const compAvgScore = Math.round(compTotalScore / promptResults.length)
+          compScoreTracking[compName].scores.push(compAvgScore)
         })
         
-        results.push({
-          category: category.id,
-          categoryLabel: category.label,
-          prompt: prompt,
-          score: score,
-          results: data.results,
+        // Use the results from the first prompt for display details, but score is averaged
+        // In a real app, we might want to show all prompt results nested
+        setCategoryResults(prev => [...prev, {
+          category: cat.id,
+          categoryLabel: cat.label,
+          prompt: prompts[0], // Main prompt
+          score: avgScore,
+          results: promptResults[0].results, // Showing first prompt's results for now
           insight: insight,
           status: status
-        })
-        setCategoryResults([...results])
+        }])
+        
       } catch (error) {
         console.error('Error testing category:', error)
       }
     }
     
-    setTestProgress({ current: 0, total: competitorNames.length, phase: 'competitors' })
-    
-    for (let c = 0; c < competitorNames.length; c++) {
-      const compName = competitorNames[c]
-      setTestProgress({ current: c + 1, total: competitorNames.length, phase: 'competitors' })
-      try {
-        const response = await fetch(`${apiUrl}/api/visibility/test-multi-model`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: `What ${profile.industry || 'product'} do you recommend?`,
-            brand: compName,
-            competitors: [profile.brand_name],
-            models: ['gpt-5.1', 'claude-sonnet-4']
-          })
-        })
-        const data: MultiModelResponse = await response.json()
-        compScoreTracking[compName].scores[0] = Math.round(data.mention_rate)
-      } catch (error) {
-        console.error(`Error testing competitor ${compName}:`, error)
-      }
-    }
-    
+    // Calculate final competitor scores
     const finalCompScores: CompetitorScore[] = competitorNames.map(name => {
       const scores = compScoreTracking[name].scores
       const categoryScores: Record<string, number> = {}
-      FIXED_CATEGORIES.forEach((cat, i) => {
+      categories.forEach((cat, i) => {
         categoryScores[cat.id] = scores[i] || 0
       })
       const overall = scores.length > 0 
@@ -452,7 +456,6 @@ export default function AIVisibilityTool() {
   }
 
   const generateCategoryInsight = (category: string, score: number, brandName: string): string => {
-    // Simple logic for now
     return score >= 70 
       ? `${brandName} is performing strongly in ${category}.`
       : `${brandName} has low visibility in ${category}.`
@@ -480,14 +483,17 @@ export default function AIVisibilityTool() {
     const weakCategories = getWeaknesses()
     
     weakCategories.forEach(cat => {
-      if (cat.category === 'recommendation') recommendations.push('Create expert guides to boost recommendations')
-      if (cat.category === 'comparison') recommendations.push('Create detailed vs-competitor comparison pages')
+      if (cat.category === 'vibe_check') recommendations.push('Update Google description with atmosphere keywords (romantic, lively)')
+      if (cat.category === 'best_dish') recommendations.push('Get 5 reviews mentioning your signature dish this week')
+      if (cat.category === 'local_find') recommendations.push('Ensure your NAP (Name, Address, Phone) is consistent everywhere')
+      if (cat.category === 'urgent_need') recommendations.push('Add "Emergency" or "Same Day" to your service pages')
+      if (cat.category === 'competitor_battle') recommendations.push('Create a "Us vs Them" comparison page on your site')
     })
     
     if (recommendations.length === 0) {
       recommendations.push('Maintain your strong visibility with regular updates')
     }
-    return recommendations.slice(0, 3)
+    return recommendations.slice(0, 5)
   }
 
   const getRanking = () => {
@@ -507,6 +513,14 @@ export default function AIVisibilityTool() {
       setEmailSent(true)
       setTimeout(() => setEmailSent(false), 3000)
     }, 1500)
+  }
+
+  const toggleCategory = (categoryId: string) => {
+    if (expandedCategory === categoryId) {
+      setExpandedCategory(null)
+    } else {
+      setExpandedCategory(categoryId)
+    }
   }
 
   return (
@@ -704,7 +718,17 @@ export default function AIVisibilityTool() {
                   <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                     {profile.competitors.map((comp, i) => (
                       <div key={i} className="flex items-center justify-between p-3 bg-white/50 border border-white/60 rounded-xl">
+                        <div className="flex items-center gap-2">
                         <span className="font-medium text-ink text-sm">{comp.name}</span>
+                          {comp.auto_detected && (
+                            <div className="group relative">
+                              <Globe className="w-3 h-3 text-claude-500" />
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-ink text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                Auto-detected via Web Search
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         <button onClick={() => removeCompetitor(i)} className="text-ink-muted hover:text-rose-500">
                           <XCircle className="w-4 h-4" />
                         </button>
@@ -729,23 +753,33 @@ export default function AIVisibilityTool() {
             </div>
 
             <div className="space-y-4">
-              {FIXED_CATEGORIES.map((cat) => (
+              {getCategoriesForProfile(profile).map((cat) => (
                 <div key={cat.id} className="glass-card p-6 rounded-2xl">
                   <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-claude-600">
                     {cat.label}
                   </label>
+                  <div className="space-y-2">
+                    {categoryPrompts[cat.id]?.map((prompt, i) => (
+                      <div key={i} className="flex items-center gap-2">
                   <input
                     type="text"
-                    value={categoryPrompts[cat.id] || ''}
-                    onChange={(e) => setCategoryPrompts({ ...categoryPrompts, [cat.id]: e.target.value })}
+                          value={prompt}
+                          onChange={(e) => {
+                            const newPrompts = [...(categoryPrompts[cat.id] || [])]
+                            newPrompts[i] = e.target.value
+                            setCategoryPrompts({ ...categoryPrompts, [cat.id]: newPrompts })
+                          }}
                     className="w-full px-4 py-3 text-sm"
                   />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
 
             <button onClick={runTests} className="btn-primary w-full text-sm uppercase tracking-widest shadow-xl shadow-claude-500/20">
-              Start Visibility Test <Sparkles className="w-4 h-4 ml-2 inline" />
+              Start Visibility Gauntlet <Sparkles className="w-4 h-4 ml-2 inline" />
             </button>
           </div>
         )}
@@ -753,11 +787,11 @@ export default function AIVisibilityTool() {
         {step === 'testing' && (
           <div className="glass-card p-16 text-center rounded-[2rem] animate-enter">
             <Loader className="w-16 h-16 text-claude-500 animate-spin mx-auto mb-8" />
-            <h2 className="text-3xl font-bold mb-4 text-ink">Running Analysis...</h2>
+            <h2 className="text-3xl font-bold mb-4 text-ink">Running Gauntlet Analysis...</h2>
             <p className="text-ink-light mb-8 text-lg">
               {testProgress.phase === 'user' 
-                ? `Testing your brand: Query ${testProgress.current} / ${testProgress.total}`
-                : `Testing competitors: Brand ${testProgress.current} / ${testProgress.total}`
+                ? `Testing your brand: Category ${testProgress.current} / ${testProgress.total}`
+                : `Testing competitors: Category ${testProgress.current} / ${testProgress.total}`
               }
             </p>
             <div className="h-2 bg-cream-200 rounded-full overflow-hidden max-w-md mx-auto">
@@ -775,37 +809,144 @@ export default function AIVisibilityTool() {
 
         {step === 'results' && profile && (
           <div className="space-y-8 animate-enter">
-            <div className="glass-card p-12 text-center rounded-[2rem] bg-gradient-to-br from-white/80 to-claude-50/30">
+            
+            {/* 1. HERO SCORE */}
+            <div className="glass-card p-12 text-center rounded-[2rem] bg-gradient-to-br from-white/80 to-claude-50/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                <Target className="w-64 h-64" />
+              </div>
               <h2 className="text-2xl font-bold mb-8 text-ink">Overall Visibility Score</h2>
-              <div className="flex items-center justify-center gap-6 mb-6">
+              <div className="flex items-center justify-center gap-6 mb-6 relative z-10">
                 <span className="text-8xl font-bold text-claude-600">{getOverallScore()}</span>
                 <div className={`text-4xl font-bold px-6 py-2 rounded-xl ${getGrade(getOverallScore()).bg} ${getGrade(getOverallScore()).color}`}>
                   {getGrade(getOverallScore()).grade}
                 </div>
               </div>
-              <p className="text-ink-light max-w-lg mx-auto">
-                {getOverallScore() > 60 ? "Strong visibility! AI models recommend you frequently." : "Visibility is low. Competitors are dominating the AI conversation."}
+              <p className="text-ink-light max-w-lg mx-auto text-lg">
+                {getOverallScore() > 60 
+                  ? "Strong visibility! AI models recommend you frequently." 
+                  : "Visibility is low. Competitors are dominating the AI conversation."}
               </p>
             </div>
 
+            {/* 2. RECOMMENDATIONS */}
             <div className="glass-card p-8 rounded-[2rem]">
-              <h3 className="text-xl font-bold mb-6 text-ink">Category Breakdown</h3>
+              <div className="flex items-center gap-3 mb-6">
+                <Lightbulb className="w-6 h-6 text-claude-500" />
+                <h3 className="text-xl font-bold text-ink">Action Plan</h3>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                {getRecommendations().map((rec, i) => (
+                  <div key={i} className="flex gap-3 p-4 bg-white/50 border border-white/60 rounded-xl">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-sm font-medium text-ink-light">{rec}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. COMPETITOR COMPARISON */}
+            <div className="glass-card p-8 rounded-[2rem]">
+              <div className="flex items-center gap-3 mb-6">
+                <BarChart3 className="w-6 h-6 text-claude-500" />
+                <h3 className="text-xl font-bold text-ink">Market Ranking</h3>
+              </div>
+              <div className="space-y-4">
+                {getRanking().map((item, i) => (
+                  <div key={i} className={`flex items-center justify-between p-4 rounded-xl border ${item.isUser ? 'bg-claude-50 border-claude-200' : 'bg-white/50 border-white/60'}`}>
+                    <div className="flex items-center gap-4">
+                      <span className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm ${i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'}`}>
+                        #{i + 1}
+                      </span>
+                      <div>
+                        <span className={`font-bold ${item.isUser ? 'text-claude-600' : 'text-ink'}`}>
+                          {item.name} {item.isUser && '(You)'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden hidden sm:block">
+                        <div className="h-full bg-claude-500" style={{ width: `${item.score}%` }} />
+                      </div>
+                      <span className="font-bold text-ink w-12 text-right">{item.score}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 4. DETAILED BREAKDOWN */}
+            <div className="glass-card p-8 rounded-[2rem]">
+              <div className="flex items-center gap-3 mb-6">
+                <TrendingUp className="w-6 h-6 text-claude-500" />
+                <h3 className="text-xl font-bold text-ink">Detailed Breakdown</h3>
+              </div>
               <div className="space-y-4">
                 {categoryResults.map((res) => (
-                  <div key={res.category} className="flex items-center justify-between p-4 bg-white/50 border border-white/60 rounded-xl">
-                    <div className="flex items-center gap-3">
+                  <div key={res.category} className="bg-white/50 border border-white/60 rounded-2xl overflow-hidden transition-all duration-300">
+                    <button 
+                      onClick={() => toggleCategory(res.category)}
+                      className="w-full flex items-center justify-between p-5 hover:bg-white/80 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
                       <span className={`w-3 h-3 rounded-full ${res.score > 50 ? 'bg-green-500' : 'bg-rose-500'}`} />
-                      <span className="font-medium text-ink">{res.categoryLabel}</span>
+                        <div className="text-left">
+                          <div className="font-bold text-ink">{res.categoryLabel}</div>
+                          <div className="text-xs text-ink-muted hidden sm:block">
+                            Tested on 3 variations • Avg Score {res.score}%
                     </div>
-                    <span className="font-bold text-ink">{res.score}%</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className={`font-bold text-lg ${res.score > 50 ? 'text-green-600' : 'text-rose-600'}`}>
+                          {res.score}%
+                        </span>
+                        {expandedCategory === res.category ? <ChevronUp className="w-5 h-5 text-ink-muted" /> : <ChevronDown className="w-5 h-5 text-ink-muted" />}
+                      </div>
+                    </button>
+                    
+                    {expandedCategory === res.category && (
+                      <div className="p-5 border-t border-ink/5 bg-white/40">
+                        <div className="mb-4">
+                          <span className="text-xs font-bold uppercase tracking-widest text-ink-muted">Primary Prompt</span>
+                          <p className="text-sm text-ink-light mt-1 italic">"{res.prompt}"</p>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <span className="text-xs font-bold uppercase tracking-widest text-ink-muted">AI Responses (Snippet)</span>
+                          {res.results.map((r, idx) => (
+                            <div key={idx} className="p-3 bg-white rounded-xl border border-ink/5 text-sm">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-ink-light">{r.model_name}</span>
+                                  {r.brand_mentioned ? (
+                                    <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium flex items-center gap-1">
+                                      <Check className="w-3 h-3" /> Mentioned
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 bg-rose-100 text-rose-700 text-xs rounded-full font-medium flex items-center gap-1">
+                                      <XCircle className="w-3 h-3" /> Missed
+                                    </span>
+                                  )}
+                                </div>
+                                {r.position && <span className="text-xs text-ink-muted">Rank #{r.position}</span>}
+                              </div>
+                              <p className="text-ink-light text-xs leading-relaxed whitespace-pre-wrap">
+                                {r.full_response || r.response_preview}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="glass-card p-10 text-center rounded-[2rem]">
-              <h3 className="text-xl font-bold mb-4 text-ink">Get Full Report</h3>
-              <p className="text-ink-light mb-8">Detailed competitor breakdown and action plan.</p>
+              <h3 className="text-xl font-bold mb-4 text-ink">Get Full PDF Report</h3>
+              <p className="text-ink-light mb-8">Detailed competitor breakdown, screenshot evidence, and long-term strategy.</p>
               <div className="flex justify-center gap-4">
                 <button onClick={sendEmailReport} className="btn-primary text-sm">
                   {sendingEmail ? 'Sending...' : emailSent ? 'Sent!' : 'Email Report'}

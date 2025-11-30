@@ -440,6 +440,7 @@ Return ONLY valid JSON array, no markdown."""
                         provider="openai",
                         max_tokens=600,
                         temperature=0.3,
+                        web_search=True
                     )
                 except Exception as e:
                     logger.warning(f"GPT-5.1 competitor discovery failed: {e}")
@@ -455,6 +456,7 @@ Return ONLY valid JSON array, no markdown."""
                         provider="anthropic",
                         max_tokens=600,
                         temperature=0.3,
+                        web_search=True
                     )
                 except Exception as e:
                     logger.warning(f"Claude competitor discovery failed: {e}")
@@ -467,6 +469,7 @@ Return ONLY valid JSON array, no markdown."""
                     system_prompt="You are a competitive analysis expert. Identify real competitor companies. Return only valid JSON.",
                     max_tokens=600,
                     temperature=0.3,
+                    web_search=True
                 )
             
             if response:

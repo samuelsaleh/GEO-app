@@ -165,7 +165,8 @@ Always return valid JSON only."""
                         model="claude-sonnet-4-20250514",
                         provider="anthropic",
                         max_tokens=3000,
-                        temperature=0.3
+                        temperature=0.3,
+                        web_search=True
                     )
                     if response:
                         logger.info("✅ Claude Sonnet 4 responded successfully")
@@ -183,7 +184,8 @@ Always return valid JSON only."""
                         model="gemini-2.5-flash",
                         provider="google",
                         max_tokens=3000,
-                        temperature=0.3
+                        temperature=0.3,
+                        web_search=True
                     )
                     if response:
                         logger.info("✅ Gemini 2.5 Flash responded successfully")
@@ -198,7 +200,8 @@ Always return valid JSON only."""
                     prompt=prompt,
                     system_prompt=system_prompt,
                     max_tokens=3000,
-                    temperature=0.3
+                    temperature=0.3,
+                    web_search=True
                 )
             
             if not response:
