@@ -172,7 +172,7 @@ export default function PricingPage() {
               features={[
                 "AI Visibility Score (Basic)",
                 "Single-page GEO Audit",
-                "Schema Generator",
+                "Schema Generator (Coming Soon)",
                 "Basic Email Report"
               ]}
               delay="delay-300"
@@ -199,9 +199,9 @@ export default function PricingPage() {
             {/* Private Audit */}
             <PricingCard 
               title="Private Audit"
-              price="€490"
-              description="Human expert analysis & implementation roadmap."
-              ctaText="Book Audit"
+              price="On Demand"
+              description="Expert human analysis & implementation roadmap."
+              ctaText="Contact Sales"
               ctaHref="/contact"
               features={[
                 "Everything in Full Report",

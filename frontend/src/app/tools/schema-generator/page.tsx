@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Copy, CheckCircle, Code, ArrowLeft, Plus, Trash2, RefreshCw, Sparkles } from 'lucide-react'
+import { Copy, CheckCircle, Code, ArrowLeft, Plus, Trash2, RefreshCw, Sparkles, Lock } from 'lucide-react'
 import Link from 'next/link'
 
 type SchemaType = 'product' | 'article' | 'faq' | 'howto' | 'organization' | 'localBusiness' | 'breadcrumb'
@@ -258,183 +258,201 @@ ${JSON.stringify(schema, null, 2)}
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Form Section */}
-          <div className="glass-card p-8 overflow-y-auto max-h-[800px] rounded-[2rem] animate-enter delay-100">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-xl font-bold text-ink">Configuration</h2>
-              <div className="text-xs font-bold text-claude-600 uppercase tracking-widest bg-claude-50 px-3 py-1 rounded-full flex items-center gap-2">
-                <RefreshCw className="w-3 h-3 animate-spin-slow" />
-                Auto-Updating
+        <div className="relative">
+          {/* Locked Overlay */}
+          <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/50 rounded-[2rem] border border-white/20">
+            <div className="glass-card p-8 rounded-2xl text-center shadow-2xl max-w-md mx-4 animate-enter border border-ink/5">
+              <div className="w-16 h-16 bg-ink/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Lock className="w-8 h-8 text-ink-muted" />
               </div>
-            </div>
-
-            {/* Schema Type Selector */}
-            <div className="mb-8">
-              <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">Schema Type</label>
-              <select
-                value={schemaType}
-                onChange={(e) => setSchemaType(e.target.value as SchemaType)}
-                className="w-full px-5 py-4"
-              >
-                <option value="product">Product</option>
-                <option value="article">Article</option>
-                <option value="faq">FAQ Page</option>
-                <option value="howto">How-To Guide</option>
-                <option value="localBusiness">Local Business</option>
-                <option value="organization">Organization</option>
-                <option value="breadcrumb">Breadcrumb List</option>
-              </select>
-            </div>
-
-            {/* Dynamic Form Fields */}
-            <div className="space-y-6">
-              {schemaType === 'product' && (
-                <>
-                  <input type="text" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="Product Name" className="w-full px-5 py-4" />
-                  <textarea value={productDescription} onChange={(e) => setProductDescription(e.target.value)} placeholder="Description" rows={3} className="w-full px-5 py-4" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <input type="number" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} placeholder="Price" className="w-full px-5 py-4" />
-                    <select value={productCurrency} onChange={(e) => setProductCurrency(e.target.value)} className="w-full px-5 py-4">
-                      <option value="EUR">EUR (€)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="GBP">GBP (£)</option>
-                    </select>
-                  </div>
-                  <input type="text" value={productBrand} onChange={(e) => setProductBrand(e.target.value)} placeholder="Brand Name" className="w-full px-5 py-4" />
-                  <input type="url" value={productImage} onChange={(e) => setProductImage(e.target.value)} placeholder="Image URL" className="w-full px-5 py-4" />
-                  <input type="number" step="0.1" max="5" value={productRating} onChange={(e) => setProductRating(e.target.value)} placeholder="Rating (0-5)" className="w-full px-5 py-4" />
-                </>
-              )}
-
-              {schemaType === 'article' && (
-                <>
-                  <input type="text" value={articleTitle} onChange={(e) => setArticleTitle(e.target.value)} placeholder="Article Title" className="w-full px-5 py-4" />
-                  <textarea value={articleDescription} onChange={(e) => setArticleDescription(e.target.value)} placeholder="Description" rows={3} className="w-full px-5 py-4" />
-                  <input type="text" value={articleAuthor} onChange={(e) => setArticleAuthor(e.target.value)} placeholder="Author Name" className="w-full px-5 py-4" />
-                  <input type="date" value={articleDate} onChange={(e) => setArticleDate(e.target.value)} className="w-full px-5 py-4" />
-                  <input type="url" value={articleImage} onChange={(e) => setArticleImage(e.target.value)} placeholder="Featured Image URL" className="w-full px-5 py-4" />
-                </>
-              )}
-
-              {schemaType === 'faq' && (
-                <div className="space-y-4">
-                  {faqs.map((faq, index) => (
-                    <div key={index} className="p-4 bg-white/50 border border-ink/10 rounded-xl relative group">
-                      <button onClick={() => removeFAQ(index)} className="absolute top-2 right-2 text-ink-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><Trash2 className="w-4 h-4" /></button>
-                      <input type="text" value={faq.question} onChange={(e) => updateFAQ(index, 'question', e.target.value)} placeholder="Question" className="w-full px-4 py-3 text-sm mb-2" />
-                      <textarea value={faq.answer} onChange={(e) => updateFAQ(index, 'answer', e.target.value)} placeholder="Answer" rows={2} className="w-full px-4 py-3 text-sm" />
-                    </div>
-                  ))}
-                  <button onClick={addFAQ} className="btn-secondary w-full text-sm uppercase tracking-widest py-3 flex items-center justify-center gap-2">
-                    <Plus className="w-4 h-4" /> Add Question
-                  </button>
-                </div>
-              )}
-
-              {schemaType === 'howto' && (
-                <>
-                  <input type="text" value={howtoTitle} onChange={(e) => setHowtoTitle(e.target.value)} placeholder="Guide Title" className="w-full px-5 py-4" />
-                  <textarea value={howtoDescription} onChange={(e) => setHowtoDescription(e.target.value)} placeholder="Description" rows={2} className="w-full px-5 py-4" />
-                  
-                  <div className="space-y-4 mt-4">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted">Steps</label>
-                    {howtoSteps.map((step, index) => (
-                      <div key={index} className="p-4 bg-white/50 border border-ink/10 rounded-xl relative group">
-                         <button onClick={() => removeStep(index)} className="absolute top-2 right-2 text-ink-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><Trash2 className="w-4 h-4" /></button>
-                         <div className="grid grid-cols-1 gap-3">
-                           <input type="text" value={step.name} onChange={(e) => updateStep(index, 'name', e.target.value)} placeholder={`Step ${index + 1} Title`} className="w-full px-4 py-3 text-sm font-medium" />
-                           <textarea value={step.text} onChange={(e) => updateStep(index, 'text', e.target.value)} placeholder="Step details..." rows={2} className="w-full px-4 py-3 text-sm" />
-                           <input type="url" value={step.image} onChange={(e) => updateStep(index, 'image', e.target.value)} placeholder="Step Image URL (optional)" className="w-full px-4 py-3 text-xs" />
-                         </div>
-                      </div>
-                    ))}
-                    <button onClick={addStep} className="btn-secondary w-full text-sm uppercase tracking-widest py-3 flex items-center justify-center gap-2">
-                      <Plus className="w-4 h-4" /> Add Step
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {schemaType === 'localBusiness' && (
-                <>
-                  <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Business Name" className="w-full px-5 py-4" />
-                  <input type="url" value={businessImage} onChange={(e) => setBusinessImage(e.target.value)} placeholder="Image URL" className="w-full px-5 py-4" />
-                  <input type="tel" value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="Phone Number" className="w-full px-5 py-4" />
-                  <select value={businessPriceRange} onChange={(e) => setBusinessPriceRange(e.target.value)} className="w-full px-5 py-4">
-                    <option value="$">$ (Cheap)</option>
-                    <option value="$$">$$ (Moderate)</option>
-                    <option value="$$$">$$$ (Expensive)</option>
-                    <option value="$$$$">$$$$ (Luxury)</option>
-                  </select>
-                  <div className="space-y-2 pt-2">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted">Address</label>
-                    <input type="text" value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)} placeholder="Street Address" className="w-full px-5 py-4" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <input type="text" value={businessCity} onChange={(e) => setBusinessCity(e.target.value)} placeholder="City" className="w-full px-5 py-4" />
-                      <input type="text" value={businessZip} onChange={(e) => setBusinessZip(e.target.value)} placeholder="ZIP Code" className="w-full px-5 py-4" />
-                    </div>
-                    <input type="text" value={businessCountry} onChange={(e) => setBusinessCountry(e.target.value)} placeholder="Country" className="w-full px-5 py-4" />
-                  </div>
-                </>
-              )}
-
-              {schemaType === 'breadcrumb' && (
-                <div className="space-y-4">
-                  {breadcrumbs.map((crumb, index) => (
-                    <div key={index} className="flex gap-3 items-center">
-                      <span className="text-xs text-ink-muted w-6 font-bold">{index + 1}.</span>
-                      <input type="text" value={crumb.name} onChange={(e) => updateBreadcrumb(index, 'name', e.target.value)} placeholder="Page Name" className="w-full px-4 py-3 text-sm" />
-                      <input type="text" value={crumb.item} onChange={(e) => updateBreadcrumb(index, 'item', e.target.value)} placeholder="URL" className="w-full px-4 py-3 text-sm" />
-                      <button onClick={() => removeBreadcrumb(index)} className="text-ink-muted hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-                    </div>
-                  ))}
-                  <button onClick={addBreadcrumb} className="btn-secondary w-full text-sm uppercase tracking-widest py-3 flex items-center justify-center gap-2">
-                    <Plus className="w-4 h-4" /> Add Level
-                  </button>
-                </div>
-              )}
-
-              {schemaType === 'organization' && (
-                <>
-                  <input type="text" value={productBrand} onChange={(e) => setProductBrand(e.target.value)} placeholder="Organization Name" className="w-full px-5 py-4" />
-                  <input type="url" value={productImage} onChange={(e) => setProductImage(e.target.value)} placeholder="Website URL" className="w-full px-5 py-4" />
-                  <p className="text-xs text-ink-muted italic">This schema uses the same fields as the Product Brand setup for simplicity.</p>
-                </>
-              )}
+              <h2 className="text-2xl font-bold text-ink mb-4">Coming Soon</h2>
+              <p className="text-ink-light mb-8">
+                We're putting the finishing touches on the Schema Generator. Check back soon or join our waitlist for updates.
+              </p>
+              <Link href="/contact" className="btn-primary inline-flex items-center justify-center w-full">
+                Contact Sales for Early Access
+              </Link>
             </div>
           </div>
 
-          {/* Output Section */}
-          <div className="bg-ink rounded-[2rem] p-8 shadow-2xl flex flex-col max-h-[800px] animate-enter delay-200 text-white border border-white/10">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold tracking-wide">Generated JSON-LD</h2>
-              <button
-                onClick={copyToClipboard}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all ${
-                  copied 
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/50' 
-                    : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
-                }`}
-              >
-                {copied ? <><CheckCircle className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Code</>}
-              </button>
+          <div className="grid lg:grid-cols-2 gap-8 opacity-50 pointer-events-none select-none blur-sm">
+            {/* Form Section */}
+            <div className="glass-card p-8 overflow-y-auto max-h-[800px] rounded-[2rem] animate-enter delay-100">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-xl font-bold text-ink">Configuration</h2>
+                <div className="text-xs font-bold text-claude-600 uppercase tracking-widest bg-claude-50 px-3 py-1 rounded-full flex items-center gap-2">
+                  <RefreshCw className="w-3 h-3 animate-spin-slow" />
+                  Auto-Updating
+                </div>
+              </div>
+
+              {/* Schema Type Selector */}
+              <div className="mb-8">
+                <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">Schema Type</label>
+                <select
+                  value={schemaType}
+                  onChange={(e) => setSchemaType(e.target.value as SchemaType)}
+                  className="w-full px-5 py-4"
+                >
+                  <option value="product">Product</option>
+                  <option value="article">Article</option>
+                  <option value="faq">FAQ Page</option>
+                  <option value="howto">How-To Guide</option>
+                  <option value="localBusiness">Local Business</option>
+                  <option value="organization">Organization</option>
+                  <option value="breadcrumb">Breadcrumb List</option>
+                </select>
+              </div>
+
+              {/* Dynamic Form Fields */}
+              <div className="space-y-6">
+                {schemaType === 'product' && (
+                  <>
+                    <input type="text" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="Product Name" className="w-full px-5 py-4" />
+                    <textarea value={productDescription} onChange={(e) => setProductDescription(e.target.value)} placeholder="Description" rows={3} className="w-full px-5 py-4" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="number" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} placeholder="Price" className="w-full px-5 py-4" />
+                      <select value={productCurrency} onChange={(e) => setProductCurrency(e.target.value)} className="w-full px-5 py-4">
+                        <option value="EUR">EUR (€)</option>
+                        <option value="USD">USD ($)</option>
+                        <option value="GBP">GBP (£)</option>
+                      </select>
+                    </div>
+                    <input type="text" value={productBrand} onChange={(e) => setProductBrand(e.target.value)} placeholder="Brand Name" className="w-full px-5 py-4" />
+                    <input type="url" value={productImage} onChange={(e) => setProductImage(e.target.value)} placeholder="Image URL" className="w-full px-5 py-4" />
+                    <input type="number" step="0.1" max="5" value={productRating} onChange={(e) => setProductRating(e.target.value)} placeholder="Rating (0-5)" className="w-full px-5 py-4" />
+                  </>
+                )}
+
+                {schemaType === 'article' && (
+                  <>
+                    <input type="text" value={articleTitle} onChange={(e) => setArticleTitle(e.target.value)} placeholder="Article Title" className="w-full px-5 py-4" />
+                    <textarea value={articleDescription} onChange={(e) => setArticleDescription(e.target.value)} placeholder="Description" rows={3} className="w-full px-5 py-4" />
+                    <input type="text" value={articleAuthor} onChange={(e) => setArticleAuthor(e.target.value)} placeholder="Author Name" className="w-full px-5 py-4" />
+                    <input type="date" value={articleDate} onChange={(e) => setArticleDate(e.target.value)} className="w-full px-5 py-4" />
+                    <input type="url" value={articleImage} onChange={(e) => setArticleImage(e.target.value)} placeholder="Featured Image URL" className="w-full px-5 py-4" />
+                  </>
+                )}
+
+                {schemaType === 'faq' && (
+                  <div className="space-y-4">
+                    {faqs.map((faq, index) => (
+                      <div key={index} className="p-4 bg-white/50 border border-ink/10 rounded-xl relative group">
+                        <button onClick={() => removeFAQ(index)} className="absolute top-2 right-2 text-ink-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><Trash2 className="w-4 h-4" /></button>
+                        <input type="text" value={faq.question} onChange={(e) => updateFAQ(index, 'question', e.target.value)} placeholder="Question" className="w-full px-4 py-3 text-sm mb-2" />
+                        <textarea value={faq.answer} onChange={(e) => updateFAQ(index, 'answer', e.target.value)} placeholder="Answer" rows={2} className="w-full px-4 py-3 text-sm" />
+                      </div>
+                    ))}
+                    <button onClick={addFAQ} className="btn-secondary w-full text-sm uppercase tracking-widest py-3 flex items-center justify-center gap-2">
+                      <Plus className="w-4 h-4" /> Add Question
+                    </button>
+                  </div>
+                )}
+
+                {schemaType === 'howto' && (
+                  <>
+                    <input type="text" value={howtoTitle} onChange={(e) => setHowtoTitle(e.target.value)} placeholder="Guide Title" className="w-full px-5 py-4" />
+                    <textarea value={howtoDescription} onChange={(e) => setHowtoDescription(e.target.value)} placeholder="Description" rows={2} className="w-full px-5 py-4" />
+                    
+                    <div className="space-y-4 mt-4">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted">Steps</label>
+                      {howtoSteps.map((step, index) => (
+                        <div key={index} className="p-4 bg-white/50 border border-ink/10 rounded-xl relative group">
+                           <button onClick={() => removeStep(index)} className="absolute top-2 right-2 text-ink-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><Trash2 className="w-4 h-4" /></button>
+                           <div className="grid grid-cols-1 gap-3">
+                             <input type="text" value={step.name} onChange={(e) => updateStep(index, 'name', e.target.value)} placeholder={`Step ${index + 1} Title`} className="w-full px-4 py-3 text-sm font-medium" />
+                             <textarea value={step.text} onChange={(e) => updateStep(index, 'text', e.target.value)} placeholder="Step details..." rows={2} className="w-full px-4 py-3 text-sm" />
+                             <input type="url" value={step.image} onChange={(e) => updateStep(index, 'image', e.target.value)} placeholder="Step Image URL (optional)" className="w-full px-4 py-3 text-xs" />
+                           </div>
+                        </div>
+                      ))}
+                      <button onClick={addStep} className="btn-secondary w-full text-sm uppercase tracking-widest py-3 flex items-center justify-center gap-2">
+                        <Plus className="w-4 h-4" /> Add Step
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {schemaType === 'localBusiness' && (
+                  <>
+                    <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Business Name" className="w-full px-5 py-4" />
+                    <input type="url" value={businessImage} onChange={(e) => setBusinessImage(e.target.value)} placeholder="Image URL" className="w-full px-5 py-4" />
+                    <input type="tel" value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="Phone Number" className="w-full px-5 py-4" />
+                    <select value={businessPriceRange} onChange={(e) => setBusinessPriceRange(e.target.value)} className="w-full px-5 py-4">
+                      <option value="$">$ (Cheap)</option>
+                      <option value="$$">$$ (Moderate)</option>
+                      <option value="$$$">$$$ (Expensive)</option>
+                      <option value="$$$$">$$$$ (Luxury)</option>
+                    </select>
+                    <div className="space-y-2 pt-2">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted">Address</label>
+                      <input type="text" value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)} placeholder="Street Address" className="w-full px-5 py-4" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <input type="text" value={businessCity} onChange={(e) => setBusinessCity(e.target.value)} placeholder="City" className="w-full px-5 py-4" />
+                        <input type="text" value={businessZip} onChange={(e) => setBusinessZip(e.target.value)} placeholder="ZIP Code" className="w-full px-5 py-4" />
+                      </div>
+                      <input type="text" value={businessCountry} onChange={(e) => setBusinessCountry(e.target.value)} placeholder="Country" className="w-full px-5 py-4" />
+                    </div>
+                  </>
+                )}
+
+                {schemaType === 'breadcrumb' && (
+                  <div className="space-y-4">
+                    {breadcrumbs.map((crumb, index) => (
+                      <div key={index} className="flex gap-3 items-center">
+                        <span className="text-xs text-ink-muted w-6 font-bold">{index + 1}.</span>
+                        <input type="text" value={crumb.name} onChange={(e) => updateBreadcrumb(index, 'name', e.target.value)} placeholder="Page Name" className="w-full px-4 py-3 text-sm" />
+                        <input type="text" value={crumb.item} onChange={(e) => updateBreadcrumb(index, 'item', e.target.value)} placeholder="URL" className="w-full px-4 py-3 text-sm" />
+                        <button onClick={() => removeBreadcrumb(index)} className="text-ink-muted hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
+                    <button onClick={addBreadcrumb} className="btn-secondary w-full text-sm uppercase tracking-widest py-3 flex items-center justify-center gap-2">
+                      <Plus className="w-4 h-4" /> Add Level
+                    </button>
+                  </div>
+                )}
+
+                {schemaType === 'organization' && (
+                  <>
+                    <input type="text" value={productBrand} onChange={(e) => setProductBrand(e.target.value)} placeholder="Organization Name" className="w-full px-5 py-4" />
+                    <input type="url" value={productImage} onChange={(e) => setProductImage(e.target.value)} placeholder="Website URL" className="w-full px-5 py-4" />
+                    <p className="text-xs text-ink-muted italic">This schema uses the same fields as the Product Brand setup for simplicity.</p>
+                  </>
+                )}
+              </div>
             </div>
 
-            <div className="relative flex-1 overflow-hidden rounded-xl bg-black/30 border border-white/5">
-               <pre className="absolute inset-0 p-6 overflow-auto text-sm font-mono text-claude-100 leading-relaxed scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-                <code>{generatedCode}</code>
-              </pre>
-            </div>
+            {/* Output Section */}
+            <div className="bg-ink rounded-[2rem] p-8 shadow-2xl flex flex-col max-h-[800px] animate-enter delay-200 text-white border border-white/10">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold tracking-wide">Generated JSON-LD</h2>
+                <button
+                  onClick={copyToClipboard}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all ${
+                    copied 
+                      ? 'bg-green-500/20 text-green-400 border border-green-500/50' 
+                      : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                  }`}
+                >
+                  {copied ? <><CheckCircle className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Code</>}
+                </button>
+              </div>
 
-            <div className="mt-6 p-4 bg-claude-500/10 border border-claude-500/20 rounded-xl">
-              <h3 className="text-claude-300 text-xs uppercase tracking-widest font-bold mb-2 flex items-center gap-2">
-                <Sparkles className="w-3 h-3" />
-                Instructions
-              </h3>
-              <p className="text-white/70 text-sm leading-relaxed">
-                Copy this code and paste it into the <code className="text-claude-300 bg-white/10 px-1 py-0.5 rounded">&lt;head&gt;</code> section of your page HTML, or use a plugin like "Insert Headers and Footers".
-              </p>
+              <div className="relative flex-1 overflow-hidden rounded-xl bg-black/30 border border-white/5">
+                 <pre className="absolute inset-0 p-6 overflow-auto text-sm font-mono text-claude-100 leading-relaxed scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                  <code>{generatedCode}</code>
+                </pre>
+              </div>
+
+              <div className="mt-6 p-4 bg-claude-500/10 border border-claude-500/20 rounded-xl">
+                <h3 className="text-claude-300 text-xs uppercase tracking-widest font-bold mb-2 flex items-center gap-2">
+                  <Sparkles className="w-3 h-3" />
+                  Instructions
+                </h3>
+                <p className="text-white/70 text-sm leading-relaxed">
+                  Copy this code and paste it into the <code className="text-claude-300 bg-white/10 px-1 py-0.5 rounded">&lt;head&gt;</code> section of your page HTML, or use a plugin like "Insert Headers and Footers".
+                </p>
+              </div>
             </div>
           </div>
         </div>

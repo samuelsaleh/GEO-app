@@ -11,7 +11,8 @@ function ToolCard({
   delay, 
   badge,
   colorClass = "text-claude-500",
-  bgClass = "bg-cream-100/50" 
+  bgClass = "bg-cream-100/50",
+  locked = false
 }: { 
   title: string, 
   description: string, 
@@ -20,20 +21,27 @@ function ToolCard({
   delay: string,
   badge?: { text: string, icon?: any },
   colorClass?: string,
-  bgClass?: string
+  bgClass?: string,
+  locked?: boolean
 }) {
   return (
     <Link 
       href={href}
-      className={`glass-card p-8 rounded-3xl flex flex-col justify-between h-full group animate-enter ${delay}`}
+      className={`glass-card p-8 rounded-3xl flex flex-col justify-between h-full group animate-enter ${delay} ${locked ? 'cursor-not-allowed opacity-80' : ''}`}
+      onClick={(e) => locked && e.preventDefault()}
     >
       <div>
         <div className="flex justify-between items-start mb-6">
-          <div className={`w-14 h-14 rounded-2xl ${bgClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+          <div className={`w-14 h-14 rounded-2xl ${bgClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative`}>
             <Icon className={`w-7 h-7 ${colorClass}`} />
+            {locked && (
+              <div className="absolute -right-2 -top-2 bg-white rounded-full p-1 shadow-sm border border-ink/5">
+                <Lock className="w-3 h-3 text-ink-muted" />
+              </div>
+            )}
           </div>
           {badge && (
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-white border border-ink/5 shadow-sm text-ink-light uppercase tracking-wider">
+            <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-white border border-ink/5 shadow-sm uppercase tracking-wider ${locked ? 'text-ink-muted' : 'text-ink-light'}`}>
               {badge.icon && <badge.icon className="w-3 h-3" />}
               {badge.text}
             </div>
@@ -59,7 +67,13 @@ function ToolCard({
           </li>
         </ul>
         <div className={`flex items-center text-sm font-bold ${colorClass} tracking-wide uppercase group-hover:translate-x-1 transition-transform`}>
-          Launch Tool <ArrowRight className="w-4 h-4 ml-2" />
+          {locked ? (
+            <span className="text-ink-muted flex items-center gap-2">
+              <Lock className="w-4 h-4" /> Locked
+            </span>
+          ) : (
+            <>Launch Tool <ArrowRight className="w-4 h-4 ml-2" /></>
+          )}
         </div>
       </div>
     </Link>
@@ -116,14 +130,15 @@ export default function ToolsPage() {
 
           {/* GEO Audit */}
           <ToolCard
-            title="GEO Audit"
-            description="Deep analysis of a page's AI-readiness: structure, schema, readability, and citations."
+            title="Private GEO Audit"
+            description="Expert manual analysis of your site's AI readiness. Deep dive into schema, structure, and citations."
             icon={Search}
-            href="/tools/health-check"
+            href="/contact"
             delay="delay-400"
-            badge={{ text: 'Deep Scan' }}
-            colorClass="text-rose-500"
-            bgClass="bg-rose-50"
+            badge={{ text: 'Contact Sales' }}
+            colorClass="text-ink-muted"
+            bgClass="bg-ink/5"
+            locked={true}
           />
 
           {/* Schema Generator */}
@@ -131,11 +146,12 @@ export default function ToolsPage() {
             title="Schema Generator"
             description="Create structured data that AI understands. Generate copy‑paste ready JSON-LD."
             icon={Code}
-            href="/tools/schema-generator"
+            href="#"
             delay="delay-500"
-            badge={{ text: 'Utility' }}
-            colorClass="text-blue-500"
-            bgClass="bg-blue-50"
+            badge={{ text: 'Coming Soon' }}
+            colorClass="text-ink-muted"
+            bgClass="bg-ink/5"
+            locked={true}
           />
         </div>
 
