@@ -1,0 +1,47 @@
+name: Backend Tests
+
+# Run tests automatically when:
+# - You push code to any branch
+# - Someone creates a pull request
+on:
+  push:
+    branches: [ "**" ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ "**" ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Get your code
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Step 2: Set up Python
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Step 4: Run the tests
+    - name: Run tests with pytest
+      run: |
+        cd backend
+        pytest tests/test_competitor_analyzer.py -v
+
+    # Step 5: Show success message
+    - name: Tests passed
+      if: success()
+      run: echo "✅ All tests passed! Safe to deploy."
