@@ -1,85 +1,221 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Creed - Test Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dwight - Test Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --claude-orange: #D97757;
+            --claude-orange-dark: #C96442;
+            --cream: #FAF8F6;
+            --cream-dark: #F5F0EB;
+            --ink: #2D2520;
+            --ink-light: #4A3F38;
+            --ink-muted: #6B5D52;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
             max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background: linear-gradient(to bottom, #f8fafc, #ffffff);
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: var(--cream);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
         }
-        h1 { color: #0284c7; }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 500;
+            color: var(--ink);
+        }
+        
+        h1 { 
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+            font-size: 0.75rem;
+            color: var(--ink-muted);
+        }
+        
         .success {
-            background: #d1fae5;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            border-left: 4px solid #10b981;
+            background: var(--claude-orange);
+            background: rgba(217, 119, 87, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 3px solid var(--claude-orange);
+            color: var(--ink);
         }
+        
+        .success strong {
+            color: var(--claude-orange);
+        }
+        
         .test {
             background: white;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        button {
-            background: #0284c7;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover { background: #0369a1; }
-        .info {
-            background: #dbeafe;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 24px;
             margin: 20px 0;
+            border: 1px solid rgba(45, 37, 32, 0.1);
+        }
+        
+        .test h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        button {
+            background: var(--claude-orange);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover { 
+            background: var(--claude-orange-dark);
+        }
+        
+        .info {
+            background: white;
+            padding: 24px;
+            border: 1px solid rgba(45, 37, 32, 0.1);
+            margin: 20px 0;
+        }
+        
+        .info h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .info ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info li {
+            padding: 8px 0;
+            font-weight: 300;
+        }
+        
+        .info strong {
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(45, 37, 32, 0.2);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--claude-orange);
+        }
+        
+        input::placeholder {
+            color: var(--ink-muted);
+        }
+        
+        pre {
+            background: var(--ink);
+            color: var(--claude-orange);
+            padding: 16px;
+            margin-top: 16px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .code-block {
+            background: var(--cream-dark);
+            padding: 12px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: var(--ink);
+        }
+        
+        ol {
+            padding-left: 0;
+            list-style: none;
+            counter-reset: step;
+        }
+        
+        ol li {
+            padding: 12px 0;
+            font-weight: 300;
+            counter-increment: step;
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        ol li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            color: var(--claude-orange);
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
-    <h1>🚀 Creed - Test Page</h1>
+    <h1>Dwight</h1>
+    <p class="subtitle">Test Page</p>
 
     <div class="success">
-        <strong>✅ Great!</strong> If you can see this page, your files are working!
+        <strong>✓ Great!</strong> If you can see this page, your files are working!
     </div>
 
     <div class="info">
-        <h3>📋 What You Have:</h3>
+        <h3>What You Have</h3>
         <ul>
-            <li>✅ <strong>demo.html</strong> - Schema Generator (fully working!)</li>
-            <li>✅ <strong>Frontend</strong> - Next.js app (needs npm install)</li>
-            <li>✅ <strong>Backend</strong> - Python API (needs pip install)</li>
+            <li>✓ <strong>demo.html</strong> — Schema Generator (fully working!)</li>
+            <li>✓ <strong>Frontend</strong> — Next.js app (needs npm install)</li>
+            <li>✓ <strong>Backend</strong> — Python API (needs pip install)</li>
         </ul>
     </div>
 
     <div class="test">
-        <h3>🧪 Quick Test - Schema Generator</h3>
-        <p>Generate a simple product schema:</p>
+        <h3>Quick Test — Schema Generator</h3>
+        <p style="font-weight: 300; color: var(--ink-muted); margin-bottom: 1rem;">Generate a simple product schema:</p>
 
-        <input type="text" id="prodName" placeholder="Product Name" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px;">
-        <input type="number" id="prodPrice" placeholder="Price" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px;">
+        <input type="text" id="prodName" placeholder="Product Name">
+        <input type="number" id="prodPrice" placeholder="Price">
 
         <button onclick="generate()">Generate Schema</button>
 
-        <pre id="output" style="background: #1e293b; color: #10b981; padding: 15px; border-radius: 6px; margin-top: 15px; overflow-x: auto; display: none;"></pre>
+        <pre id="output" style="display: none;"></pre>
     </div>
 
     <div class="test">
-        <h3>🎯 Next Steps:</h3>
+        <h3>Next Steps</h3>
         <ol>
-            <li><strong>Try demo.html</strong> - Open it for the full Schema Generator</li>
+            <li><strong>Try demo.html</strong> — Open it for the full Schema Generator</li>
             <li><strong>Install dependencies:</strong>
-                <pre style="background: #f1f5f9; padding: 10px; border-radius: 4px;">cd frontend && npm install</pre>
+                <div class="code-block">cd frontend && npm install</div>
             </li>
             <li><strong>Run the app:</strong>
-                <pre style="background: #f1f5f9; padding: 10px; border-radius: 4px;">npm run dev</pre>
+                <div class="code-block">npm run dev</div>
             </li>
         </ol>
     </div>

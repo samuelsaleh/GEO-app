@@ -145,4 +145,172 @@ export const contactAPI = {
   },
 }
 
+// =============================================================================
+// AI VISIBILITY SCORE API - THE KILLER FEATURE
+// =============================================================================
+
+export interface ScoreRequest {
+  brand: string
+  category: string
+  website_url?: string
+  location?: string
+  custom_questions?: string[]
+}
+
+export interface ModelResult {
+  model_id: string
+  model_name: string
+  provider: string
+  mentioned: boolean
+  position: number | null
+  sentiment: string
+  competitors_found: string[]
+  killer_quote: string | null
+  full_response: string
+  response_time_ms: number
+  prompt: string
+  error: string | null
+}
+
+export interface PromptResult {
+  prompt: string
+  category: string
+  models: ModelResult[]
+  mention_rate: number
+  best_position: number | null
+}
+
+export interface CompetitorInfo {
+  name: string
+  mentions: number
+  rate: number
+}
+
+export interface ModelBreakdown {
+  model_id: string
+  model_name: string
+  provider: string
+  mentions: number
+  total: number
+  rate: number
+}
+
+export interface ScoreResponse {
+  // Core score
+  score: number
+  verdict: string
+  verdict_emoji: string
+  grade: string
+  
+  // Brand info
+  brand: string
+  category: string
+  location: string | null
+  
+  // Test summary
+  total_tests: number
+  total_mentions: number
+  mention_rate: number
+  
+  // Detailed results
+  prompt_results: PromptResult[]
+  model_breakdown: ModelBreakdown[]
+  
+  // Competitor analysis
+  competitors: CompetitorInfo[]
+  you_vs_top: {
+    competitor: string
+    their_rate: number
+    your_rate: number
+    gap: number
+  } | null
+  
+  // The "aha" moment
+  worst_prompt: {
+    prompt: string
+    category: string
+    mention_rate: number
+    models_mentioning: number
+    total_models: number
+  } | null
+  killer_quote: string | null
+  
+  // Example AI response
+  example_response: {
+    prompt: string
+    response: string
+    model: string
+    mentioned: boolean
+  } | null
+  
+  // Sharing
+  share_text: string
+  share_url: string | null
+  
+  // Metadata
+  tested_at: string
+  test_duration_ms: number
+  
+  // Questions that were tested
+  questions_tested: string[]
+}
+
+// =============================================================================
+// WEBSITE ANALYSIS TYPES
+// =============================================================================
+
+export interface BrandContext {
+  brand_name: string
+  website_url: string | null
+  product_category: string
+  product_types: string[]
+  brand_description: string
+  unique_selling_points: string[]
+  target_audience: string
+  price_range: string
+  known_competitors: string[]
+  location: string | null
+  suggested_questions: string[]
+}
+
+export interface AnalyzeSiteRequest {
+  brand_name: string
+  website_url: string
+  additional_context?: string
+}
+
+export interface AnalyzeSiteResponse {
+  success: boolean
+  brand_context: BrandContext | null
+  suggested_questions: string[]
+  detected_category: string
+  detected_competitors: string[]
+  error: string | null
+}
+
+// =============================================================================
+// AI VISIBILITY SCORE API
+// =============================================================================
+
+export const scoreAPI = {
+  /**
+   * Analyze website to extract brand context and suggest questions
+   */
+  analyzeSite: async (data: AnalyzeSiteRequest): Promise<AnalyzeSiteResponse> => {
+    const response = await api.post('/api/visibility/analyze-site', data)
+    return response.data
+  },
+  
+  /**
+   * Run AI Visibility Score test
+   * 
+   * Tests your brand across 3 AI models with 4 different prompts.
+   * Returns a 0-100 score with detailed breakdown.
+   */
+  check: async (data: ScoreRequest): Promise<ScoreResponse> => {
+    const response = await api.post('/api/visibility/score', data)
+    return response.data
+  },
+}
+
 export default api

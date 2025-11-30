@@ -8,6 +8,8 @@ class SchemaType(str, Enum):
     FAQ = "faq"
     HOWTO = "howto"
     ORGANIZATION = "organization"
+    LOCAL_BUSINESS = "localBusiness"
+    BREADCRUMB = "breadcrumb"
 
 class FAQItem(BaseModel):
     question: str

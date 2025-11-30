@@ -198,7 +198,7 @@ export default function ReportTemplate() {
                 <Search className="w-10 h-10 text-claude-500" />
               </div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">AI Visibility</h1>
-              <h2 className="text-4xl font-bold text-claude-500 mb-8">Health Check Report</h2>
+              <h2 className="text-4xl font-bold text-claude-500 mb-8">GEO Audit Report</h2>
             </div>
             
             <div className="max-w-md mx-auto space-y-4 text-lg">

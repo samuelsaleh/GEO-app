@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 
-from app.api import health_check, schema_generator, waitlist, contact, visibility
+from app.api import health_check, schema_generator, waitlist, contact, visibility, competitive
 from app.config import settings
 from app.database import init_db
 
@@ -32,22 +32,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration
+# CORS configuration - Allow all origins for now (can be restricted later)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.frontend_url,
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "http://localhost:3003",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-        "http://127.0.0.1:3002",
-        "http://127.0.0.1:3003",
-        "https://dwight.app"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Must be False when using "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -58,6 +47,7 @@ app.include_router(schema_generator.router, prefix="/api/schema", tags=["Schema 
 app.include_router(waitlist.router, prefix="/api/waitlist", tags=["Waitlist"])
 app.include_router(contact.router, prefix="/api/contact", tags=["Contact"])
 app.include_router(visibility.router, prefix="/api/visibility", tags=["AI Visibility Monitor"])
+app.include_router(competitive.router, prefix="/api/competitive", tags=["Competitive Testing"])
 
 
 @app.get("/")
@@ -73,6 +63,8 @@ async def root():
             "schema_generator": "/api/schema/generate",
             "visibility_check": "/api/visibility/check",
             "visibility_quick": "/api/visibility/quick-check",
+            "competitive_products": "/api/competitive/products",
+            "competitive_full_test": "/api/competitive/full-test",
             "waitlist": "/api/waitlist/join",
             "contact": "/api/contact/submit"
         }
@@ -85,5 +77,5 @@ async def health():
     return {
         "status": "healthy",
         "service": "dwight-api",
-        "version": "1.0.0"
+        "version": "1.0.2"
     }
