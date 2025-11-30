@@ -4,12 +4,16 @@ AI Visibility Monitoring API
 Endpoints for tracking brand visibility across AI models.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import List, Optional
 import logging
+import time
+from sqlalchemy.orm import Session
 
 from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult, MultiModelResult, AI_MODELS, FREE_MODELS, PAID_MODELS
+from app.database import SessionLocal
+from app.models.database import VisibilityTest
 from app.services.speed_test import speed_test_service
 from app.services.brand_analyzer import brand_analyzer
 from app.services.website_analyzer import website_analyzer
