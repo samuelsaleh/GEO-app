@@ -8,46 +8,46 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Claude Orange/Terracotta
+        // GEO Orange accents (from palette)
         claude: {
-          50: '#FDF8F6',
-          100: '#F9EDE8',
-          200: '#F5DDD3',
-          300: '#ECC4B3',
-          400: '#DFA084',
-          500: '#D97757', // Claude's signature orange
-          600: '#C96442',
-          700: '#A84E33',
-          800: '#8A422E',
-          900: '#723A2A',
+          50: '#FFF4E8',
+          100: '#FFE6CC',
+          200: '#FFD0A3',
+          300: '#FFB36B',
+          400: '#F89A3F',
+          500: '#E97424', // primary orange
+          600: '#D1611F',
+          700: '#AF4B19',
+          800: '#8C3A14',
+          900: '#6E2F11',
         },
-        // Warm cream backgrounds
+        // Beige backgrounds
         cream: {
-          50: '#FDFCFB',
-          100: '#FAF8F6',
-          200: '#F5F0EB',
-          300: '#EDE5DC',
-          400: '#E0D3C5',
-          500: '#D4C4B0',
+          50: '#FFF7EA',
+          100: '#FDF0DD',
+          200: '#F5E1B9',
+          300: '#E6CB94',
+          400: '#D4B47D',
+          500: '#C2A067',
         },
-        // Claude's warm dark tones
+        // Brown text & neutrals
         ink: {
-          50: '#F8F6F4',
-          100: '#EDE8E3',
-          200: '#DDD5CC',
-          300: '#C4B8AA',
-          400: '#A69686',
-          500: '#8C7B6A',
-          600: '#756556',
-          700: '#5F5147',
-          800: '#4A3F38',
-          900: '#3D342E',
-          950: '#1F1A17',
+          50: '#F7EFE9',
+          100: '#EAD7C7',
+          200: '#D8B79D',
+          300: '#C19075',
+          400: '#A56F53',
+          500: '#8A5338',
+          600: '#6F422D',
+          700: '#5B3A29', // main brown
+          800: '#4A2F22',
+          900: '#3A251B',
+          950: '#21130E',
         },
       },
       fontFamily: {
-        display: ['var(--font-display)', 'Cormorant Garamond', 'serif'],
-        body: ['var(--font-body)', 'Montserrat', 'sans-serif'],
+        display: ['"TikTok Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+        body: ['"TikTok Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
       },
       letterSpacing: {
         'widest': '0.25em',

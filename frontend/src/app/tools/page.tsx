@@ -1,18 +1,85 @@
 'use client'
 
-import { Search, Code, ArrowLeft, BarChart3, Lock, Sparkles } from 'lucide-react'
+import { Search, Code, ArrowLeft, BarChart3, Lock, Sparkles, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+
+function ToolCard({ 
+  title, 
+  description, 
+  icon: Icon, 
+  href, 
+  delay, 
+  badge,
+  colorClass = "text-claude-500",
+  bgClass = "bg-cream-100/50" 
+}: { 
+  title: string, 
+  description: string, 
+  icon: any, 
+  href: string, 
+  delay: string,
+  badge?: { text: string, icon?: any },
+  colorClass?: string,
+  bgClass?: string
+}) {
+  return (
+    <Link 
+      href={href}
+      className={`glass-card p-8 rounded-3xl flex flex-col justify-between h-full group animate-enter ${delay}`}
+    >
+      <div>
+        <div className="flex justify-between items-start mb-6">
+          <div className={`w-14 h-14 rounded-2xl ${bgClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+            <Icon className={`w-7 h-7 ${colorClass}`} />
+          </div>
+          {badge && (
+            <div className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-white border border-ink/5 shadow-sm text-ink-light uppercase tracking-wider">
+              {badge.icon && <badge.icon className="w-3 h-3" />}
+              {badge.text}
+            </div>
+          )}
+        </div>
+        <h3 className="text-2xl font-bold mb-3 text-ink group-hover:text-claude-600 transition-colors">
+          {title}
+        </h3>
+        <p className="text-ink-light/80 leading-relaxed mb-8">
+          {description}
+        </p>
+      </div>
+      
+      <div className="border-t border-ink/5 pt-6 mt-auto">
+        <ul className="space-y-2 mb-6">
+          <li className="text-sm font-medium text-ink-muted flex items-center gap-2">
+            <div className={`w-1.5 h-1.5 rounded-full ${colorClass.replace('text-', 'bg-')}`} />
+            Instant Analysis
+          </li>
+          <li className="text-sm font-medium text-ink-muted flex items-center gap-2">
+            <div className={`w-1.5 h-1.5 rounded-full ${colorClass.replace('text-', 'bg-')}`} />
+            Actionable Report
+          </li>
+        </ul>
+        <div className={`flex items-center text-sm font-bold ${colorClass} tracking-wide uppercase group-hover:translate-x-1 transition-transform`}>
+          Launch Tool <ArrowRight className="w-4 h-4 ml-2" />
+        </div>
+      </div>
+    </Link>
+  )
+}
 
 export default function ToolsPage() {
   return (
-    <div className="min-h-screen hero-gradient">
+    <div className="min-h-screen hero-gradient relative">
+      <div className="bg-grain" />
+      
       {/* Navigation */}
-      <nav className="glass-nav border-b border-cream-300 sticky top-0 z-50">
+      <nav className="fixed top-0 w-full z-50 glass-nav py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <Link href="/" className="flex items-center gap-3">
-              <ArrowLeft className="w-4 h-4 text-ink-400" />
-              <span className="font-display text-3xl font-medium tracking-wide text-ink-900">
+          <div className="flex justify-between items-center">
+            <Link href="/" className="flex items-center gap-3 text-ink hover:text-claude-500 transition-colors group">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm border border-ink/5 group-hover:border-claude-200 transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+              </div>
+              <span className="font-display text-xl font-bold">
                 dwight
               </span>
             </Link>
@@ -20,142 +87,97 @@ export default function ToolsPage() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 mb-6 px-5 py-2 border border-claude-200">
+      <div className="max-w-7xl mx-auto px-4 pt-32 pb-20 relative z-10">
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 border border-white/60 backdrop-blur-sm mb-6 animate-enter">
             <Sparkles className="w-4 h-4 text-claude-500" />
-            <span className="text-claude-600 text-sm tracking-wider uppercase font-medium">
-              GEO Tools
-            </span>
+            <span className="text-sm font-medium text-ink-light uppercase tracking-wider">GEO Tools Suite</span>
           </div>
-          <h1 className="font-display text-4xl md:text-5xl font-medium mb-6 text-ink-900">Free GEO Tools</h1>
-          <p className="text-lg text-ink-500 max-w-2xl mx-auto leading-relaxed">
-            Generative Engine Optimization tools to boost your visibility in AI search
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-ink animate-enter delay-100">
+            Free GEO Tools
+          </h1>
+          <p className="text-xl text-ink-light max-w-2xl mx-auto leading-relaxed animate-enter delay-200">
+            Professional-grade tools to measure and improve your visibility in AI search engines.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* GEO Score - FREE FLAGSHIP */}
-          <Link
+          {/* GEO Score */}
+          <ToolCard
+            title="AI Visibility Score"
+            description="See how GPT-5 and Claude talk about your brand versus key competitors. Get a 0–100 visibility score."
+            icon={BarChart3}
             href="/tools/ai-visibility"
-            className="card-elevated p-8 group relative overflow-hidden border-2 border-claude-200 hover:border-claude-400"
-          >
-            <div className="absolute top-4 right-4 bg-claude-500 text-white text-[10px] px-3 py-1 tracking-widest uppercase font-medium">
-              Free
-            </div>
-            <div className="w-14 h-14 border border-claude-200 bg-claude-50 flex items-center justify-center mb-6 group-hover:scale-110 transition duration-300">
-              <BarChart3 className="w-6 h-6 text-claude-600" />
-            </div>
-            <h2 className="font-display text-xl font-medium mb-3 text-ink-900 group-hover:text-claude-600 transition">
-              AI Visibility Score
-            </h2>
-            <p className="text-ink-500 mb-5 leading-relaxed text-sm">
-              See how GPT-5.1 and Claude talk about your brand versus key competitors. Get a 0–100 visibility score with a simple action plan.
-            </p>
-            <ul className="text-xs text-ink-600 space-y-1 mb-5">
-              <li>✓ Tests GPT-5.1 + Claude Sonnet 4</li>
-              <li>✓ Competitor comparison (up to 5 brands)</li>
-              <li>✓ GEO visibility action plan</li>
-            </ul>
-            <div className="flex items-center gap-2 text-claude-600 text-xs tracking-widest uppercase font-medium">
-              Get Your GEO Score
-              <span className="group-hover:translate-x-1 transition">→</span>
-            </div>
-          </Link>
+            delay="delay-300"
+            badge={{ text: 'Free', icon: Sparkles }}
+            colorClass="text-claude-500"
+            bgClass="bg-claude-50"
+          />
 
-          {/* GEO Audit - PREMIUM TOOL */}
-          <Link
+          {/* GEO Audit */}
+          <ToolCard
+            title="GEO Audit"
+            description="Deep analysis of a page's AI-readiness: structure, schema, readability, and citations."
+            icon={Search}
             href="/tools/health-check"
-            className="card-elevated p-8 relative hover:opacity-100 transition-opacity group"
-          >
-            <div className="absolute top-4 right-4 bg-gray-100 text-ink-500 text-[10px] px-3 py-1 tracking-widest uppercase font-medium flex items-center gap-1">
-              <Lock className="w-3 h-3" /> Premium
-            </div>
-            <div className="w-14 h-14 border border-cream-300 flex items-center justify-center mb-6 bg-cream-50">
-              <Search className="w-6 h-6 text-ink-400" />
-            </div>
-            <h2 className="font-display text-xl font-medium mb-3 text-ink-900">
-              GEO Audit
-            </h2>
-            <p className="text-ink-500 mb-5 leading-relaxed text-sm">
-              Deep analysis of a page&apos;s AI-readiness: structure, schema, readability, and citations.
-            </p>
-            <ul className="text-xs text-ink-600 space-y-1 mb-5">
-              <li>✓ Technical GEO analysis (structure, schema, accessibility)</li>
-              <li>✓ Content &amp; readability review</li>
-              <li>✓ Prioritized fixes list</li>
-            </ul>
-            <div className="flex items-center gap-2 text-claude-600 text-xs tracking-widest uppercase font-medium">
-              Run GEO Audit
-              <span className="group-hover:translate-x-1 transition">→</span>
-            </div>
-          </Link>
+            delay="delay-400"
+            badge={{ text: 'Deep Scan' }}
+            colorClass="text-rose-500"
+            bgClass="bg-rose-50"
+          />
 
-          {/* Schema Generator - FREE TOOL */}
-          <Link
+          {/* Schema Generator */}
+          <ToolCard
+            title="Schema Generator"
+            description="Create structured data that AI understands. Generate copy‑paste ready JSON-LD."
+            icon={Code}
             href="/tools/schema-generator"
-            className="card-elevated p-8 relative hover:opacity-100 transition-opacity group"
-          >
-            <div className="absolute top-4 right-4 bg-claude-500 text-white text-[10px] px-3 py-1 tracking-widest uppercase font-medium">
-              Free
-            </div>
-            <div className="w-14 h-14 border border-cream-300 flex items-center justify-center mb-6 bg-cream-50">
-              <Code className="w-6 h-6 text-ink-400" />
-            </div>
-            <h2 className="font-display text-xl font-medium mb-3 text-ink-900">
-              Schema Generator
-            </h2>
-            <p className="text-ink-500 mb-5 leading-relaxed text-sm">
-              Create structured data that AI understands. Generate copy‑paste ready JSON-LD for your key pages.
-            </p>
-            <ul className="text-xs text-ink-600 space-y-1 mb-5">
-              <li>✓ 7 high-impact schema types</li>
-              <li>✓ Valid JSON-LD output</li>
-              <li>✓ Copy-paste implementation tips</li>
-            </ul>
-            <div className="flex items-center gap-2 text-claude-600 text-xs tracking-widest uppercase font-medium">
-              Open Schema Generator
-              <span className="group-hover:translate-x-1 transition">→</span>
-            </div>
-          </Link>
+            delay="delay-500"
+            badge={{ text: 'Utility' }}
+            colorClass="text-blue-500"
+            bgClass="bg-blue-50"
+          />
         </div>
 
-        {/* GEO Strategies Section */}
-        <div className="mt-20 max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="font-display text-2xl font-medium text-ink-900 mb-3">Built on the 7 GEO Strategies</h2>
-            <p className="text-ink-500">The proven framework for AI search visibility</p>
+        {/* Education Section */}
+        <div className="mt-32 max-w-4xl mx-auto">
+          <div className="text-center mb-12 animate-enter delay-500">
+            <h2 className="text-3xl font-bold text-ink mb-4">The 7 GEO Strategies</h2>
+            <p className="text-ink-light">Our tools are built on the proven framework for AI visibility.</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-enter delay-600">
             {[
-              { num: '1', title: 'Questions → Content', desc: 'Answer real user queries' },
-              { num: '2', title: 'AI-Friendly Structure', desc: 'Schema & formatting' },
-              { num: '3', title: 'Topical Authority', desc: 'Content clusters' },
-              { num: '4', title: 'Brand Mentions', desc: 'Citations AI trusts' },
+              { num: '01', title: 'Questions', desc: 'Answer real user queries' },
+              { num: '02', title: 'Structure', desc: 'Schema & formatting' },
+              { num: '03', title: 'Authority', desc: 'Content clusters' },
+              { num: '04', title: 'Mentions', desc: 'Citations AI trusts' },
             ].map((strategy) => (
-              <div key={strategy.num} className="bg-white border border-ink-100 p-4 text-center">
-                <div className="w-8 h-8 bg-claude-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-bold">
-                  {strategy.num}
-                </div>
-                <h4 className="font-display text-sm font-medium text-ink-900 mb-1">{strategy.title}</h4>
-                <p className="text-xs text-ink-500">{strategy.desc}</p>
+              <div key={strategy.num} className="glass-card p-6 rounded-2xl text-center hover:bg-white/80">
+                <div className="text-xs font-bold text-claude-500 mb-2 opacity-50">{strategy.num}</div>
+                <h4 className="font-bold text-ink mb-1">{strategy.title}</h4>
+                <p className="text-xs text-ink-light">{strategy.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mt-16 text-center">
-          <div className="bg-ink-900 p-12 text-white max-w-3xl mx-auto">
-            <h2 className="font-display text-2xl font-medium mb-4">Unlock All GEO Tools</h2>
-            <p className="mb-6 text-white/70 leading-relaxed">
-              Get access to all premium tools, detailed audits, and expert recommendations.
-            </p>
-            <Link
-              href="/pricing"
-              className="inline-block bg-claude-500 text-white px-8 py-3 hover:bg-claude-600 transition text-xs tracking-widest uppercase font-medium"
-            >
-              View Pricing
-            </Link>
+        <div className="mt-24 text-center animate-enter delay-700">
+          <div className="glass-card p-12 rounded-[2rem] max-w-3xl mx-auto relative overflow-hidden">
+            <div className="relative z-10">
+              <h2 className="text-3xl font-bold mb-4 text-ink">Need a Deeper Analysis?</h2>
+              <p className="mb-8 text-ink-light text-lg">
+                Get a full human review of your site with our Private GEO Audit.
+              </p>
+              <Link
+                href="/pricing"
+                className="btn-primary inline-flex items-center"
+              >
+                View Audit Pricing <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </div>
+            {/* Background decoration */}
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-claude-50/50 to-transparent -z-0 pointer-events-none" />
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { Search, ArrowLeft, CheckCircle, AlertCircle, Loader, ExternalLink } from 'lucide-react'
+import { Search, ArrowLeft, CheckCircle, AlertCircle, Loader, ExternalLink, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { healthCheckAPI, HealthCheckResult } from '@/lib/api'
 
@@ -79,6 +79,105 @@ export default function HealthCheck() {
     return 'bg-red-100 text-red-600'
   }
 
+  const getIssueDetails = (issue: string) => {
+    const pageUrl = result?.pages_analyzed[0]?.url || url
+    const brand = companyName || 'your site'
+
+    const lower = issue.toLowerCase()
+
+    if (lower.includes('structured data') || lower.includes('schema.org')) {
+      return {
+        why: `${brand} is much harder for AI assistants and search engines to understand without schema markup. Right now, they mostly see raw text – they don't get a clear signal that ${pageUrl} is a brand, product, or service page, so your content competes on equal footing with less relevant pages. Schema is a core input into GEO schema and authority scores, and it is one of the strongest ranking and citation hints for ChatGPT, Perplexity, and Gemini.`,
+        how: 'Add JSON-LD schema (at minimum Organization, and Product or Article for key pages) into the <head> of this page. Include your brand name, URL, concise description, logo, and relevant properties (price, category, location, etc.). Then validate it with Google\'s Rich Results Test and roll the same schema pattern out across your main commercial and content URLs.'
+      }
+    }
+
+    if (lower.includes('faq section')) {
+      return {
+        why: 'FAQ content is one of the easiest formats for AI to quote because it mirrors how users naturally ask questions. When someone types a question into ChatGPT or Perplexity, those models look for clean Q&A structures they can lift directly. Without a visible FAQ section, your page has fewer clearly quotable chunks and loses potential citability points in the GEO score.',
+        how: `Add a dedicated FAQ block on ${pageUrl} with 5–10 real customer questions (ideally including the question you entered in the form) and short, specific answers. Mark this block up with FAQPage schema so AI can treat each Q&A as a structured answer and is more likely to surface your site as a cited source when users ask those questions.`
+      }
+    }
+
+    if (lower.includes('missing h1')) {
+      return {
+        why: 'Without a single, clear H1, AI and search engines have to infer the main topic of the page from context. That weakens both GEO structure score and classic SEO signals, and makes it easier for competitors with clearer headlines to win those queries. The H1 is effectively the “billboard” for the page – it should tell humans and AI what this URL is really about.',
+        how: 'Pick one concise but descriptive H1 that matches the core intent of this page (for example: “Diamond engagement rings in Antwerp” or “How to choose the right [product] for [audience]”). Implement it as the only <h1> on the page, then demote any other headline-sized text to <h2> or <h3> so your structure is clean and easy to parse.'
+      }
+    }
+
+    if (lower.includes('multiple h1')) {
+      return {
+        why: 'Multiple H1s are like putting several front-page headlines on a single article; AI and search engines can get confused about what the page is really about. This weakens your structure score and can dilute relevance for the main query you care about, because the model has to guess which heading is primary.',
+        how: 'Audit the page headings and decide which single line should be the true main topic (H1). Convert all other H1 elements into H2/H3 subheadings, grouped by topic. Aim for a simple outline: one H1, a handful of H2 sections, and optional H3s under each – this is the structure AI models handle best.'
+      }
+    }
+
+    if (lower.includes('meta description')) {
+      return {
+        why: 'The meta description is often the first, compact summary AI systems and search engines read to understand a page. If it is missing, duplicated, or too short, models have to work harder to infer what the page offers and when to show it. That can reduce click‑through in classic search and make AI less confident about recommending your URL as an answer source.',
+        how: 'Write a unique 150–160 character description for this page that clearly states what you offer, who it is for, and one key differentiator. For example: “[Brand] helps [audience] get [outcome] with [product/service] in [location].” Implement it as a <meta name="description" ...> tag and mirror the same promise in your on-page H1 so the story is consistent.'
+      }
+    }
+
+    if (lower.includes('read') || lower.includes('readability')) {
+      return {
+        why: 'Complex sentences, jargon, and dense paragraphs make it harder for AI to extract clean, quotable statements from your content. Even if users can eventually understand the page, models tend to favor sources where key ideas are stated simply and directly. Readability also feeds into the citability dimension of the GEO score, which measures how easily your content can be reused as an answer.',
+        how: 'Rewrite heavy paragraphs into shorter sentences (10–20 words where possible), use subheadings to separate ideas, and add bullet lists for steps or benefits. Try to answer core questions in one or two plain-language sentences that could stand alone when quoted by an AI assistant.'
+      }
+    }
+
+    if (lower.includes('internal links')) {
+      return {
+        why: 'Internal links help AI and users understand how your content is connected, which topics cluster together, and which URLs are most important. A strong internal link graph tells models that you cover a topic in depth, which supports both authority and citability. Thin or random linking makes your site feel like isolated pages instead of a coherent knowledge hub.',
+        how: `From this page, add 3–5 contextual links to your most important supporting URLs (guides, products, FAQs), using descriptive anchor text like “diamond engagement rings guide” instead of generic “learn more” links. Make sure each key commercial or informational page is linked from multiple relevant places.`
+      }
+    }
+
+    return {
+      why: 'This issue reduces how clearly AI systems can interpret, trust, or quote your content.',
+      how: 'Address this on your key landing pages first, then roll the same fix out across other important URLs.'
+    }
+  }
+
+  const getStrengthDetails = (strength: string) => {
+    const pageUrl = result?.pages_analyzed[0]?.url || url
+    const lower = strength.toLowerCase()
+
+    if (lower.includes('internal linking')) {
+      return {
+        why: 'Your internal links make it easier for AI to map how topics connect across your site and to identify your most important URLs. This is exactly the kind of structure that supports higher authority and better chances of being chosen as a cited source versus “thin” sites.',
+        keepDoing: `Keep adding contextual links from ${pageUrl} into your highest‑value pages (evergreen guides, key services, high‑margin products, and future FAQ hubs). Whenever you publish a new page, link it from at least 2–3 related URLs so AI always has multiple paths into that content.`
+      }
+    }
+
+    if (lower.includes('meta description')) {
+      return {
+        why: 'A strong meta description gives AI systems and search engines a clean one‑sentence summary that matches what users are looking for. This improves both classic search click‑through and AI confidence when deciding whether your URL is a good match for a given question.',
+        keepDoing: 'Use the same pattern on your other priority pages: a unique 150–160 character line that states the offer, the audience, and the benefit in natural language. Avoid stuffing keywords; instead, write something a human would actually want to click.'
+      }
+    }
+
+    if (lower.includes('content depth') || lower.includes('words')) {
+      return {
+        why: 'Deeper content gives AI much more context and “surface area” to pull from when answering user questions. Pages with real substance tend to perform better in GEO structure and citability than thin, generic landing pages.',
+        keepDoing: 'Continue publishing and expanding in‑depth pages (700+ words or more) that fully answer one topic, and pair them with clear headings, FAQs, and schema. Use this page as a model for how detailed you want all of your key commercial and educational pages to be.'
+      }
+    }
+
+    if (lower.includes('readable') || lower.includes('readability')) {
+      return {
+        why: 'High readability means both humans and AI can understand your content quickly without getting stuck on jargon or overly complex sentences. This increases the odds that an AI model will lift your sentences as direct answers instead of looking for simpler sources.',
+        keepDoing: 'Keep writing in clear, conversational language, and continue using headings and bullet points to call out your strongest claims, benefits, and answers. When you create new pages, aim for the same readability score or better so your whole site feels equally easy to parse.'
+      }
+    }
+
+    return {
+      why: 'This is a genuine strength for your site in the context of AI visibility.',
+      keepDoing: 'Use this as a pattern when you create or update other important pages.'
+    }
+  }
+
   const resetForm = () => {
     setStep('form')
     setResult(null)
@@ -90,13 +189,17 @@ export default function HealthCheck() {
   }
 
   return (
-    <div className="min-h-screen hero-gradient">
-      <nav className="glass-nav border-b border-cream-300 sticky top-0 z-50">
+    <div className="min-h-screen hero-gradient relative">
+      <div className="bg-grain" />
+      
+      <nav className="fixed top-0 w-full z-50 glass-nav py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <Link href="/" className="flex items-center gap-3">
-              <ArrowLeft className="w-4 h-4 text-ink-400" />
-              <span className="font-display text-3xl font-light tracking-wide text-ink-900">
+          <div className="flex justify-between items-center">
+            <Link href="/tools" className="flex items-center gap-3 text-ink hover:text-claude-500 transition-colors group">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm border border-ink/5 group-hover:border-claude-200 transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+              </div>
+              <span className="font-display text-xl font-bold">
                 dwight
               </span>
             </Link>
@@ -104,119 +207,122 @@ export default function HealthCheck() {
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <div className="w-16 h-16 border border-claude-200 flex items-center justify-center mx-auto mb-8">
-            <Search className="w-7 h-7 text-claude-500" />
+      <div className="max-w-3xl mx-auto px-4 pt-32 pb-20 relative z-10">
+        <div className="text-center mb-16 animate-enter">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 border border-white/60 backdrop-blur-sm mb-6">
+            <Search className="w-4 h-4 text-claude-500" />
+            <span className="text-sm font-medium text-ink-light uppercase tracking-wider">GEO Audit Tool</span>
           </div>
-          <h1 className="font-display text-4xl md:text-5xl font-light mb-6 text-ink-900 tracking-wide">
-            GEO Audit
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-ink tracking-tight">
+            Page Health Check
           </h1>
-          <p className="text-lg text-ink-500 max-w-2xl mx-auto font-light leading-relaxed">
-            Discover how visible your content is to AI engines with our proprietary GEO scoring
+          <p className="text-lg text-ink-light max-w-2xl mx-auto leading-relaxed">
+            Discover how visible your content is to AI engines with our proprietary GEO scoring.
           </p>
         </div>
 
         {step === 'form' && (
-          <form onSubmit={handleSubmit} className="card-elevated p-10 space-y-8">
+          <form onSubmit={handleSubmit} className="glass-card p-10 space-y-8 rounded-[2rem] animate-enter delay-100">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-5 py-4 font-light">
-                <strong className="font-normal">Error:</strong> {error}
+              <div className="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl text-sm">
+                <strong className="font-bold">Error:</strong> {error}
               </div>
             )}
             
             <div>
-              <div className="block text-xs tracking-widest uppercase mb-3 text-ink-500 font-light">
+              <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
                 Website URL to analyze *
-              </div>
+              </label>
               <input
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com"
                 required
-                className="w-full px-5 py-4 border border-cream-300 focus:border-claude-500 bg-white font-light"
+                className="w-full px-5 py-4"
               />
-              <p className="text-sm text-ink-400 mt-2 font-light">
+              <p className="text-sm text-ink-muted mt-2">
                 Enter the main page you want to analyze
               </p>
             </div>
 
-            <div>
-              <div className="block text-xs tracking-widest uppercase mb-3 text-ink-500 font-light">
-                Company/Brand Name
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
+                  Company/Brand Name
+                </label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Acme Inc"
+                  className="w-full px-5 py-4"
+                />
               </div>
-              <input
-                type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Acme Inc"
-                className="w-full px-5 py-4 border border-cream-300 focus:border-claude-500 bg-white font-light"
-              />
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
+                  Your Email *
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  className="w-full px-5 py-4"
+                />
+              </div>
             </div>
 
             <div>
-              <div className="block text-xs tracking-widest uppercase mb-3 text-ink-500 font-light">
-                Your Email *
-              </div>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                className="w-full px-5 py-4 border border-cream-300 focus:border-claude-500 bg-white font-light"
-              />
-              <p className="text-sm text-ink-400 mt-2 font-light">
-                We&apos;ll send you the full report
-              </p>
-            </div>
-
-            <div>
-              <div className="block text-xs tracking-widest uppercase mb-3 text-ink-500 font-light">
+              <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
                 What question would customers ask? (Optional)
-              </div>
+              </label>
               <input
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="e.g., Where can I buy sustainable sneakers?"
-                className="w-full px-5 py-4 border border-cream-300 focus:border-claude-500 bg-white font-light"
+                className="w-full px-5 py-4"
               />
             </div>
 
             <button
               type="submit"
               disabled={!isFormValid}
-              className="w-full bg-claude-500 text-white px-6 py-4 hover:bg-claude-600 transition-all duration-300 text-xs tracking-widest uppercase font-light disabled:bg-cream-400 disabled:cursor-not-allowed"
+              className="btn-primary w-full text-sm uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Analyze My Page →
+              Analyze My Page
             </button>
           </form>
         )}
 
         {step === 'analyzing' && (
-          <div className="card-elevated p-14 text-center">
-            <Loader className="w-14 h-14 text-claude-500 animate-spin mx-auto mb-8" />
-            <h2 className="font-display text-2xl font-light mb-6 text-ink-900 tracking-wide">
+          <div className="glass-card p-14 text-center rounded-[2rem] animate-enter">
+            <div className="relative inline-block mb-8">
+              <div className="absolute inset-0 bg-claude-500/20 blur-xl rounded-full animate-pulse-slow" />
+              <Loader className="w-14 h-14 text-claude-500 animate-spin relative z-10" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4 text-ink">
               Analyzing Your Content...
             </h2>
-            <p className="text-ink-500 mb-8 font-light">{analyzingStep}</p>
-            <div className="max-w-md mx-auto bg-cream-50 p-6 text-left">
-              <div className="space-y-4 text-sm font-light">
-                <div className="flex items-center gap-3 text-ink-600">
+            <p className="text-ink-light mb-8">{analyzingStep}</p>
+            <div className="max-w-md mx-auto bg-white/50 border border-white/60 rounded-xl p-6 text-left backdrop-blur-sm">
+              <div className="space-y-4 text-sm">
+                <div className="flex items-center gap-3 text-ink">
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   <span>Connecting to server...</span>
                 </div>
-                <div className="flex items-center gap-3 text-ink-600">
+                <div className="flex items-center gap-3 text-ink">
                   <Loader className="w-4 h-4 text-claude-500 animate-spin" />
                   <span>Scanning page structure...</span>
                 </div>
-                <div className="flex items-center gap-3 text-ink-300">
+                <div className="flex items-center gap-3 text-ink-muted">
                   <div className="w-4 h-4" />
                   <span>Checking schema markup...</span>
                 </div>
-                <div className="flex items-center gap-3 text-ink-300">
+                <div className="flex items-center gap-3 text-ink-muted">
                   <div className="w-4 h-4" />
                   <span>Testing AI visibility...</span>
                 </div>
@@ -226,20 +332,20 @@ export default function HealthCheck() {
         )}
 
         {step === 'results' && result && (
-          <div className="space-y-10">
-            <div className="card-elevated p-12 text-center">
-              <h2 className="font-display text-2xl font-light mb-8 text-ink-900 tracking-wide">
+          <div className="space-y-10 animate-enter">
+            <div className="glass-card p-12 text-center rounded-[2rem]">
+              <h2 className="text-2xl font-bold mb-8 text-ink">
                 Your AI Visibility Score
               </h2>
               <div className="flex items-center justify-center gap-8 mb-6">
-                <div className={`font-display text-8xl font-light tracking-wide ${getScoreColor(result.overall_score)}`}>
+                <div className={`text-8xl font-bold tracking-tighter ${getScoreColor(result.overall_score)}`}>
                   {result.overall_score}
                 </div>
-                <div className={`font-display text-5xl font-light px-8 py-3 ${getGradeColor(result.grade)}`}>
+                <div className={`text-5xl font-bold px-6 py-2 rounded-2xl ${getGradeColor(result.grade)}`}>
                   {result.grade}
                 </div>
               </div>
-              <p className="text-ink-500 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-ink-light max-w-2xl mx-auto leading-relaxed">
                 {result.overall_score >= 70 
                   ? "Great job! Your content is well-optimized for AI visibility."
                   : result.overall_score >= 50 
@@ -249,36 +355,36 @@ export default function HealthCheck() {
             </div>
 
             {result.pages_analyzed.length > 0 && (
-              <div className="card-elevated p-10">
-                <h3 className="font-display text-xl font-light mb-6 text-ink-900 flex items-center gap-3 tracking-wide">
+              <div className="glass-card p-10 rounded-[2rem]">
+                <h3 className="text-xl font-bold mb-6 text-ink flex items-center gap-3">
                   <ExternalLink className="w-5 h-5 text-claude-500" />
                   Page Analysis
                 </h3>
                 {result.pages_analyzed.map((page, index) => (
-                  <div key={index} className="border border-cream-200 p-5 mb-4">
+                  <div key={index} className="bg-white/50 border border-ink/5 rounded-xl p-5 mb-4">
                     <div className="flex justify-between items-start mb-4">
-                      <div className="truncate flex-1">
-                        <a href={page.url} target="_blank" rel="noopener noreferrer" className="text-claude-600 hover:underline font-light">
+                      <div className="truncate flex-1 mr-4">
+                        <a href={page.url} target="_blank" rel="noopener noreferrer" className="text-claude-600 hover:underline font-medium">
                           {page.url}
                         </a>
                       </div>
-                      <div className={`font-display text-xl font-light ${getScoreColor(page.score)}`}>
+                      <div className={`text-xl font-bold ${getScoreColor(page.score)}`}>
                         {page.score}/100
                       </div>
                     </div>
-                    <div className="flex gap-6 text-sm font-light">
+                    <div className="flex gap-6 text-sm font-medium">
                       <span className={page.has_schema ? 'text-green-600' : 'text-red-500'}>
                         {page.has_schema ? '✓' : '✗'} Schema
                       </span>
                       <span className={page.has_faq ? 'text-green-600' : 'text-red-500'}>
                         {page.has_faq ? '✓' : '✗'} FAQ
                       </span>
-                      <span className="text-ink-500">
+                      <span className="text-ink-light">
                         Readability: {Math.round(page.readability_score)}%
                       </span>
                     </div>
                     {page.issues.length > 0 && (
-                      <div className="mt-4 text-sm text-red-600 font-light">
+                      <div className="mt-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg inline-block">
                         {page.issues[0]}
                       </div>
                     )}
@@ -287,73 +393,124 @@ export default function HealthCheck() {
               </div>
             )}
 
-            {result.top_issues.length > 0 && (
-              <div className="card-elevated p-10">
-                <div className="flex items-center gap-3 mb-8">
-                  <AlertCircle className="w-5 h-5 text-red-500" />
-                  <h3 className="font-display text-xl font-light text-ink-900 tracking-wide">Issues Found</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {result.top_issues.length > 0 && (
+                <div className="glass-card p-8 rounded-[2rem] bg-rose-50/30 border-rose-100">
+                  <div className="flex items-center gap-3 mb-6">
+                    <AlertCircle className="w-5 h-5 text-rose-500" />
+                    <h3 className="text-xl font-bold text-ink">Issues Found</h3>
+                  </div>
+                  <ul className="space-y-4">
+                    {result.top_issues.map((issue, index) => {
+                      const details = getIssueDetails(issue)
+                      return (
+                        <li key={index} className="flex items-start gap-3 text-ink-light text-sm">
+                          <span className="text-rose-500 mt-0.5 font-bold">✗</span>
+                          <div>
+                            <div className="font-medium text-ink">{issue}</div>
+                            {details && (
+                              <div className="mt-2 text-xs text-ink-muted space-y-1 bg-white/50 p-3 rounded-lg">
+                                <p><span className="font-bold text-rose-600">Why:</span> {details.why}</p>
+                                <p><span className="font-bold text-green-600">Fix:</span> {details.how}</p>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
                 </div>
-                <ul className="space-y-4">
-                  {result.top_issues.map((issue, index) => (
-                    <li key={index} className="flex items-start gap-4 text-ink-600 font-light">
-                      <span className="text-red-500 mt-0.5">✗</span>
-                      <span>{issue}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              )}
 
-            {result.top_strengths.length > 0 && (
-              <div className="card-elevated p-10">
-                <div className="flex items-center gap-3 mb-8">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <h3 className="font-display text-xl font-light text-ink-900 tracking-wide">What You&apos;re Doing Right</h3>
+              {result.top_strengths.length > 0 && (
+                <div className="glass-card p-8 rounded-[2rem] bg-green-50/30 border-green-100">
+                  <div className="flex items-center gap-3 mb-6">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <h3 className="text-xl font-bold text-ink">Strengths</h3>
+                  </div>
+                  <ul className="space-y-4">
+                    {result.top_strengths.map((strength, index) => {
+                      return (
+                        <li key={index} className="flex items-start gap-3 text-ink-light text-sm">
+                          <span className="text-green-500 mt-0.5 font-bold">✓</span>
+                          <div className="font-medium text-ink">{strength}</div>
+                        </li>
+                      )
+                    })}
+                  </ul>
                 </div>
-                <ul className="space-y-4">
-                  {result.top_strengths.map((strength, index) => (
-                    <li key={index} className="flex items-start gap-4 text-ink-600 font-light">
-                      <span className="text-green-500 mt-0.5">✓</span>
-                      <span>{strength}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="bg-claude-500 p-10 text-white">
-              <h3 className="font-display text-2xl font-light mb-8 tracking-wide">🎯 Top Recommendations</h3>
-              <ol className="space-y-5">
-                {result.recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-5">
-                    <span className="flex-shrink-0 w-8 h-8 bg-white/20 flex items-center justify-center font-light">
-                      {index + 1}
-                    </span>
-                    <span className="pt-1 font-light">{rec}</span>
-                  </li>
-                ))}
-              </ol>
+              )}
             </div>
 
-            <div className="card-elevated p-10 text-center">
-              <h3 className="font-display text-xl font-light mb-4 text-ink-900 tracking-wide">
-                Want to improve your score?
+            <div className="glass-card p-10 space-y-8 rounded-[2rem]">
+              <h3 className="text-xl font-bold text-ink flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-claude-500" />
+                Action Plan
               </h3>
-              <p className="text-ink-500 mb-8 font-light">
-                Use our Schema Generator to add structured data to your pages.
+              
+              {/* Example Fixes */}
+              {result.pages_analyzed[0] && !result.pages_analyzed[0].has_faq && (
+                <div className="border border-ink/5 rounded-xl p-6 bg-white/50">
+                  <h4 className="font-bold text-ink mb-2">1. Add an FAQ Section</h4>
+                  <p className="text-sm text-ink-light mb-4">
+                    Copy-paste this HTML block near the bottom of your page.
+                  </p>
+                  <div className="bg-ink-900 rounded-lg p-4 text-xs font-mono text-cream-100 overflow-x-auto">
+                    <pre className="whitespace-pre-wrap">
+{`<section class="faq">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-item">
+    <h3>${question || 'How do I choose the right option?'}</h3>
+    <p>Short, direct answer here.</p>
+  </div>
+</section>`}
+                    </pre>
+                  </div>
+                </div>
+              )}
+
+              {/* Schema Starter */}
+              {result.pages_analyzed[0] && !result.pages_analyzed[0].has_schema && (
+                <div className="border border-ink/5 rounded-xl p-6 bg-white/50">
+                  <h4 className="font-bold text-ink mb-2">2. Add Schema Markup</h4>
+                  <p className="text-sm text-ink-light mb-4">
+                    Add this JSON-LD to your &lt;head&gt; tag.
+                  </p>
+                  <div className="bg-ink-900 rounded-lg p-4 text-xs font-mono text-cream-100 overflow-x-auto">
+                    <pre className="whitespace-pre-wrap">
+{`<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "${companyName || 'Your Brand'}",
+  "url": "${result.pages_analyzed[0].url || url}"
+}
+</script>`}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="glass-card p-10 text-center rounded-[2rem] bg-gradient-to-br from-white/80 to-claude-50/50">
+              <h3 className="text-xl font-bold mb-4 text-ink">
+                Want to fix these issues automatically?
+              </h3>
+              <p className="text-ink-light mb-8">
+                Use our free Schema Generator to create the perfect code.
               </p>
-              <div className="flex flex-col sm:flex-row gap-5 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={resetForm}
-                  className="px-8 py-4 border border-claude-500 text-claude-500 hover:bg-claude-500 hover:text-white transition-all duration-300 text-xs tracking-widest uppercase font-light"
+                  className="btn-secondary text-sm"
                 >
                   Analyze Another Page
                 </button>
                 <Link
                   href="/tools/schema-generator"
-                  className="bg-claude-500 text-white px-8 py-4 hover:bg-claude-600 transition-all duration-300 text-xs tracking-widest uppercase font-light"
+                  className="btn-primary text-sm"
                 >
-                  Try Schema Generator →
+                  Open Schema Generator
                 </Link>
               </div>
             </div>
