@@ -3,49 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Search, BarChart3, CheckCircle, ArrowRight, Sparkles, Zap, Target, TrendingUp, ArrowUpRight, Globe, Lock } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { AIVisibilityTool } from '@/components/AIVisibilityTool'
-
-// --- SVG Logos ---
-
-function ChatGPTLogo(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0462 0 0 0 4.9891 4.1414a6.0268 6.0268 0 0 0-2.0722 5.6815 5.9847 5.9847 0 0 0 .5157 4.9108 6.0462 6.0462 0 0 0 6.51 2.9 6.0651 6.0651 0 0 0 10.2662-2.1294 6.0268 6.0268 0 0 0 2.0722-5.6815ZM13.2056 2.2528a4.476 4.476 0 0 1 2.2045 1.034l-1.261 2.184a4.476 4.476 0 0 0-2.2045-1.034V2.2528Zm-2.411 0v2.184A4.476 4.476 0 0 0 8.59 5.4708l-1.261-2.184a4.476 4.476 0 0 1 3.4656-1.034Zm-5.4656 3.4656 1.89 1.091a4.476 4.476 0 0 0 .227 2.411L5.262 10.4814a4.476 4.476 0 0 1 .067-4.763ZM3.1444 8.59l2.184-1.261a4.476 4.476 0 0 0 1.034 2.2045l-2.184 1.261a4.476 4.476 0 0 1-1.034-2.2045Zm1.034 5.4656-1.091-1.89a4.476 4.476 0 0 1-2.411-.227l1.261-2.184a4.476 4.476 0 0 0 2.241 4.301Zm3.4656 2.0722-1.261 2.184a4.476 4.476 0 0 1-2.2045-1.034l1.261-2.184a4.476 4.476 0 0 0 2.2045 1.034Zm5.4656 0-1.89-1.091a4.476 4.476 0 0 0-.227-2.411l2.184-1.261a4.476 4.476 0 0 1-.067 4.763Zm2.184-2.8778-2.184 1.261a4.476 4.476 0 0 0-1.034-2.2045l2.184-1.261a4.476 4.476 0 0 1 1.034 2.2045Zm-1.034-5.4656 1.091 1.89a4.476 4.476 0 0 1 2.411.227l-1.261 2.184a4.476 4.476 0 0 0-2.241-4.301Z" />
-    </svg>
-  )
-}
-
-function ClaudeLogo(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M12.0002 2.25c-5.385 0-9.7502 4.365-9.7502 9.75s4.3652 9.75 9.7502 9.75 9.75-4.365 9.75-9.75-4.365-9.75-9.75-9.75zm0 17.25c-4.1422 0-7.5002-3.358-7.5002-7.5s3.358-7.5 7.5002-7.5 7.5 3.358 7.5 7.5-3.358 7.5-7.5 7.5zm-.75-9.75h1.5v4.5h-1.5v-4.5zm.75-2.25c.414 0 .75-.336.75-.75s-.336-.75-.75-.75-.75.336-.75.75.336.75.75.75z"/>
-    </svg>
-  )
-}
-
-function PerplexityLogo(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 4.236L19.764 8.118V15.882L12 19.764L4.236 15.882V8.118L12 4.236ZM12 8L8 10V14L12 16L16 14V10L12 8Z"/>
-    </svg>
-  )
-}
-
-function GeminiLogo(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z"/>
-    </svg>
-  )
-}
-
-function BingChatLogo(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M11.5 2C11.5 2 5 4 5 17L11.5 22L18 17C18 4 11.5 2 11.5 2ZM11.5 19L7.5 16C7.5 16 7 7 11.5 5.5C16 7 15.5 16 15.5 16L11.5 19Z"/>
-    </svg>
-  )
-}
 
 // --- Helper Components ---
 
@@ -194,24 +153,28 @@ export default function Home() {
         </div>
         <div className="flex justify-center items-center gap-12 md:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
            <div className="flex items-center gap-2">
-             <ChatGPTLogo className="w-8 h-8" />
+             <div className="w-8 h-8 relative">
+               <Image src="/logos/chatgpt.png" alt="ChatGPT" fill className="object-contain" />
+             </div>
              <span className="text-xl font-bold text-ink font-display">ChatGPT</span>
            </div>
            <div className="flex items-center gap-2">
-             <PerplexityLogo className="w-8 h-8" />
+             <div className="w-8 h-8 relative">
+               <Image src="/logos/perplexity.png" alt="Perplexity" fill className="object-contain" />
+             </div>
              <span className="text-xl font-bold text-ink font-display">Perplexity</span>
            </div>
            <div className="flex items-center gap-2">
-             <ClaudeLogo className="w-8 h-8" />
+             <div className="w-8 h-8 relative">
+               <Image src="/logos/claude.png" alt="Claude" fill className="object-contain" />
+             </div>
              <span className="text-xl font-bold text-ink font-display">Claude</span>
            </div>
            <div className="flex items-center gap-2">
-             <GeminiLogo className="w-8 h-8" />
+             <div className="w-8 h-8 relative">
+               <Image src="/logos/gemini.png" alt="Gemini" fill className="object-contain" />
+             </div>
              <span className="text-xl font-bold text-ink font-display">Gemini</span>
-           </div>
-           <div className="flex items-center gap-2">
-             <BingChatLogo className="w-8 h-8" />
-             <span className="text-xl font-bold text-ink font-display">Bing Chat</span>
            </div>
         </div>
       </div>
