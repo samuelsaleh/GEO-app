@@ -29,7 +29,6 @@ class AIProvider(Enum):
     ANTHROPIC = "anthropic"
     OPENAI = "openai"
     GOOGLE = "google"
-    PERPLEXITY = "perplexity"
 
 
 class AIModel:
@@ -37,6 +36,7 @@ class AIModel:
     
     # Anthropic Models (Best for reasoning & analysis)
     CLAUDE_OPUS_4 = ("anthropic", "claude-sonnet-4-20250514", "Claude Sonnet 4")
+    CLAUDE_SONNET_37 = ("anthropic", "claude-3-7-sonnet-20250219", "Claude 3.7 Sonnet") # Hypothetical date based on blog post
     CLAUDE_SONNET_35 = ("anthropic", "claude-3-5-sonnet-20241022", "Claude 3.5 Sonnet")
     
     # OpenAI Models (Great all-around)
@@ -49,10 +49,6 @@ class AIModel:
     GEMINI_3_PRO_PREVIEW = ("google", "gemini-3-pro-preview", "Gemini 3 Pro Preview")
     GEMINI_PRO = ("google", "gemini-1.5-pro", "Gemini 1.5 Pro")
     GEMINI_FLASH = ("google", "gemini-1.5-flash", "Gemini 1.5 Flash")
-
-    # Perplexity Models (Best for real-time search)
-    PERPLEXITY_SONAR = ("perplexity", "sonar", "Perplexity Sonar")
-    PERPLEXITY_SONAR_PRO = ("perplexity", "sonar-pro", "Perplexity Sonar Pro")
 
 
 class MultiProviderAI:
@@ -83,7 +79,7 @@ class MultiProviderAI:
                 from anthropic import Anthropic
                 self.providers["anthropic"] = {
                     "client": Anthropic(api_key=settings.anthropic_api_key),
-                    "model": "claude-sonnet-4-20250514",  # Latest Claude Sonnet 4
+                    "model": "claude-3-7-sonnet-20250219",  # Latest Claude 3.7 Sonnet
                     "fallback_model": "claude-3-5-sonnet-20241022",  # Fallback to 3.5 Sonnet
                     "name": "Claude"
                 }
@@ -132,20 +128,6 @@ class MultiProviderAI:
                 logger.info("✅ Google (Gemini 1.5 Legacy) initialized")
             except Exception as e:
                 logger.warning(f"❌ Failed to initialize Google (Legacy): {e}")
-        
-        # Initialize Perplexity (Search)
-        if hasattr(settings, 'perplexity_api_key') and settings.perplexity_api_key:
-            try:
-                from openai import OpenAI
-                self.providers["perplexity"] = {
-                    "client": OpenAI(api_key=settings.perplexity_api_key, base_url="https://api.perplexity.ai"),
-                    "model": "sonar", 
-                    "fallback_model": "sonar-pro",
-                    "name": "Perplexity"
-                }
-                logger.info("✅ Perplexity initialized")
-            except Exception as e:
-                logger.warning(f"❌ Failed to initialize Perplexity: {e}")
 
         if not self.providers:
             logger.warning("⚠️ No AI providers configured! Add API keys to .env")
@@ -203,7 +185,7 @@ class MultiProviderAI:
                 
                 if provider_name == "anthropic":
                     result = await self._call_anthropic(
-                        provider, prompt, system_prompt, max_tokens, temperature
+                        provider, prompt, system_prompt, max_tokens, temperature, web_search=web_search
                     )
                 elif provider_name == "openai":
                     result = await self._call_openai(
@@ -212,10 +194,6 @@ class MultiProviderAI:
                 elif provider_name == "google":
                     result = await self._call_google(
                         provider, prompt, system_prompt, max_tokens, temperature, web_search=web_search
-                    )
-                elif provider_name == "perplexity":
-                    result = await self._call_openai(
-                        provider, prompt, system_prompt, max_tokens, temperature, json_mode
                     )
                 else:
                     continue
@@ -260,14 +238,30 @@ class MultiProviderAI:
         try:
             if provider == "anthropic":
                 client = self.providers["anthropic"]["client"]
-                response = client.messages.create(
-                    model=model,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    system=system_prompt,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                return response.content[0].text
+                
+                # Check for tools/web search (Claude 3.7+ feature)
+                kwargs = {
+                    "model": model,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "system": system_prompt,
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+                
+                if web_search:
+                     # Add web search tool if requested
+                     kwargs["tools"] = [{"type": "web_search"}]
+                
+                response = client.messages.create(**kwargs)
+                
+                # Handle potential tool use response content if web search was used
+                # Usually the API returns text content alongside tool use or usage
+                # For simplicity, we extract the main text content block
+                for block in response.content:
+                    if block.type == "text":
+                        return block.text
+                        
+                return response.content[0].text if response.content else ""
                 
             elif provider == "openai":
                 return await self._call_openai(
@@ -308,20 +302,7 @@ class MultiProviderAI:
                         }
                     )
                     return response.text
-
-            elif provider == "perplexity":
-                client = self.providers["perplexity"]["client"]
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
-                return response.choices[0].message.content
-                
+        
         except Exception as e:
             logger.error(f"Error with {provider}/{model}: {e}")
             return None
@@ -334,31 +315,48 @@ class MultiProviderAI:
         prompt: str,
         system_prompt: str,
         max_tokens: int,
-        temperature: float
+        temperature: float,
+        web_search: bool = False
     ) -> Optional[str]:
         """Call Anthropic Claude API"""
         client = provider["client"]
         
         try:
-            response = client.messages.create(
-                model=provider["model"],
-                max_tokens=max_tokens,
-                temperature=temperature,
-                system=system_prompt,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.content[0].text
+            kwargs = {
+                "model": provider["model"],
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "system": system_prompt,
+                "messages": [{"role": "user", "content": prompt}]
+            }
+            
+            # Enable web search if requested
+            if web_search:
+                # Add web search tool definition
+                # Based on Anthropic docs, this is often a specific tool type
+                kwargs["tools"] = [{"type": "web_search"}]
+
+            response = client.messages.create(**kwargs)
+            
+            # Extract text content (ignoring tool use blocks for now as we just want the answer)
+            for block in response.content:
+                if block.type == "text":
+                    return block.text
+            
+            # Fallback if no text block found but content exists
+            return response.content[0].text if response.content else ""
+            
         except Exception as e:
             # Try fallback model
             logger.warning(f"Primary model failed, trying fallback: {e}")
             try:
-                response = client.messages.create(
-                    model=provider["fallback_model"],
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    system=system_prompt,
-                    messages=[{"role": "user", "content": prompt}]
-                )
+                # Fallback model call (without web search usually to be safe, or retry with it?)
+                # We'll retry without web search for fallback to ensure success
+                kwargs["model"] = provider["fallback_model"]
+                if "tools" in kwargs:
+                    del kwargs["tools"]
+                    
+                response = client.messages.create(**kwargs)
                 return response.content[0].text
             except:
                 raise

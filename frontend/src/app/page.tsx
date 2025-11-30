@@ -242,7 +242,7 @@ export default function Home() {
             {/* Wide Card - Schema Gen */}
             <div className="md:col-span-8 h-[300px]">
               <Link href="/tools/schema-generator" className="block h-full glass-card rounded-[2rem] relative overflow-hidden group animate-enter delay-400">
-                <div className="p-10 flex flex-col h-full relative z-10">
+                <div className="p-10 flex flex-col h-full relative z-10 w-1/2">
                   <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-6">
                     <Zap className="w-7 h-7" />
                   </div>

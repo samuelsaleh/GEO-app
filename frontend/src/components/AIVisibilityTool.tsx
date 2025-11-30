@@ -233,7 +233,7 @@ const BRAND_COLORS = {
   ]
 }
 
-export function AIVisibilityTool({ hideHeader = false }: { hideHeader?: boolean }) {
+export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHeader?: boolean, onInputUpdate?: (brand: string, industry: string) => void }) {
   const [step, setStep] = useState<WizardStep>('input')
   const [brandName, setBrandName] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
@@ -694,23 +694,26 @@ export function AIVisibilityTool({ hideHeader = false }: { hideHeader?: boolean 
                 I should revert to the original structure but wrapped in !hideHeader check. 
             */}
             
-            <div className="glass-card p-10 rounded-[2rem]">
-              <div className="space-y-6">
+            <div className={`${hideHeader ? 'glass-card p-6 md:p-8 rounded-3xl' : 'glass-card p-10 rounded-[2rem]'}`}>
+              <div className={`${hideHeader ? 'space-y-4' : 'space-y-6'}`}>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
                     Brand Name
                   </label>
                   <input
                     type="text"
                     value={brandName}
-                    onChange={(e) => setBrandName(e.target.value)}
+                    onChange={(e) => {
+                      setBrandName(e.target.value)
+                      if (onInputUpdate) onInputUpdate(e.target.value, industryInput)
+                    }}
                     placeholder="e.g., Nike, HubSpot"
-                    className="w-full px-5 py-4"
+                    className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
                     Website URL
                   </label>
                   <input
@@ -718,25 +721,28 @@ export function AIVisibilityTool({ hideHeader = false }: { hideHeader?: boolean 
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="e.g., nike.com"
-                    className="w-full px-5 py-4"
+                    className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
+                    <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
                       Industry <span className="text-ink-muted/50 font-normal normal-case">(Optional)</span>
                     </label>
                     <input
                       type="text"
                       value={industryInput}
-                      onChange={(e) => setIndustryInput(e.target.value)}
+                      onChange={(e) => {
+                        setIndustryInput(e.target.value)
+                        if (onInputUpdate) onInputUpdate(brandName, e.target.value)
+                      }}
                       placeholder="e.g. Retail"
-                      className="w-full px-5 py-4"
+                      className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
+                    <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
                       Sub-Industry <span className="text-ink-muted/50 font-normal normal-case">(Optional)</span>
                     </label>
                     <input
@@ -744,13 +750,13 @@ export function AIVisibilityTool({ hideHeader = false }: { hideHeader?: boolean 
                       value={subIndustryInput}
                       onChange={(e) => setSubIndustryInput(e.target.value)}
                       placeholder="e.g. Sneakers"
-                      className="w-full px-5 py-4"
+                      className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-ink-muted">
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
                     Email
                   </label>
                   <input
@@ -758,7 +764,7 @@ export function AIVisibilityTool({ hideHeader = false }: { hideHeader?: boolean 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@company.com"
-                    className="w-full px-5 py-4"
+                    className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
                   />
                 </div>
                 
