@@ -77,17 +77,16 @@ class MultiModelResult(BaseModel):
 AI_MODELS = [
     # FREE TIER MODELS (first 2)
     {"id": "gpt-5.1", "name": "GPT-5.1", "provider": "openai", "icon": "🤖"},
-    {"id": "claude-sonnet-4", "name": "Claude Sonnet 4", "provider": "anthropic", "icon": "🧠"},
+    {"id": "claude-3.7-sonnet", "name": "Claude 3.7 Sonnet", "provider": "anthropic", "icon": "🧠"},
     # PAID TIER MODELS (additional 4)
     {"id": "gpt-5.1-mini", "name": "GPT-5.1 Mini", "provider": "openai", "icon": "⚡"},
-    {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "provider": "google", "icon": "💎"},
+    {"id": "gemini-3-pro", "name": "Gemini 3 Pro", "provider": "google", "icon": "💎"},
     {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "provider": "google", "icon": "✨"},
     {"id": "claude-3.5-sonnet", "name": "Claude 3.5 Sonnet", "provider": "anthropic", "icon": "🎭"},
-    {"id": "sonar", "name": "Perplexity Sonar", "provider": "perplexity", "icon": "🔍"},
 ]
 
 # Model sets for different tiers
-FREE_MODELS = ["gpt-5.1", "claude-sonnet-4"]
+FREE_MODELS = ["gpt-5.1", "claude-3.7-sonnet"]
 PAID_MODELS = [m["id"] for m in AI_MODELS]  # All models
 
 
@@ -453,18 +452,17 @@ class VisibilityMonitor:
             model_mapping = {
                 "gpt-5.1": "gpt-5.1",
                 "gpt-5.1-mini": "gpt-5.1-mini",
-                "claude-sonnet-4": "claude-sonnet-4-20250514",
+                "claude-3.7-sonnet": "claude-3-7-sonnet-20250219",
                 "claude-3.5-sonnet": "claude-3-5-sonnet-20241022",
-                "gemini-2.0-flash": "gemini-2.0-flash",
+                "gemini-3-pro": "gemini-3-pro-preview",
                 "gemini-1.5-flash": "gemini-1.5-flash",
-                "sonar": "sonar",
             }
             
             actual_model = model_mapping.get(model_id, model_id)
             
             # Use the AI service's generate method with specific provider
-            # Enable web search for providers that support it (Google, OpenAI) to simulate live lookups
-            use_web_search = provider in ["google", "openai"]
+            # Enable web search for providers that support it (Google, OpenAI, Anthropic) to simulate live lookups
+            use_web_search = provider in ["google", "openai", "anthropic"]
             
             response = await self.ai_service.generate_with_model(
                 prompt=prompt,
@@ -667,13 +665,23 @@ class VisibilityMonitor:
                     # Map the new format to the expected format
                     # ai_service returns: [{"query": "...", "intent": "...", "rationale": "..."}]
                     # we need: [{"prompt": "...", "category": "..."}]
-                    return [
-                        {
-                            "prompt": q.get("query", ""),
+                    
+                    # Ensure some prompts include Reddit
+                    mapped_prompts = []
+                    for i, q in enumerate(questions):
+                        prompt_text = q.get("query", "")
+                        
+                        # Add Reddit to every 3rd prompt or if category is 'social' or 'reviews'
+                        if i % 3 == 0 or q.get("intent") in ["reviews", "social_proof"]:
+                            if "reddit" not in prompt_text.lower():
+                                prompt_text += " Check Reddit threads for user opinions."
+                        
+                        mapped_prompts.append({
+                            "prompt": prompt_text,
                             "category": q.get("intent", "general")
-                        }
-                        for q in questions
-                    ]
+                        })
+                        
+                    return mapped_prompts
             except Exception as e:
                 logger.warning(f"AI prompt generation failed: {e}")
                 # Fallthrough to template based
@@ -708,34 +716,34 @@ class VisibilityMonitor:
         templates = {
             "jewelry": [
                 {"prompt": "What are the best luxury jewelry brands?", "category": "recommendation"},
-                {"prompt": "What are the top jewelry brands for engagement rings in 2024?", "category": "best_of"},
+                {"prompt": "What are the top jewelry brands for engagement rings in 2024? Check Reddit threads too.", "category": "best_of"},
                 {"prompt": f"Compare {all_brands}. What are the pros and cons of each jewelry brand?", "category": "comparison"},
                 {"prompt": f"I like {comp_list}. Are there other luxury jewelry brands I should consider?", "category": "alternatives"},
-                {"prompt": "I want to buy a quality engagement ring. What brands should I look at?", "category": "problem_solution"},
+                {"prompt": "I want to buy a quality engagement ring. What brands should I look at? Include Reddit discussions.", "category": "problem_solution"},
                 {"prompt": "Which jewelry brands have the best reputation for quality and craftsmanship?", "category": "reputation"},
             ],
             "saas": [
-                {"prompt": f"What {industry} software do you recommend for small businesses?", "category": "recommendation"},
+                {"prompt": f"What {industry} software do you recommend for small businesses? Look at Reddit for real user feedback.", "category": "recommendation"},
                 {"prompt": f"What is the best {industry} solution in {year}?", "category": "best_of"},
                 {"prompt": f"Compare {all_brands}. Which {industry} tool is best and why?", "category": "comparison"},
                 {"prompt": f"I'm considering {comp_list}. Are there better {industry} alternatives?", "category": "alternatives"},
-                {"prompt": f"I need {industry} for my team. What are my options?", "category": "problem_solution"},
+                {"prompt": f"I need {industry} for my team. What are my options? Search Reddit for advice.", "category": "problem_solution"},
                 {"prompt": f"Which {industry} tools have the best reputation for reliability?", "category": "reputation"},
             ],
             "ecommerce": [
                 {"prompt": f"What are the best online stores for {industry}?", "category": "recommendation"},
-                {"prompt": f"What are the top {industry} sites in {year}?", "category": "best_of"},
+                {"prompt": f"What are the top {industry} sites in {year}? Check Reddit for reviews.", "category": "best_of"},
                 {"prompt": f"Compare {all_brands}. Which offers the best value?", "category": "comparison"},
                 {"prompt": f"I know about {comp_list}. Are there other {industry} sites I should check?", "category": "alternatives"},
-                {"prompt": f"I want to buy {industry} products online. Where should I shop?", "category": "problem_solution"},
+                {"prompt": f"I want to buy {industry} products online. Where should I shop? Include Reddit recommendations.", "category": "problem_solution"},
                 {"prompt": f"Which {industry} stores are most trustworthy?", "category": "reputation"},
             ],
             "default": [
-                {"prompt": f"What {industry} brands do you recommend?", "category": "recommendation"},
+                {"prompt": f"What {industry} brands do you recommend? Check Reddit threads.", "category": "recommendation"},
                 {"prompt": f"What is the best {industry} option in the market right now?", "category": "best_of"},
                 {"prompt": f"Compare {all_brands}. What are the key differences?", "category": "comparison"},
                 {"prompt": f"I'm looking at {comp_list}. Are there better alternatives?", "category": "alternatives"},
-                {"prompt": f"I'm looking for {industry}. What are my best options?", "category": "problem_solution"},
+                {"prompt": f"I'm looking for {industry}. What are my best options? Look up recent Reddit discussions.", "category": "problem_solution"},
                 {"prompt": f"Which {industry} brands have the best reputation?", "category": "reputation"},
             ]
         }
@@ -872,11 +880,11 @@ class VisibilityMonitor:
         prompts = {
             "jewelry": [
                 f"What are the best luxury jewelry brands?",
-                f"Best diamond jewelry brands in Europe",
+                f"Best diamond jewelry brands in Europe. Search Reddit for reviews.",
                 f"Where to buy high-quality diamond bracelets?",
                 f"Top sustainable jewelry brands",
                 f"Best jewelry brands for engagement rings",
-                f"Recommended jewelry brands for gifts",
+                f"Recommended jewelry brands for gifts. Check Reddit threads.",
                 f"{brand} vs competitors - which is better?",
                 f"Is {brand} a good jewelry brand?",
                 f"Best places to buy fine jewelry online",
@@ -884,7 +892,7 @@ class VisibilityMonitor:
             ],
             "saas": [
                 f"Best {industry} software tools",
-                f"Top {industry} platforms for businesses",
+                f"Top {industry} platforms for businesses. Search Reddit for user feedback.",
                 f"Recommended {industry} solutions",
                 f"{brand} alternatives and competitors",
                 f"Is {brand} worth it?",
@@ -892,14 +900,14 @@ class VisibilityMonitor:
             ],
             "ecommerce": [
                 f"Best online stores for {industry}",
-                f"Where to buy {industry} products online",
+                f"Where to buy {industry} products online. Check Reddit recommendations.",
                 f"Top {industry} brands",
                 f"Best {industry} websites",
                 f"{brand} reviews - is it legit?"
             ],
             "default": [
                 f"Best {industry} companies",
-                f"Top {industry} brands to consider",
+                f"Top {industry} brands to consider. Check Reddit for honest opinions.",
                 f"Recommended {industry} services",
                 f"{brand} review - pros and cons",
                 f"Is {brand} good for {industry}?",
