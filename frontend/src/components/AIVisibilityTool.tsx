@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   ArrowLeft, ArrowRight, Loader, CheckCircle, XCircle,
   Sparkles, TrendingUp, Plus, Trash2, Eye, Globe,
@@ -9,6 +9,7 @@ import {
   ChevronDown, ChevronUp, ExternalLink, MessageSquare, Zap, Play
 } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 // Quiz removed
 // const QUIZ_QUESTIONS = [ ... ]
@@ -237,6 +238,9 @@ const BRAND_COLORS = {
 }
 
 export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHeader?: boolean, onInputUpdate?: (brand: string, industry: string) => void }) {
+  const searchParams = useSearchParams()
+  const hasAutoStarted = useRef(false)
+  
   const [step, setStep] = useState<WizardStep>('input')
   const [brandName, setBrandName] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
@@ -268,6 +272,38 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
       setHasUsedFree(true)
     }
   }, [])
+  
+  // Read URL params from homepage form and auto-start analysis
+  useEffect(() => {
+    if (hasAutoStarted.current) return
+    
+    const brand = searchParams.get('brand')
+    const url = searchParams.get('url')
+    const emailParam = searchParams.get('email')
+    const industryParam = searchParams.get('industry')
+    const subIndustryParam = searchParams.get('subIndustry')
+    const scopeParam = searchParams.get('scope') as 'global' | 'national' | 'local' | null
+    const regionParam = searchParams.get('region')
+    
+    // If we have the required fields from URL, pre-fill and auto-start
+    if (brand && url && emailParam) {
+      hasAutoStarted.current = true
+      
+      setBrandName(brand)
+      setWebsiteUrl(url)
+      setEmail(emailParam)
+      if (industryParam) setIndustryInput(industryParam)
+      if (subIndustryParam) setSubIndustryInput(subIndustryParam)
+      if (scopeParam) setScope(scopeParam)
+      if (regionParam) setLocation(regionParam)
+      
+      // Auto-start analysis after a short delay to let state update
+      setTimeout(() => {
+        // Trigger analysis programmatically
+        document.getElementById('analyze-btn')?.click()
+      }, 100)
+    }
+  }, [searchParams])
 
   const analyzeBrand = async () => {
     if (!brandName || !websiteUrl) return
@@ -863,6 +899,7 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
                 )}
                 
                 <button
+                  id="analyze-btn"
                   onClick={analyzeBrand}
                   disabled={!brandName || !websiteUrl || analyzing}
                   className={`btn-primary w-full font-bold uppercase tracking-widest disabled:opacity-50 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center ${hideHeader ? 'py-5 text-base rounded-2xl shadow-xl shadow-claude-500/20 mt-4' : 'text-sm'}`}
