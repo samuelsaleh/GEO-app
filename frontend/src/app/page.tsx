@@ -4,6 +4,7 @@ import { Search, BarChart3, CheckCircle, ArrowRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Hero } from '@/components/Hero'
+import { ProcessStepper } from '@/components/ProcessStepper'
 
 export default function Home() {
   return (
@@ -211,6 +212,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Process Stepper Section */}
+      <ProcessStepper />
 
       {/* CTA Section */}
       <section className="py-32 px-4 text-center relative">
