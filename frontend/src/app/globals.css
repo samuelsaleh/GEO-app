@@ -77,11 +77,11 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Darker Transparent Glass Nav */
 .glass-nav {
-  background: rgba(58, 37, 27, 0.85); /* Semi-transparent Dark Ink Brown */
+  background: transparent;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  color: #FFF7EA; 
+  border-bottom: 1px solid rgba(91, 58, 41, 0.08);
+  color: var(--ink);
 }
 
 /* Modern Button Styles */

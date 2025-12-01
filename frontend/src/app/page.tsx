@@ -84,7 +84,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass-nav py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link href="/" className="font-display text-2xl font-bold tracking-tight flex items-center gap-3 text-cream-100">
+          <Link href="/" className="font-display text-2xl font-bold tracking-tight flex items-center gap-3 text-ink">
             <div className="relative w-10 h-10">
               <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain" />
             </div>
@@ -92,13 +92,13 @@ export default function Home() {
           </Link>
           
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/tools" className="text-sm font-medium transition-colors text-cream-200 hover:text-white">Tools</Link>
-            <Link href="/pricing" className="text-sm font-medium transition-colors text-cream-200 hover:text-white">Pricing</Link>
-            <Link href="/about" className="text-sm font-medium transition-colors text-cream-200 hover:text-white">About</Link>
+            <Link href="/tools" className="text-sm font-medium transition-colors text-ink/80 hover:text-claude-600">Tools</Link>
+            <Link href="/pricing" className="text-sm font-medium transition-colors text-ink/80 hover:text-claude-600">Pricing</Link>
+            <Link href="/about" className="text-sm font-medium transition-colors text-ink/80 hover:text-claude-600">About</Link>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/pricing" className="hidden md:block text-sm font-semibold transition-colors text-cream-100 hover:text-white">
+            <Link href="/pricing" className="hidden md:block text-sm font-semibold transition-colors text-ink hover:text-claude-600">
               Sign In
             </Link>
             <Link href="/tools/ai-visibility" className="btn-primary text-sm shadow-lg shadow-claude-500/20">
