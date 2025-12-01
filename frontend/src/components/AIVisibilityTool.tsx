@@ -288,7 +288,10 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
     setAnalyzing(true)
     setAnalyzeError(null)
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
+        (process.env.NODE_ENV === 'production' 
+          ? 'https://geo-app-production-339e.up.railway.app' 
+          : 'http://127.0.0.1:8000')
       
       // Construct industry hint from inputs
       let industryHint = industryInput
@@ -388,7 +391,10 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
     if (hasManualCompetitors || hasSubIndustry) {
       setGeneratingPrompts(true)
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
+        (process.env.NODE_ENV === 'production' 
+          ? 'https://geo-app-production-339e.up.railway.app' 
+          : 'http://127.0.0.1:8000')
         
         // Combine industry and sub-industry for better context
         const fullIndustry = hasSubIndustry 
@@ -486,7 +492,10 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
     setStep('testing')
     
     const categories = getCategoriesForProfile(profile)
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
+      (process.env.NODE_ENV === 'production' 
+        ? 'https://geo-app-production-339e.up.railway.app' 
+        : 'http://127.0.0.1:8000')
     const maxCompetitors = 5 
     const competitorNames = profile.competitors.slice(0, maxCompetitors).map(c => c.name)
     

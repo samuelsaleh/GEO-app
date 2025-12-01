@@ -58,7 +58,10 @@ function AdminDashboardContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
+          (process.env.NODE_ENV === 'production' 
+            ? 'https://geo-app-production-339e.up.railway.app' 
+            : 'http://localhost:8000')
         const token = localStorage.getItem('auth_token')
 
         if (!token) {
