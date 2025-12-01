@@ -1,67 +1,39 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Search, BarChart3, CheckCircle, ArrowRight, Zap, Menu, X } from 'lucide-react'
+import { Search, BarChart3, CheckCircle, ArrowRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Hero } from '@/components/Hero'
 
 export default function Home() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
   return (
     <div className="min-h-screen relative overflow-hidden">
       
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass-nav py-4">
+      {/* Minimal Header */}
+      <header className="fixed top-0 w-full z-50 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link href="/" className="font-display text-2xl font-bold tracking-tight flex items-center gap-3 text-dream-ink">
-            <div className="relative w-10 h-10">
+          <Link href="/" className="font-display text-xl font-bold tracking-tight flex items-center gap-2 text-[#202128]">
+            <div className="relative w-8 h-8">
               <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain" />
             </div>
-            Miageru (見上げる)
+            <span className="hidden sm:inline">Miageru</span>
           </Link>
           
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/tools" className="text-sm font-medium transition-colors text-dream-ink/70 hover:text-dream-purple-600">Tools</Link>
-            <Link href="/pricing" className="text-sm font-medium transition-colors text-dream-ink/70 hover:text-dream-purple-600">Pricing</Link>
-            <Link href="/about" className="text-sm font-medium transition-colors text-dream-ink/70 hover:text-dream-purple-600">About</Link>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link href="/pricing" className="hidden md:block text-sm font-semibold transition-colors text-dream-ink hover:text-dream-purple-600">
+          <div className="flex items-center gap-6">
+            <Link href="/tools" className="text-sm font-medium text-[#202128]/60 hover:text-[#202128] transition-colors">
+              Tools
+            </Link>
+            <Link href="/pricing" className="text-sm font-medium text-[#202128]/60 hover:text-[#202128] transition-colors">
+              Pricing
+            </Link>
+            <Link href="/login" className="text-sm font-semibold text-[#202128] hover:text-[#202128]/80 transition-colors">
               Sign In
             </Link>
-            <Link href="/tools/ai-visibility" className="hidden sm:block btn-primary text-sm shadow-lg shadow-dream-purple-500/20">
-              Get GEO Score
-            </Link>
-            <button 
-              className="md:hidden p-2 text-dream-ink hover:bg-black/5 rounded-lg transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X /> : <Menu />}
-            </button>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl pt-24 px-6 animate-enter md:hidden">
-          <div className="flex flex-col gap-6 text-xl font-medium text-dream-ink">
-            <Link href="/tools" onClick={() => setMobileMenuOpen(false)}>Tools</Link>
-            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-            <Link href="/about" onClick={() => setMobileMenuOpen(false)}>About</Link>
-            <hr className="border-dream-ink/10" />
-            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
-            <Link href="/tools/ai-visibility" onClick={() => setMobileMenuOpen(false)} className="btn-primary text-center">
-              Get GEO Score
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* New Hero Section */}
+      {/* Hero Section */}
       <Hero />
 
       {/* Marquee Section */}
