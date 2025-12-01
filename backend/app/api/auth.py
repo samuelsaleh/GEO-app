@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from datetime import datetime
+from typing import Optional
 
 from app.auth import (
     hash_password,
@@ -22,8 +23,8 @@ router = APIRouter()
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
-    full_name: str | None = None
-    company: str | None = None
+    full_name: Optional[str] = None
+    company: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -39,8 +40,8 @@ class Token(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: str
-    full_name: str | None
-    company: str | None
+    full_name: Optional[str]
+    company: Optional[str]
     is_admin: bool
     subscription_tier: str
     created_at: datetime
