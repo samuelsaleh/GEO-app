@@ -10,7 +10,7 @@ export function Hero() {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 overflow-hidden">
       {/* Dynamic Background */}
-      <div className="absolute inset-0 bg-aurora -z-20" />
+      <div className="fixed inset-0 bg-aurora -z-20" />
       <FluidParticles />
 
       <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
