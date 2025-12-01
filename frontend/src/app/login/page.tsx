@@ -30,8 +30,19 @@ export default function LoginPage() {
       // Store JWT token
       localStorage.setItem('auth_token', response.data.access_token)
 
-      // Redirect to admin dashboard
-      router.push('/admin')
+      // Get user profile to check if admin
+      const profileResponse = await api.get('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${response.data.access_token}`
+        }
+      })
+
+      // Redirect based on user role
+      if (profileResponse.data.is_admin) {
+        router.push('/admin')
+      } else {
+        router.push('/') // Regular users go to home page
+      }
     } catch (err: any) {
       console.error('Login error:', err)
       if (err.response?.status === 401) {
