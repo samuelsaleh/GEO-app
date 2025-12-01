@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Code, ArrowLeft, BarChart3, Lock, Sparkles, ArrowRight } from 'lucide-react'
+import { Search, Code, BarChart3, Lock, Sparkles, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -83,38 +83,47 @@ function ToolCard({
 
 export default function ToolsPage() {
   return (
-    <div className="min-h-screen hero-gradient relative">
-      <div className="bg-grain" />
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image - same as homepage */}
+      <div 
+        className="fixed inset-0 -z-20 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/background.jpg)' }}
+      />
       
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass-nav py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-3 text-cream-100 hover:text-white transition-colors group">
-              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center shadow-sm border border-white/10 group-hover:border-claude-200 transition-colors">
-                <ArrowLeft className="w-4 h-4" />
-              </div>
-              <div className="relative w-8 h-8">
-                <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain" />
-              </div>
-              <span className="font-display text-xl font-bold">
-                Miageru
-              </span>
+      {/* Header with Glass Effect - same as homepage */}
+      <header className="fixed top-0 w-full z-50 py-4 bg-white/70 backdrop-blur-xl border-b border-white/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <Link href="/" className="font-display text-xl font-bold tracking-tight flex items-center gap-2 text-[#202128]">
+            <div className="relative w-8 h-8">
+              <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain" />
+            </div>
+            <span className="hidden sm:inline">Miageru</span>
+          </Link>
+          
+          <div className="flex items-center gap-6">
+            <Link href="/tools" className="text-sm font-semibold text-[#202128]/80 hover:text-[#202128] transition-colors">
+              Tools
+            </Link>
+            <Link href="/pricing" className="text-sm font-semibold text-[#202128]/80 hover:text-[#202128] transition-colors">
+              Pricing
+            </Link>
+            <Link href="/login" className="text-sm font-bold text-[#202128] bg-[#202128]/10 px-4 py-2 rounded-full hover:bg-[#202128]/20 transition-colors">
+              Sign In
             </Link>
           </div>
         </div>
-      </nav>
+      </header>
 
       <div className="max-w-7xl mx-auto px-4 pt-32 pb-20 relative z-10">
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 border border-white/60 backdrop-blur-sm mb-6 animate-enter">
-            <Sparkles className="w-4 h-4 text-claude-500" />
-            <span className="text-sm font-medium text-ink-light uppercase tracking-wider">GEO Tools Suite</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-white/60 backdrop-blur-sm mb-6 animate-enter shadow-sm">
+            <Sparkles className="w-4 h-4 text-[#202128]" />
+            <span className="text-sm font-semibold text-[#202128]/70 uppercase tracking-wider">GEO Tools Suite</span>
           </div>
-          <h1 className="text-3xl md:text-6xl font-bold mb-6 text-ink animate-enter delay-100">
+          <h1 className="text-4xl md:text-[56px] font-extrabold mb-6 text-[#1a1a2e] leading-[1.1] tracking-[-0.02em] drop-shadow-sm animate-enter delay-100">
             Free GEO Tools
           </h1>
-          <p className="text-xl text-ink-light max-w-2xl mx-auto leading-relaxed animate-enter delay-200">
+          <p className="text-lg md:text-xl text-[#1a1a2e]/70 font-semibold max-w-2xl mx-auto leading-relaxed animate-enter delay-200">
             Professional-grade tools to measure and improve your visibility in AI search engines.
           </p>
         </div>
