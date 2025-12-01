@@ -9,8 +9,8 @@ export default function Home() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       
-      {/* Minimal Header */}
-      <header className="fixed top-0 w-full z-50 py-6">
+      {/* Header with Glass Effect */}
+      <header className="fixed top-0 w-full z-50 py-4 bg-white/70 backdrop-blur-xl border-b border-white/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <Link href="/" className="font-display text-xl font-bold tracking-tight flex items-center gap-2 text-[#202128]">
             <div className="relative w-8 h-8">
@@ -20,13 +20,13 @@ export default function Home() {
           </Link>
           
           <div className="flex items-center gap-6">
-            <Link href="/tools" className="text-sm font-medium text-[#202128]/60 hover:text-[#202128] transition-colors">
+            <Link href="/tools" className="text-sm font-semibold text-[#202128]/80 hover:text-[#202128] transition-colors">
               Tools
             </Link>
-            <Link href="/pricing" className="text-sm font-medium text-[#202128]/60 hover:text-[#202128] transition-colors">
+            <Link href="/pricing" className="text-sm font-semibold text-[#202128]/80 hover:text-[#202128] transition-colors">
               Pricing
             </Link>
-            <Link href="/login" className="text-sm font-semibold text-[#202128] hover:text-[#202128]/80 transition-colors">
+            <Link href="/login" className="text-sm font-bold text-[#202128] bg-[#202128]/10 px-4 py-2 rounded-full hover:bg-[#202128]/20 transition-colors">
               Sign In
             </Link>
           </div>

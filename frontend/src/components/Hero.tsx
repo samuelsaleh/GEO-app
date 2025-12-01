@@ -45,12 +45,12 @@ export function Hero() {
         
         {/* Hero Text Content */}
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-8">
-          <h1 className="text-[#202128] text-4xl sm:text-5xl md:text-[56px] font-bold leading-[1.1] tracking-[-0.02em] mb-5">
+          <h1 className="text-[#1a1a2e] text-4xl sm:text-5xl md:text-[56px] font-extrabold leading-[1.1] tracking-[-0.02em] mb-5 drop-shadow-sm">
             Optimize for the <br className="hidden sm:block" />
             AI Era
           </h1>
           
-          <p className="text-[#202128]/60 text-base md:text-lg font-medium leading-[1.5] tracking-[-0.01em] max-w-xl">
+          <p className="text-[#1a1a2e]/70 text-base md:text-lg font-semibold leading-[1.5] tracking-[-0.01em] max-w-xl">
             See how ChatGPT, Perplexity, and Gemini see your brand. Get your visibility score in seconds.
           </p>
         </div>
