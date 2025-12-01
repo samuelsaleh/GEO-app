@@ -33,20 +33,26 @@ body {
   overflow-x: hidden;
 }
 
-/* Aurora Background - Exact ShipX Match (High Saturation) */
+/* Aurora Background - Exact ShipX Soft Mesh */
 .bg-aurora {
-  background: 
-    /* Top Left: Strong Warm Glow */
-    radial-gradient(circle at 0% 0%, rgba(255, 241, 230, 1) 0%, rgba(255, 220, 200, 0.8) 30%, transparent 60%),
-    /* Top Right: Strong Periwinkle Glow */
-    radial-gradient(circle at 100% 0%, rgba(219, 225, 255, 1) 0%, rgba(190, 200, 255, 0.8) 30%, transparent 60%),
-    /* Bottom Left: Intense Peach/Orange */
-    radial-gradient(circle at 0% 100%, rgba(255, 200, 170, 1) 0%, rgba(255, 180, 150, 0.6) 40%, transparent 70%),
-    /* Bottom Right: Deep Lavender/Blue */
-    radial-gradient(circle at 100% 100%, rgba(180, 170, 255, 1) 0%, rgba(160, 150, 250, 0.6) 40%, transparent 70%),
-    /* Center Fill: Soft White/Violet Base */
-    linear-gradient(to bottom, #FFFBF5, #F5F3FF);
-  background-blend-mode: normal;
+  background-color: #F8FAFC; /* Base cool white */
+  background-image: 
+    /* Top Left: Soft Gold/Yellow Glow (The "Sun" effect) */
+    radial-gradient(circle at 10% 20%, rgba(253, 230, 138, 0.4) 0%, transparent 50%),
+    
+    /* Bottom Left: Warm Peach/Orange */
+    radial-gradient(circle at 0% 100%, rgba(253, 186, 116, 0.3) 0%, transparent 50%),
+    
+    /* Top Right: Airy Light Blue/Periwinkle */
+    radial-gradient(circle at 90% 10%, rgba(165, 180, 252, 0.3) 0%, transparent 50%),
+    
+    /* Bottom Right: Soft Indigo/Purple */
+    radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.3) 0%, transparent 50%),
+    
+    /* Center/General: Very subtle warm tint to unify */
+    linear-gradient(120deg, rgba(255, 251, 235, 0.3) 0%, rgba(238, 242, 255, 0.3) 100%);
+    
+  background-attachment: fixed; /* Keeps gradient stable while scrolling */
 }
 
 /* Elegant serif headings */

@@ -8,6 +8,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Dream Palette (Exact ShipX Image)
+        'shipx-gold': {
+          DEFAULT: '#FDE68A', // Soft yellow/gold from top left
+          light: '#FEF3C7',
+        },
+        'shipx-orange': {
+          DEFAULT: '#FDBA74', // Warm peach/orange from bottom left
+          light: '#FFEDD5',
+        },
+        'shipx-blue': {
+          DEFAULT: '#A5B4FC', // Periwinkle/Blue from top right
+          light: '#E0E7FF',
+        },
+        'shipx-purple': {
+          DEFAULT: '#818CF8', // Indigo/Purple from bottom right
+          light: '#C7D2FE',
+        },
         // Dream Palette (Pixel-Perfect ShipX)
         'dream-purple': {
           50: '#F3F0FF',
