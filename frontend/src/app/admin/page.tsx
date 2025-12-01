@@ -27,15 +27,32 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        console.log('Fetching from API:', apiUrl)
 
         // Fetch waitlist
+        console.log('Fetching waitlist...')
         const waitlistRes = await fetch(`${apiUrl}/api/admin/waitlist`)
+        console.log('Waitlist response status:', waitlistRes.status)
+
+        if (!waitlistRes.ok) {
+          throw new Error(`Waitlist API failed: ${waitlistRes.status}`)
+        }
+
         const waitlistData = await waitlistRes.json()
+        console.log('Waitlist data:', waitlistData)
         setWaitlist(waitlistData.entries || [])
 
         // Fetch visibility tests (health checks)
+        console.log('Fetching visibility tests...')
         const testsRes = await fetch(`${apiUrl}/api/admin/visibility-tests`)
+        console.log('Tests response status:', testsRes.status)
+
+        if (!testsRes.ok) {
+          throw new Error(`Tests API failed: ${testsRes.status}`)
+        }
+
         const testsData = await testsRes.json()
+        console.log('Tests data:', testsData)
 
         // Transform visibility tests to match submission format
         const transformedTests = testsData.tests?.map((test: any) => ({
@@ -46,10 +63,13 @@ export default function AdminDashboard() {
           status: 'completed'
         })) || []
 
+        console.log('Transformed tests:', transformedTests.length, 'items')
         setSubmissions(transformedTests)
         setLoading(false)
+        console.log('Loading complete!')
       } catch (error) {
         console.error('Error fetching admin data:', error)
+        alert('Failed to load dashboard data. Check console for details.')
         setLoading(false)
       }
     }
