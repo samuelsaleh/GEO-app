@@ -15,16 +15,16 @@ export function FluidParticles() {
     let width = canvas.width = window.innerWidth
     let height = canvas.height = window.innerHeight
     
-    // Dream Palette Colors converted to RGB for opacity manipulation
+    // Pixel-Perfect ShipX Colors (Vibrant)
     const colors = [
-      { r: 139, g: 92, b: 246 },  // Purple (dream-purple-500)
-      { r: 244, g: 63, b: 94 },   // Pink/Peach (dream-peach-500)
-      { r: 59, g: 130, b: 246 },  // Blue (dream-blue-500)
-      { r: 167, g: 139, b: 250 }, // Light Purple
+      { r: 129, g: 140, b: 248 }, // Periwinkle (dream-purple-500)
+      { r: 251, g: 146, b: 60 },  // Warm Orange (dream-peach-500)
+      { r: 59, g: 130, b: 246 },  // Classic Blue (dream-blue-500)
+      { r: 6, g: 182, b: 212 },   // Cyan Accent
     ]
 
     const particles: Particle[] = []
-    const numParticles = Math.min(window.innerWidth / 10, 100) // Responsive count
+    const numParticles = Math.min(window.innerWidth / 15, 60) // Fewer, larger blobs for "lava lamp" effect
 
     // Mouse interaction
     let mouse = { x: -1000, y: -1000 }
@@ -149,7 +149,7 @@ export function FluidParticles() {
   return (
     <canvas 
       ref={canvasRef} 
-      className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 opacity-60 mix-blend-multiply"
+      className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 opacity-80"
     />
   )
 }

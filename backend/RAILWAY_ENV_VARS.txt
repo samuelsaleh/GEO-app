@@ -1,0 +1,72 @@
+╔══════════════════════════════════════════════════════════════╗
+║           RAILWAY ENVIRONMENT VARIABLES                      ║
+║           Copy these to Railway Dashboard                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+🔴 REQUIRED - Security
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECRET_KEY=Por10cjLcETBYZWjYaKpmoT7X8dXMwq8JZyOL7EGOEA
+
+
+🔴 REQUIRED - Production Mode
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DEBUG=False
+
+
+🔴 REQUIRED - Frontend URLs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FRONTEND_URL=https://miageru-geo.com
+PRODUCTION_URL=https://www.miageru-geo.com
+
+⚠️  UPDATE THESE with your actual Vercel domain!
+
+
+🟡 OPTIONAL - AI API Keys
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+GOOGLE_API_KEY=AIza...
+
+Only needed if using AI visibility tools.
+
+
+🟡 OPTIONAL - Email Configuration
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+FROM_EMAIL=noreply@miageru-geo.com
+
+Only needed if using contact form email notifications.
+
+
+✅ AUTO-SET by Railway
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE_URL=postgresql://...
+PORT=XXXX
+
+Railway sets these automatically - DO NOT manually add them!
+
+
+╔══════════════════════════════════════════════════════════════╗
+║                     HOW TO ADD THESE                         ║
+╚══════════════════════════════════════════════════════════════╝
+
+1. Go to railway.app
+2. Click on your backend service
+3. Click "Variables" tab
+4. Click "+ New Variable"
+5. Paste variable name and value
+6. Click "Add"
+7. Railway auto-redeploys after adding variables
+
+
+╔══════════════════════════════════════════════════════════════╗
+║                    SECURITY REMINDER                         ║
+╚══════════════════════════════════════════════════════════════╝
+
+⚠️  NEVER commit .env files to GitHub!
+⚠️  Keep SECRET_KEY private!
+⚠️  Use strong random values for production!
+✅  Railway keeps environment variables secure
