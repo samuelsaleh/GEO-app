@@ -6,7 +6,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-from app.api import health_check, schema_generator, waitlist, contact, visibility, competitive, admin
+from app.api import health_check, schema_generator, waitlist, contact, visibility, competitive, admin, analytics
 from app.config import settings
 from app.database import init_db
 
@@ -69,6 +69,7 @@ app.include_router(contact.router, prefix="/api/contact", tags=["Contact"])
 app.include_router(visibility.router, prefix="/api/visibility", tags=["AI Visibility Monitor"])
 app.include_router(competitive.router, prefix="/api/competitive", tags=["Competitive Testing"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin Dashboard"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics & Insights"])
 
 
 @app.get("/")

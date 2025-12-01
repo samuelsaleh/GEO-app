@@ -82,20 +82,23 @@ export default function Home() {
       <div className="bg-grain" />
 
       {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'glass-nav py-3' : 'py-6 bg-transparent'}`}>
+      <nav className="fixed top-0 w-full z-50 glass-nav py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link href="/" className="font-display text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
+          <Link href="/" className="font-display text-2xl font-bold tracking-tight flex items-center gap-3 text-cream-100">
+            <div className="relative w-10 h-10">
+              <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain" />
+            </div>
             Miageru (見上げる)
           </Link>
           
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/tools" className="text-sm font-medium text-ink/70 hover:text-ink transition-colors">Tools</Link>
-            <Link href="/pricing" className="text-sm font-medium text-ink/70 hover:text-ink transition-colors">Pricing</Link>
-            <Link href="/about" className="text-sm font-medium text-ink/70 hover:text-ink transition-colors">About</Link>
+            <Link href="/tools" className="text-sm font-medium transition-colors text-cream-200 hover:text-white">Tools</Link>
+            <Link href="/pricing" className="text-sm font-medium transition-colors text-cream-200 hover:text-white">Pricing</Link>
+            <Link href="/about" className="text-sm font-medium transition-colors text-cream-200 hover:text-white">About</Link>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/pricing" className="hidden md:block text-sm font-semibold text-ink hover:text-claude-500 transition-colors">
+            <Link href="/pricing" className="hidden md:block text-sm font-semibold transition-colors text-cream-100 hover:text-white">
               Sign In
             </Link>
             <Link href="/tools/ai-visibility" className="btn-primary text-sm shadow-lg shadow-claude-500/20">
@@ -107,8 +110,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-4 overflow-visible">
-        {/* Background Orbs */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-r from-orange-300/20 to-rose-300/20 rounded-full blur-3xl -z-10 animate-pulse-slow" />
+        {/* Clean Background - Removed Orbs */}
         
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 border border-white/60 backdrop-blur-sm mb-8 animate-enter">
@@ -129,15 +131,15 @@ export default function Home() {
             Miageru analyzes your brand's visibility in AI answers and tells you exactly how to rank.
           </p>
 
-          <div className="mt-12 animate-enter delay-300 text-left">
+          <div className="mt-12 animate-enter delay-300 text-left relative z-20">
             <AIVisibilityTool hideHeader={true} />
           </div>
 
-          {/* Floating UI Elements (Decorative) */}
-          <div className="absolute top-1/2 left-0 -translate-x-12 -translate-y-1/2 hidden lg:block">
+          {/* Floating UI Elements (Decorative) - Repositioned to not overlap */}
+          <div className="absolute top-1/3 left-0 -translate-x-24 hidden 2xl:block pointer-events-none opacity-50">
             <FloatingBadge text="GPT-5 Analysis: 92/100" delay="0s" />
           </div>
-          <div className="absolute top-2/3 right-0 translate-x-12 -translate-y-1/2 hidden lg:block">
+          <div className="absolute top-2/3 right-0 translate-x-24 hidden 2xl:block pointer-events-none opacity-50">
             <FloatingBadge text="Perplexity: Cited Source" delay="1.5s" />
           </div>
         </div>
@@ -341,16 +343,21 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-20 border-t border-ink/10 bg-white/40 backdrop-blur-sm">
+      <footer className="py-20 border-t border-white/10 bg-[#3A251B]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
-            <div className="font-display text-2xl font-bold text-ink mb-2">Miageru (見上げる)</div>
-            <p className="text-sm text-ink-muted">© 2025 Miageru. All rights reserved.</p>
+            <div className="font-display text-2xl font-bold text-white mb-2 flex items-center gap-3 justify-center md:justify-start">
+              <div className="relative w-8 h-8">
+                <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain brightness-0 invert" />
+              </div>
+              Miageru (見上げる)
+            </div>
+            <p className="text-sm text-white/40">© 2025 Miageru. All rights reserved.</p>
           </div>
-          <div className="flex gap-8 text-sm font-medium text-ink-light">
-            <Link href="/" className="hover:text-claude-500 transition-colors">Home</Link>
-            <Link href="/tools" className="hover:text-claude-500 transition-colors">Tools</Link>
-            <Link href="/contact" className="hover:text-claude-500 transition-colors">Contact</Link>
+          <div className="flex gap-8 text-sm font-medium text-white/60">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <Link href="/tools" className="hover:text-white transition-colors">Tools</Link>
+            <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </footer>

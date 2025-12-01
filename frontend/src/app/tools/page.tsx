@@ -2,6 +2,7 @@
 
 import { Search, Code, ArrowLeft, BarChart3, Lock, Sparkles, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 function ToolCard({ 
   title, 
@@ -89,12 +90,15 @@ export default function ToolsPage() {
       <nav className="fixed top-0 w-full z-50 glass-nav py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-3 text-ink hover:text-claude-500 transition-colors group">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm border border-ink/5 group-hover:border-claude-200 transition-colors">
+            <Link href="/" className="flex items-center gap-3 text-cream-100 hover:text-white transition-colors group">
+              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center shadow-sm border border-white/10 group-hover:border-claude-200 transition-colors">
                 <ArrowLeft className="w-4 h-4" />
               </div>
+              <div className="relative w-8 h-8">
+                <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain" />
+              </div>
               <span className="font-display text-xl font-bold">
-                dwight
+                Miageru
               </span>
             </Link>
           </div>

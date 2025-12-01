@@ -104,3 +104,4 @@ class VisibilityTest(Base):
     is_repeat_test = Column(Boolean, default=False)  # Same brand tested again
 
 
+

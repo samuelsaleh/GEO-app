@@ -238,7 +238,7 @@ ${JSON.stringify(schema, null, 2)}
                 <ArrowLeft className="w-4 h-4" />
               </div>
               <span className="font-display text-xl font-bold">
-                dwight
+                Miageru
               </span>
             </Link>
           </div>

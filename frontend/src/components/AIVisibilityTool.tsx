@@ -708,10 +708,10 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
                 I should revert to the original structure but wrapped in !hideHeader check. 
             */}
             
-            <div className={`${hideHeader ? 'glass-card p-6 md:p-8 rounded-3xl' : 'glass-card p-10 rounded-[2rem]'}`}>
-              <div className={`${hideHeader ? 'space-y-4' : 'space-y-6'}`}>
+            <div className={`${hideHeader ? 'glass-card p-8 md:p-16 rounded-[3rem] shadow-2xl shadow-claude-500/10 mt-8 mb-20 border border-white/60 bg-white/40 backdrop-blur-xl' : 'glass-card p-10 rounded-[2rem]'}`}>
+              <div className={`${hideHeader ? 'space-y-10' : 'space-y-6'}`}>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-4 text-ink ml-1">
                     Brand Name
                   </label>
                   <input
@@ -722,12 +722,12 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
                       if (onInputUpdate) onInputUpdate(e.target.value, industryInput)
                     }}
                     placeholder="e.g., Nike, HubSpot"
-                    className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
+                    className={`w-full transition-all duration-300 border border-white/50 focus:border-claude-500 focus:ring-4 focus:ring-claude-500/10 shadow-inner ${hideHeader ? 'px-8 py-6 text-xl rounded-2xl bg-white/80 hover:bg-white placeholder:text-ink-muted/40' : 'px-5 py-4 bg-white/50'}`}
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-ink-muted">
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-4 text-ink ml-1">
                     Website URL
                   </label>
                   <input
@@ -735,7 +735,7 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="e.g., nike.com"
-                    className={`w-full ${hideHeader ? 'px-4 py-3 text-sm' : 'px-5 py-4'}`}
+                    className={`w-full transition-all duration-300 border border-white/50 focus:border-claude-500 focus:ring-4 focus:ring-claude-500/10 shadow-inner ${hideHeader ? 'px-8 py-6 text-xl rounded-2xl bg-white/80 hover:bg-white placeholder:text-ink-muted/40' : 'px-5 py-4 bg-white/50'}`}
                   />
                 </div>
 
@@ -823,7 +823,7 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
                 <button
                   onClick={analyzeBrand}
                   disabled={!brandName || !websiteUrl || analyzing}
-                  className="btn-primary w-full text-sm uppercase tracking-widest disabled:opacity-50"
+                  className={`btn-primary w-full font-bold uppercase tracking-widest disabled:opacity-50 transition-all hover:scale-[1.01] active:scale-[0.99] ${hideHeader ? 'py-5 text-base rounded-2xl shadow-xl shadow-claude-500/20 mt-4' : 'text-sm'}`}
                 >
                   {analyzing ? (
                     <>

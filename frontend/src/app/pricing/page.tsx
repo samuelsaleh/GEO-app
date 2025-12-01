@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeft, Check, ChevronDown, ChevronUp, Sparkles, Shield, Zap, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 // --- Helper Components ---
 
@@ -129,12 +130,15 @@ export default function PricingPage() {
       <nav className="fixed top-0 w-full z-50 glass-nav py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-3 text-ink hover:text-claude-500 transition-colors group">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm border border-ink/5 group-hover:border-claude-200 transition-colors">
+            <Link href="/" className="flex items-center gap-3 text-cream-100 hover:text-white transition-colors group">
+              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center shadow-sm border border-white/10 group-hover:border-claude-200 transition-colors">
                 <ArrowLeft className="w-4 h-4" />
               </div>
+              <div className="relative w-8 h-8">
+                <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain" />
+              </div>
               <span className="font-display text-xl font-bold">
-                dwight
+                Miageru
               </span>
             </Link>
           </div>
@@ -243,7 +247,7 @@ export default function PricingPage() {
       <footer className="py-20 border-t border-ink/10 bg-white/40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
-            <div className="font-display text-2xl font-bold text-ink mb-2">dwight</div>
+            <div className="font-display text-2xl font-bold text-ink mb-2">Miageru</div>
             <p className="text-sm text-ink-muted">© 2025 Miageru. All rights reserved.</p>
           </div>
           <div className="flex gap-8 text-sm font-medium text-ink-light">

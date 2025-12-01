@@ -1,27 +1,31 @@
 import { ArrowLeft, Target, Users, Lightbulb, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen hero-gradient">
       {/* Navigation */}
-      <nav className="glass-nav border-b border-cream-300 sticky top-0 z-50">
+      <nav className="glass-nav border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <Link href="/" className="flex items-center gap-3">
-              <ArrowLeft className="w-4 h-4 text-ink-400" />
-              <span className="font-display text-3xl font-light tracking-wide text-ink-900">
-                dwight
+              <ArrowLeft className="w-4 h-4 text-cream-200" />
+              <div className="relative w-8 h-8">
+                <Image src="/logos/miageru-geo.svg" alt="Miageru Logo" fill className="object-contain" />
+              </div>
+              <span className="font-display text-3xl font-light tracking-wide text-cream-100">
+                Miageru
               </span>
             </Link>
             <div className="flex gap-10">
-              <Link href="/#services" className="nav-link text-ink-600 hover:text-claude-500 transition-colors">
+              <Link href="/#services" className="nav-link text-cream-200 hover:text-white transition-colors">
                 Services
               </Link>
-              <Link href="/pricing" className="nav-link text-ink-600 hover:text-claude-500 transition-colors">
+              <Link href="/pricing" className="nav-link text-cream-200 hover:text-white transition-colors">
                 Pricing
               </Link>
-              <Link href="/contact" className="nav-link text-ink-600 hover:text-claude-500 transition-colors">
+              <Link href="/contact" className="nav-link text-cream-200 hover:text-white transition-colors">
                 Contact
               </Link>
             </div>
