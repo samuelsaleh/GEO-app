@@ -170,7 +170,7 @@ export default function PricingPage() {
             <PricingCard 
               title="Free Tools"
               price="Free"
-              description="Self-serve tools to check your baseline visibility."
+              description="One-time free check to establish your baseline visibility."
               ctaText="Use Free Tools"
               ctaHref="/tools"
               features={[

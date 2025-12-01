@@ -115,14 +115,6 @@ export default function Home() {
         <FloatingQuestions />
         
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 border border-white/60 backdrop-blur-sm mb-8 animate-enter">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-claude-500 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-claude-500"></span>
-            </span>
-            <span className="text-sm font-medium text-ink-light">The new standard for AI Visibility</span>
-          </div>
-
           <h1 className="text-6xl md:text-8xl font-bold mb-8 leading-[1.1] tracking-tight animate-enter delay-100">
             Win the <br />
             <span className="text-gradient">AI Search Results</span>

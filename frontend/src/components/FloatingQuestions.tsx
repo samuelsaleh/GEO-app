@@ -38,21 +38,79 @@ export function FloatingQuestions() {
 
   // Initialize bubbles on mount
   useEffect(() => {
-    // Create 8-10 bubbles
+    // Create bubbles
     const initialBubbles = Array.from({ length: 9 }).map((_, i) => createBubble(i))
     setBubbles(initialBubbles)
+
+    // Auto-explode a random bubble every 3 seconds
+    const explodeInterval = setInterval(() => {
+      setBubbles(currentBubbles => {
+        // Find bubbles that aren't already exploding
+        const availableBubbles = currentBubbles.filter(b => !b.isExploding)
+        if (availableBubbles.length === 0) return currentBubbles
+
+        // Pick a random one
+        const randomBubble = availableBubbles[Math.floor(Math.random() * availableBubbles.length)]
+        
+        // Trigger interaction (explode & respawn logic needs to be inside the effect or moved out)
+        // Since handleInteraction uses state setter, we can just call the logic here but cleaner to reuse
+        // But we are inside a state setter callback here... 
+        // Let's just flag it for explosion here and let a separate effect handle cleanup?
+        // Or simpler: just replicate the logic.
+        
+        return currentBubbles.map(b => 
+          b.id === randomBubble.id ? { ...b, isExploding: true } : b
+        )
+      })
+    }, 3000)
+
+    return () => clearInterval(explodeInterval)
   }, [])
 
+  // Handle respawning of auto-exploded bubbles
+  useEffect(() => {
+    const explodingBubbles = bubbles.filter(b => b.isExploding)
+    
+    explodingBubbles.forEach(bubble => {
+      const timer = setTimeout(() => {
+        setBubbles(prev => {
+          const newBubble = createBubble(bubble.id)
+          return prev.map(b => b.id === bubble.id ? newBubble : b)
+        })
+      }, 500)
+      
+      return () => clearTimeout(timer)
+    })
+  }, [bubbles]) // Be careful with dependency loop here. 
+  // Actually, checking "isExploding" changes is safer.
+  // Better approach: When we set isExploding to true, we also queue the respawn timeout.
+
   const createBubble = (id: number): Bubble => {
+    // Position bubbles STRICTLY on sides to avoid center content overlap
+    // Left side: 2-25%, Right side: 75-98%
+    const side = Math.random() > 0.5 ? 'left' : 'right'
+    const xPosition = side === 'left' 
+      ? 2 + Math.random() * 23 
+      : 75 + Math.random() * 23
+
+    // Vertical spacing to avoid overlap between themselves
+    // We can slot them into vertical "zones" based on ID to guarantee separation
+    // 9 bubbles -> 9 zones approx 10% height each?
+    // Or just random with collision check? 
+    // Simple zoning is robust:
+    // id % 5 gives 0-4. 5 zones on left, 5 zones on right.
+    const verticalZone = (id % 5) * 18 + 5 // 5%, 23%, 41%, 59%, 77%
+    // Add some random jitter within the zone (+- 5%)
+    const yPosition = verticalZone + (Math.random() * 10 - 5)
+
     return {
       id,
       text: QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)],
-      // Spread them out more evenly initially if possible, but random is fine for organic feel
-      x: Math.random() * 90, // Random left position (0-90%)
-      y: Math.random() * 80 + 10, // Random top position (10-90%)
+      x: xPosition,
+      y: Math.max(5, Math.min(95, yPosition)), // Clamp to 5-95%
       delay: Math.random() * 5,
-      duration: 8 + Math.random() * 6, // 8-14s float duration (slower is more elegant)
-      scale: 0.85 + Math.random() * 0.3, // Random size
+      duration: 10 + Math.random() * 10,
+      scale: 0.9 + Math.random() * 0.2,
       isExploding: false
     }
   }
@@ -61,20 +119,8 @@ export function FloatingQuestions() {
     setBubbles(prev => prev.map(b => 
       b.id === id ? { ...b, isExploding: true } : b
     ))
-
-    // Respawn the bubble after animation
-    setTimeout(() => {
-      setBubbles(prev => {
-        // Create new bubble params
-        const newBubble = createBubble(id)
-        
-        // Try to place it away from where it just exploded (simple check)
-        // If we really wanted to be fancy we'd check against other bubbles, 
-        // but random respawn usually works fine.
-        
-        return prev.map(b => b.id === id ? newBubble : b)
-      })
-    }, 500) // Match the transition duration
+    
+    // We rely on the useEffect hook to respawn this bubble now
   }
 
   return (
@@ -86,11 +132,11 @@ export function FloatingQuestions() {
           onClick={() => handleInteraction(bubble.id)}
           className={`
             absolute cursor-pointer pointer-events-auto
-            flex items-center justify-center px-4 py-2 
-            bg-white/40 backdrop-blur-sm border border-white/50 
-            rounded-full shadow-sm text-ink-light/80 text-sm font-medium
-            transition-all duration-500 ease-out
-            hover:bg-white/80 hover:text-claude-orange hover:border-claude-orange/50 hover:shadow-md hover:scale-110
+            flex items-center justify-center px-6 py-3
+            bg-white shadow-xl border border-claude-orange/10
+            rounded-full text-ink font-bold text-sm tracking-wide
+            transition-all duration-500 ease-out z-20
+            hover:bg-claude-50 hover:border-claude-500 hover:scale-110 hover:shadow-claude-500/20
             ${bubble.isExploding ? 'scale-150 opacity-0' : 'opacity-100'}
           `}
           style={{

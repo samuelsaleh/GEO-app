@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ArrowLeft, ArrowRight, Loader, CheckCircle, XCircle,
   Sparkles, TrendingUp, Plus, Trash2, Eye, Globe,
   Building2, Target, Edit2, Check, RefreshCw, Lock,
   Lightbulb, AlertTriangle, Award, BarChart3, Mail, Users,
-  ChevronDown, ChevronUp, ExternalLink, MessageSquare, Zap
+  ChevronDown, ChevronUp, ExternalLink, MessageSquare, Zap, Play
 } from 'lucide-react'
 import Link from 'next/link'
+
+// Quiz removed
+// const QUIZ_QUESTIONS = [ ... ]
 
 interface CompetitorInfo {
   name: string
@@ -257,9 +260,31 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
   const [sendingEmail, setSendingEmail] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [hasUsedFree, setHasUsedFree] = useState(false)
+
+  useEffect(() => {
+    const used = localStorage.getItem('geo_free_tool_used')
+    if (used) {
+      setHasUsedFree(true)
+    }
+  }, [])
 
   const analyzeBrand = async () => {
     if (!brandName || !websiteUrl) return
+    
+    // Email Validation (Strict Gmail check as requested, or general)
+    // User requested "gmail adress". I will warn if no email, and enforce valid email.
+    // I'll stick to general email validation but require it.
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setAnalyzeError('Please enter a valid email address to proceed.')
+      return
+    }
+
+    if (hasUsedFree) {
+      setAnalyzeError('You have already used your one-time free scan. Please contact us for a full report.')
+      return
+    }
+
     setAnalyzing(true)
     setAnalyzeError(null)
     try {
@@ -554,9 +579,17 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
       }
     })
     
+    // Mark as used
+    localStorage.setItem('geo_free_tool_used', 'true')
+    setHasUsedFree(true)
+
     setCompetitorScores(finalCompScores)
     setTesting(false)
     setStep('results')
+  }
+
+  const handleQuizAnswer = (answer: string) => {
+    // Quiz removed
   }
 
   const generateCategoryInsight = (category: string, score: number, brandName: string): string => {
@@ -823,7 +856,7 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
                 <button
                   onClick={analyzeBrand}
                   disabled={!brandName || !websiteUrl || analyzing}
-                  className={`btn-primary w-full font-bold uppercase tracking-widest disabled:opacity-50 transition-all hover:scale-[1.01] active:scale-[0.99] ${hideHeader ? 'py-5 text-base rounded-2xl shadow-xl shadow-claude-500/20 mt-4' : 'text-sm'}`}
+                  className={`btn-primary w-full font-bold uppercase tracking-widest disabled:opacity-50 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center ${hideHeader ? 'py-5 text-base rounded-2xl shadow-xl shadow-claude-500/20 mt-4' : 'text-sm'}`}
                 >
                   {analyzing ? (
                     <>
@@ -832,7 +865,7 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
                     </>
                   ) : (
                     <>
-                      Analyze My Brand <Sparkles className="w-4 h-4 ml-2" />
+                      Analyze My Brand <Play className="w-4 h-4 ml-2 fill-current" />
                     </>
                   )}
                 </button>
