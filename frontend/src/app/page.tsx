@@ -5,6 +5,7 @@ import { Search, BarChart3, CheckCircle, ArrowRight, Sparkles, Zap, Target, Tren
 import Link from 'next/link'
 import Image from 'next/image'
 import { AIVisibilityTool } from '@/components/AIVisibilityTool'
+import { FloatingQuestions } from '@/components/FloatingQuestions'
 
 // --- Helper Components ---
 
@@ -109,8 +110,9 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 px-4 overflow-visible">
-        {/* Clean Background - Removed Orbs */}
+      <section className="relative pt-40 pb-20 px-4 overflow-visible min-h-[90vh] flex items-center">
+        {/* Floating Background Bubbles */}
+        <FloatingQuestions />
         
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 border border-white/60 backdrop-blur-sm mb-8 animate-enter">
