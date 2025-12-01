@@ -1,19 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Search, Target, Zap, BarChart3 } from 'lucide-react'
+import { ArrowRight, Search, FileText, Wrench, TrendingUp, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface Step {
   id: string
   title: string
   icon: React.ElementType
-  image: string
   cardTitle: string
   cardDescription: string
+  features: string[]
   link: string
   linkText: string
-  accentColor: string
 }
 
 const steps: Step[] = [
@@ -21,45 +20,61 @@ const steps: Step[] = [
     id: 'discovery',
     title: 'Discovery',
     icon: Search,
-    image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&h=400&fit=crop',
     cardTitle: 'AI Visibility Analysis',
-    cardDescription: 'We analyze how major AI engines perceive your brand and compare your visibility against key competitors.',
+    cardDescription: 'We analyze how ChatGPT, Claude, Gemini, and Perplexity perceive your brand compared to competitors.',
+    features: [
+      'Brand mention frequency',
+      'Competitor comparison',
+      'Sentiment analysis',
+      'Share of voice metrics',
+    ],
     link: '/tools/ai-visibility',
     linkText: 'Try Free Tool',
-    accentColor: 'bg-emerald-500',
   },
   {
     id: 'planning',
     title: 'Planning',
-    icon: Target,
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=400&fit=crop',
-    cardTitle: 'Tailored Strategy',
-    cardDescription: 'Crafting a customized optimization strategy tailored to your brand\'s unique position and goals.',
-    link: '/contact',
-    linkText: 'Learn more',
-    accentColor: 'bg-emerald-500',
+    icon: FileText,
+    cardTitle: 'GEO Audit Report',
+    cardDescription: 'Deep technical analysis of your website structure, schema markup, and content citability.',
+    features: [
+      'Schema validation',
+      'Content structure review',
+      'Citability scoring',
+      'Priority recommendations',
+    ],
+    link: '/tools/health-check',
+    linkText: 'Run Free Audit',
   },
   {
     id: 'execution',
     title: 'Execution',
-    icon: Zap,
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop',
+    icon: Wrench,
     cardTitle: 'Implementation',
-    cardDescription: 'We optimize your content structure, schema markup, and citations to maximize AI discoverability.',
+    cardDescription: 'We optimize your content structure, add proper schema markup, and improve AI discoverability.',
+    features: [
+      'Schema generation',
+      'Content optimization',
+      'FAQ structuring',
+      'Citation building',
+    ],
     link: '/pricing',
-    linkText: 'View services',
-    accentColor: 'bg-emerald-500',
+    linkText: 'View Services',
   },
   {
     id: 'feedback',
     title: 'Feedback',
-    icon: BarChart3,
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop',
+    icon: TrendingUp,
     cardTitle: 'Track & Improve',
     cardDescription: 'Monitor your AI visibility scores over time and continuously refine your GEO strategy.',
-    link: '/tools',
-    linkText: 'Explore tools',
-    accentColor: 'bg-emerald-500',
+    features: [
+      'Monthly score tracking',
+      'Competitor monitoring',
+      'Performance reports',
+      'Strategy refinement',
+    ],
+    link: '/contact',
+    linkText: 'Get Started',
   },
 ]
 
@@ -72,7 +87,7 @@ export function ProcessStepper() {
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-20">
-          <span className="text-emerald-600 font-bold tracking-widest uppercase text-sm mb-4 block">
+          <span className="text-dream-purple-600 font-bold tracking-widest uppercase text-sm mb-4 block">
             Our Process
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-dream-ink leading-tight">
@@ -94,21 +109,18 @@ export function ProcessStepper() {
                 <button
                   key={step.id}
                   onClick={() => setActiveStep(index)}
-                  className={`w-full text-left py-4 px-2 rounded-xl transition-all duration-300 group ${
+                  className={`w-full text-left py-4 px-4 rounded-xl transition-all duration-300 group ${
                     index === activeStep
-                      ? 'bg-white/50'
+                      ? 'bg-white/60'
                       : 'hover:bg-white/30'
                   }`}
                 >
                   <span
-                    className={`text-2xl md:text-3xl font-semibold transition-all duration-300 ${
+                    className={`text-2xl md:text-3xl font-bold transition-all duration-300 ${
                       index === activeStep
                         ? 'text-dream-ink'
-                        : 'text-dream-ink/30 group-hover:text-dream-ink/50'
+                        : 'text-dream-ink/25 group-hover:text-dream-ink/45'
                     }`}
-                    style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                    }}
                   >
                     {step.title}
                   </span>
@@ -120,44 +132,41 @@ export function ProcessStepper() {
             <div className="relative">
               <div 
                 key={currentStep.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-xl border border-black/5 animate-fadeIn"
+                className="bg-white rounded-2xl overflow-hidden shadow-xl border border-black/5 animate-fadeIn-card p-8"
               >
-                {/* Image */}
-                <div className="relative h-48 md:h-56 overflow-hidden">
-                  <img
-                    src={currentStep.image}
-                    alt={currentStep.cardTitle}
-                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-xl bg-dream-purple-500 flex items-center justify-center mb-5 shadow-lg shadow-dream-purple-500/25">
+                  <currentStep.icon className="w-6 h-6 text-white" />
                 </div>
 
-                {/* Content */}
-                <div className="p-6 md:p-8">
-                  {/* Icon */}
-                  <div className={`w-10 h-10 rounded-xl ${currentStep.accentColor} flex items-center justify-center mb-4 shadow-lg`}>
-                    <currentStep.icon className="w-5 h-5 text-white" />
-                  </div>
+                {/* Title */}
+                <h3 className="text-2xl font-bold text-dream-ink mb-3">
+                  {currentStep.cardTitle}
+                </h3>
 
-                  {/* Title */}
-                  <h3 className="text-xl md:text-2xl font-bold text-dream-ink mb-3">
-                    {currentStep.cardTitle}
-                  </h3>
+                {/* Description */}
+                <p className="text-dream-ink-light leading-relaxed mb-6">
+                  {currentStep.cardDescription}
+                </p>
 
-                  {/* Description */}
-                  <p className="text-dream-ink-light leading-relaxed mb-6">
-                    {currentStep.cardDescription}
-                  </p>
+                {/* Features List */}
+                <ul className="space-y-3 mb-8">
+                  {currentStep.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-3 text-dream-ink-muted text-sm font-medium">
+                      <CheckCircle className="w-4 h-4 text-dream-purple-500 flex-shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
 
-                  {/* Link */}
-                  <Link
-                    href={currentStep.link}
-                    className="inline-flex items-center text-emerald-600 font-semibold hover:text-emerald-700 transition-colors group"
-                  >
-                    {currentStep.linkText}
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
+                {/* Link */}
+                <Link
+                  href={currentStep.link}
+                  className="inline-flex items-center text-dream-purple-600 font-semibold hover:text-dream-purple-700 transition-colors group"
+                >
+                  {currentStep.linkText}
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </div>
 
               {/* Decorative dots */}
@@ -168,9 +177,10 @@ export function ProcessStepper() {
                     onClick={() => setActiveStep(index)}
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
                       index === activeStep
-                        ? 'bg-emerald-500 w-6'
+                        ? 'bg-dream-purple-500 w-6'
                         : 'bg-dream-ink/20 hover:bg-dream-ink/40'
                     }`}
+                    aria-label={`Go to step ${index + 1}`}
                   />
                 ))}
               </div>
@@ -178,24 +188,6 @@ export function ProcessStepper() {
           </div>
         </div>
       </div>
-
-      {/* Add custom animation */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.4s ease-out forwards;
-        }
-      `}</style>
     </section>
   )
 }
-

@@ -154,3 +154,24 @@ h1, h2, h3, h4, h5, h6 {
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
+
+/* Process Stepper Animations */
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn-card {
+  animation: fadeInCard 0.4s ease-out forwards;
+}
+
+/* Serif Display Font */
+.font-serif-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
