@@ -6,7 +6,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-from app.api import health_check, schema_generator, waitlist, contact, visibility, competitive, admin, analytics
+from app.api import health_check, schema_generator, waitlist, contact, visibility, competitive, admin, analytics, auth
 from app.config import settings
 from app.database import init_db
 
@@ -55,7 +55,7 @@ allowed_origins = [
 ]
 
 # Add production domains if set
-if hasattr(settings, 'production_url') and settings.production_url:
+if settings.production_url:
     allowed_origins.append(settings.production_url)
 
 app.add_middleware(
@@ -67,6 +67,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(health_check.router, prefix="/api/health-check", tags=["Health Check"])
 app.include_router(schema_generator.router, prefix="/api/schema", tags=["Schema Generator"])
 app.include_router(waitlist.router, prefix="/api/waitlist", tags=["Waitlist"])

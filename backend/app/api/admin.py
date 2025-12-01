@@ -2,9 +2,11 @@
 Admin Dashboard API
 
 Endpoints for monitoring product usage and analytics.
+
+🔒 ALL ENDPOINTS REQUIRE ADMIN AUTHENTICATION
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import func, desc
 from typing import List, Dict, Any
 import logging
@@ -14,15 +16,17 @@ from app.models.database import (
     VisibilityTest,
     WaitlistEntry,
     ContactSubmission,
-    HealthCheckReport
+    HealthCheckReport,
+    User
 )
+from app.auth import get_current_admin_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
 @router.get("/stats")
-async def get_dashboard_stats():
+async def get_dashboard_stats(current_admin: User = Depends(get_current_admin_user)):
     """
     Get high-level dashboard statistics
 
@@ -80,7 +84,7 @@ async def get_dashboard_stats():
 
 
 @router.get("/visibility-tests")
-async def get_visibility_tests(limit: int = 50):
+async def get_visibility_tests(limit: int = 50, current_admin: User = Depends(get_current_admin_user)):
     """
     Get recent visibility tests
 
@@ -120,7 +124,7 @@ async def get_visibility_tests(limit: int = 50):
 
 
 @router.get("/waitlist")
-async def get_waitlist(limit: int = 100):
+async def get_waitlist(limit: int = 100, current_admin: User = Depends(get_current_admin_user)):
     """Get waitlist signups"""
     try:
         db = SessionLocal()
@@ -147,7 +151,7 @@ async def get_waitlist(limit: int = 100):
 
 
 @router.get("/health-checks")
-async def get_health_checks(limit: int = 50):
+async def get_health_checks(limit: int = 50, current_admin: User = Depends(get_current_admin_user)):
     """Get health check report submissions"""
     try:
         db = SessionLocal()
@@ -176,7 +180,7 @@ async def get_health_checks(limit: int = 50):
 
 
 @router.get("/contacts")
-async def get_contact_submissions(limit: int = 50):
+async def get_contact_submissions(limit: int = 50, current_admin: User = Depends(get_current_admin_user)):
     """Get contact form submissions"""
     try:
         db = SessionLocal()
@@ -208,7 +212,7 @@ async def get_contact_submissions(limit: int = 50):
 
 
 @router.get("/popular-brands")
-async def get_popular_brands(limit: int = 10):
+async def get_popular_brands(limit: int = 10, current_admin: User = Depends(get_current_admin_user)):
     """Get most tested brands"""
     try:
         db = SessionLocal()

@@ -104,4 +104,27 @@ class VisibilityTest(Base):
     is_repeat_test = Column(Boolean, default=False)  # Same brand tested again
 
 
+class User(Base):
+    """User accounts for authentication"""
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(255))
+    company = Column(String(255))
+
+    # Access control
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
+
+    # Subscription info (for Phase 2)
+    subscription_tier = Column(String(50), default="free")  # free, pro, enterprise
+    subscription_status = Column(String(50), default="active")  # active, cancelled, expired
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_login = Column(DateTime(timezone=True))
+
+
 

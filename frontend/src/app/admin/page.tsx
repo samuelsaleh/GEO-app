@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Mail, Activity, TrendingUp, Download } from 'lucide-react'
+import { Users, Mail, Activity, TrendingUp, Download, LogOut } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface WaitlistEntry {
   email: string
@@ -18,41 +21,51 @@ interface HealthCheckSubmission {
   status: string
 }
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([])
   const [submissions, setSubmissions] = useState<HealthCheckSubmission[]>([])
   const [loading, setLoading] = useState(true)
+  const { user, logout } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        console.log('Fetching from API:', apiUrl)
+        const token = localStorage.getItem('auth_token')
+
+        if (!token) {
+          throw new Error('No auth token found')
+        }
+
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
 
         // Fetch waitlist
-        console.log('Fetching waitlist...')
-        const waitlistRes = await fetch(`${apiUrl}/api/admin/waitlist`)
-        console.log('Waitlist response status:', waitlistRes.status)
+        const waitlistRes = await fetch(`${apiUrl}/api/admin/waitlist`, { headers })
 
         if (!waitlistRes.ok) {
           throw new Error(`Waitlist API failed: ${waitlistRes.status}`)
         }
 
         const waitlistData = await waitlistRes.json()
-        console.log('Waitlist data:', waitlistData)
         setWaitlist(waitlistData.entries || [])
 
-        // Fetch visibility tests (health checks)
-        console.log('Fetching visibility tests...')
-        const testsRes = await fetch(`${apiUrl}/api/admin/visibility-tests`)
-        console.log('Tests response status:', testsRes.status)
+        // Fetch visibility tests
+        const testsRes = await fetch(`${apiUrl}/api/admin/visibility-tests`, { headers })
 
         if (!testsRes.ok) {
           throw new Error(`Tests API failed: ${testsRes.status}`)
         }
 
         const testsData = await testsRes.json()
-        console.log('Tests data:', testsData)
 
         // Transform visibility tests to match submission format
         const transformedTests = testsData.tests?.map((test: any) => ({
@@ -117,15 +130,31 @@ export default function AdminDashboard() {
       <nav className="border-b bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              Miageru Admin
-            </h1>
-            <Link
-              href="/"
-              className="text-gray-600 hover:text-gray-900"
-            >
-              ← Back to Site
-            </Link>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                Miageru Admin
+              </h1>
+              {user && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Logged in as {user.email}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                ← Back to Site
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -267,5 +296,13 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AdminDashboard() {
+  return (
+    <ProtectedRoute requireAdmin={true}>
+      <AdminDashboardContent />
+    </ProtectedRoute>
   )
 }
