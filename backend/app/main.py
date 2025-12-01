@@ -47,6 +47,11 @@ allowed_origins = [
     settings.frontend_url,
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    # Production domains
+    "https://www.miageru-geo.com",
+    "https://miageru-geo.com",
+    "https://geo-git-main-sams-projects-0418526d.vercel.app",
+    "https://geo-s9l0rga16-sams-projects-0418526d.vercel.app",
 ]
 
 # Add production domains if set
