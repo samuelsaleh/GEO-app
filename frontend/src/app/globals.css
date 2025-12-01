@@ -175,3 +175,17 @@ h1, h2, h3, h4, h5, h6 {
 .font-serif-display {
   font-family: 'Playfair Display', Georgia, serif;
 }
+
+/* Process Stepper Auto-play Progress */
+@keyframes progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-progress {
+  animation: progress 3s linear forwards;
+}

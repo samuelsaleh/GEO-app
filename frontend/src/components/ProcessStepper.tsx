@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ArrowRight, Search, FileText, Wrench, TrendingUp, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
@@ -78,9 +78,33 @@ const steps: Step[] = [
   },
 ]
 
+const AUTO_PLAY_INTERVAL = 3000 // 3 seconds
+
 export function ProcessStepper() {
   const [activeStep, setActiveStep] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
   const currentStep = steps[activeStep]
+
+  // Auto-advance to next step
+  const nextStep = useCallback(() => {
+    setActiveStep((prev) => (prev + 1) % steps.length)
+  }, [])
+
+  // Auto-play effect
+  useEffect(() => {
+    if (isPaused) return
+
+    const interval = setInterval(nextStep, AUTO_PLAY_INTERVAL)
+    return () => clearInterval(interval)
+  }, [isPaused, nextStep])
+
+  // Handle manual step selection - pause briefly then resume
+  const handleStepClick = (index: number) => {
+    setActiveStep(index)
+    setIsPaused(true)
+    // Resume auto-play after 5 seconds of no interaction
+    setTimeout(() => setIsPaused(false), 5000)
+  }
 
   return (
     <section className="py-32 px-4 relative">
@@ -100,7 +124,11 @@ export function ProcessStepper() {
         </div>
 
         {/* Process Stepper Container */}
-        <div className="glass-card rounded-[2rem] p-8 md:p-12 lg:p-16 max-w-6xl mx-auto">
+        <div 
+          className="glass-card rounded-[2rem] p-8 md:p-12 lg:p-16 max-w-6xl mx-auto"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             
             {/* Left Side - Step Navigation */}
@@ -108,13 +136,17 @@ export function ProcessStepper() {
               {steps.map((step, index) => (
                 <button
                   key={step.id}
-                  onClick={() => setActiveStep(index)}
-                  className={`w-full text-left py-4 px-4 rounded-xl transition-all duration-300 group ${
+                  onClick={() => handleStepClick(index)}
+                  className={`w-full text-left py-4 px-4 rounded-xl transition-all duration-300 group relative ${
                     index === activeStep
                       ? 'bg-white/60'
                       : 'hover:bg-white/30'
                   }`}
                 >
+                  {/* Progress bar for active step */}
+                  {index === activeStep && !isPaused && (
+                    <div className="absolute bottom-0 left-0 h-0.5 bg-dream-purple-500 animate-progress rounded-full" />
+                  )}
                   <span
                     className={`text-2xl md:text-3xl font-bold transition-all duration-300 ${
                       index === activeStep
@@ -169,16 +201,16 @@ export function ProcessStepper() {
                 </Link>
               </div>
 
-              {/* Decorative dots */}
+              {/* Decorative dots with progress */}
               <div className="flex justify-center gap-2 mt-6">
                 {steps.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => setActiveStep(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    onClick={() => handleStepClick(index)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
                       index === activeStep
-                        ? 'bg-dream-purple-500 w-6'
-                        : 'bg-dream-ink/20 hover:bg-dream-ink/40'
+                        ? 'bg-dream-purple-500 w-8'
+                        : 'bg-dream-ink/20 hover:bg-dream-ink/40 w-2'
                     }`}
                     aria-label={`Go to step ${index + 1}`}
                   />
