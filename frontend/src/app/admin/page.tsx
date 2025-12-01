@@ -24,32 +24,37 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Fetch from API
-    // Mock data for now
-    setWaitlist([
-      { email: 'user1@example.com', timestamp: '2025-01-15T10:30:00', position: 1 },
-      { email: 'user2@example.com', timestamp: '2025-01-15T11:45:00', position: 2 },
-      { email: 'user3@example.com', timestamp: '2025-01-15T14:20:00', position: 3 },
-    ])
+    const fetchData = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-    setSubmissions([
-      {
-        company_name: 'Example Corp',
-        contact_email: 'contact@example.com',
-        submitted_at: '2025-01-15T09:00:00',
-        score: 45,
-        status: 'completed'
-      },
-      {
-        company_name: 'Tech Startup',
-        contact_email: 'hello@techstartup.io',
-        submitted_at: '2025-01-15T12:30:00',
-        score: 67,
-        status: 'completed'
+        // Fetch waitlist
+        const waitlistRes = await fetch(`${apiUrl}/api/admin/waitlist`)
+        const waitlistData = await waitlistRes.json()
+        setWaitlist(waitlistData.entries || [])
+
+        // Fetch visibility tests (health checks)
+        const testsRes = await fetch(`${apiUrl}/api/admin/visibility-tests`)
+        const testsData = await testsRes.json()
+
+        // Transform visibility tests to match submission format
+        const transformedTests = testsData.tests?.map((test: any) => ({
+          company_name: test.brand_name,
+          contact_email: 'N/A',
+          submitted_at: test.created_at,
+          score: test.overall_score,
+          status: 'completed'
+        })) || []
+
+        setSubmissions(transformedTests)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error fetching admin data:', error)
+        setLoading(false)
       }
-    ])
+    }
 
-    setLoading(false)
+    fetchData()
   }, [])
 
   const downloadCSV = (type: 'waitlist' | 'submissions') => {
