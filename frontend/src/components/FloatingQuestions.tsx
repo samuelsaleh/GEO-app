@@ -38,7 +38,7 @@ const STATIC_QUESTIONS = [
 
 export function FloatingQuestions() {
   return (
-    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden hidden xl:block">
+    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden hidden lg:block">
       {STATIC_QUESTIONS.map((q) => (
         <div
           key={q.id}
