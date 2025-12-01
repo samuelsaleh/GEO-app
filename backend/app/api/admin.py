@@ -242,3 +242,115 @@ async def get_popular_brands(limit: int = 10, current_admin: User = Depends(get_
     except Exception as e:
         logger.error(f"Error fetching popular brands: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/users")
+async def get_users(limit: int = 100, current_admin: User = Depends(get_current_admin_user)):
+    """
+    Get all registered users
+
+    Returns list of users with:
+    - Email
+    - Full name
+    - Company
+    - Subscription tier
+    - Admin status
+    - Account status (active/inactive)
+    - Registration date
+    - Last login
+    """
+    try:
+        db = SessionLocal()
+
+        users = db.query(User).order_by(
+            desc(User.created_at)
+        ).limit(limit).all()
+
+        results = []
+        for user in users:
+            results.append({
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "company": user.company,
+                "subscription_tier": user.subscription_tier,
+                "is_admin": user.is_admin,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "last_login": user.last_login.isoformat() if user.last_login else None
+            })
+
+        db.close()
+
+        return {"users": results, "total": len(results)}
+
+    except Exception as e:
+        logger.error(f"Error fetching users: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/user-analytics")
+async def get_user_analytics(current_admin: User = Depends(get_current_admin_user)):
+    """
+    Get user analytics and trends
+
+    Returns:
+    - Total users
+    - Active users (logged in last 30 days)
+    - New signups (last 7 days)
+    - Users by subscription tier
+    - Signups per day (last 30 days)
+    """
+    try:
+        from datetime import datetime, timedelta
+        db = SessionLocal()
+
+        # Total users
+        total_users = db.query(func.count(User.id)).scalar() or 0
+
+        # Active users (logged in last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        active_users = db.query(func.count(User.id)).filter(
+            User.last_login >= thirty_days_ago
+        ).scalar() or 0
+
+        # New signups (last 7 days)
+        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        new_signups = db.query(func.count(User.id)).filter(
+            User.created_at >= seven_days_ago
+        ).scalar() or 0
+
+        # Users by subscription tier
+        tier_counts = db.query(
+            User.subscription_tier,
+            func.count(User.id).label('count')
+        ).group_by(User.subscription_tier).all()
+
+        tiers = {tier.subscription_tier: tier.count for tier in tier_counts}
+
+        # Signups per day (last 30 days)
+        daily_signups = db.query(
+            func.date(User.created_at).label('date'),
+            func.count(User.id).label('count')
+        ).filter(
+            User.created_at >= thirty_days_ago
+        ).group_by(
+            func.date(User.created_at)
+        ).all()
+
+        db.close()
+
+        return {
+            "total_users": total_users,
+            "active_users": active_users,
+            "new_signups_7d": new_signups,
+            "users_by_tier": tiers,
+            "daily_signups": [
+                {"date": str(day.date), "count": day.count}
+                for day in daily_signups
+            ]
+        }
+
+    except Exception as e:
+        logger.error(f"Error fetching user analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

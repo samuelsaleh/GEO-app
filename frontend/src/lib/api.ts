@@ -1,6 +1,10 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// Use environment variable if set, otherwise use Railway URL in production, localhost in development
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'https://geo-app-production-339e.up.railway.app'
+    : 'http://localhost:8000')
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

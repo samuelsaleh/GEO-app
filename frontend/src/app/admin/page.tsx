@@ -21,9 +21,31 @@ interface HealthCheckSubmission {
   status: string
 }
 
+interface User {
+  id: number
+  email: string
+  full_name: string | null
+  company: string | null
+  subscription_tier: string
+  is_admin: boolean
+  is_active: boolean
+  created_at: string
+  last_login: string | null
+}
+
+interface UserAnalytics {
+  total_users: number
+  active_users: number
+  new_signups_7d: number
+  users_by_tier: Record<string, number>
+  daily_signups: Array<{ date: string; count: number }>
+}
+
 function AdminDashboardContent() {
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([])
   const [submissions, setSubmissions] = useState<HealthCheckSubmission[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const { user, logout } = useAuth()
   const router = useRouter()
@@ -78,6 +100,21 @@ function AdminDashboardContent() {
 
         console.log('Transformed tests:', transformedTests.length, 'items')
         setSubmissions(transformedTests)
+
+        // Fetch users
+        const usersRes = await fetch(`${apiUrl}/api/admin/users`, { headers })
+        if (usersRes.ok) {
+          const usersData = await usersRes.json()
+          setUsers(usersData.users || [])
+        }
+
+        // Fetch user analytics
+        const analyticsRes = await fetch(`${apiUrl}/api/admin/user-analytics`, { headers })
+        if (analyticsRes.ok) {
+          const analyticsData = await analyticsRes.json()
+          setUserAnalytics(analyticsData)
+        }
+
         setLoading(false)
         console.log('Loading complete!')
       } catch (error) {
@@ -165,45 +202,111 @@ function AdminDashboardContent() {
           <div className="bg-white rounded-xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <Users className="w-8 h-8 text-blue-600" />
-              <span className="text-sm text-gray-500">Waitlist</span>
+              <span className="text-sm text-gray-500">Registered Users</span>
             </div>
-            <div className="text-3xl font-bold">{waitlist.length}</div>
-            <div className="text-sm text-gray-600">Total signups</div>
+            <div className="text-3xl font-bold">{userAnalytics?.total_users || 0}</div>
+            <div className="text-sm text-gray-600">Total accounts</div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <Activity className="w-8 h-8 text-cyan-600" />
-              <span className="text-sm text-gray-500">Health Checks</span>
+              <span className="text-sm text-gray-500">Active Users</span>
             </div>
-            <div className="text-3xl font-bold">{submissions.length}</div>
-            <div className="text-sm text-gray-600">Completed</div>
+            <div className="text-3xl font-bold">{userAnalytics?.active_users || 0}</div>
+            <div className="text-sm text-gray-600">Last 30 days</div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="w-8 h-8 text-green-600" />
-              <span className="text-sm text-gray-500">Avg Score</span>
+              <span className="text-sm text-gray-500">New Signups</span>
             </div>
-            <div className="text-3xl font-bold">
-              {submissions.length > 0
-                ? Math.round(submissions.reduce((acc, s) => acc + s.score, 0) / submissions.length)
-                : 0}
-            </div>
-            <div className="text-sm text-gray-600">Out of 100</div>
+            <div className="text-3xl font-bold">{userAnalytics?.new_signups_7d || 0}</div>
+            <div className="text-sm text-gray-600">Last 7 days</div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <Mail className="w-8 h-8 text-purple-600" />
-              <span className="text-sm text-gray-500">Conversions</span>
+              <span className="text-sm text-gray-500">Waitlist</span>
             </div>
-            <div className="text-3xl font-bold">
-              {waitlist.length > 0
-                ? Math.round((submissions.length / waitlist.length) * 100)
-                : 0}%
-            </div>
-            <div className="text-sm text-gray-600">Trial to contact</div>
+            <div className="text-3xl font-bold">{waitlist.length}</div>
+            <div className="text-sm text-gray-600">Total signups</div>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div className="bg-white rounded-xl shadow-md mb-8">
+          <div className="px-6 py-4 border-b flex justify-between items-center">
+            <h2 className="text-xl font-bold">Registered Users</h2>
+            <button
+              onClick={() => {
+                let csv = 'Email,Name,Company,Tier,Admin,Active,Created,LastLogin\n'
+                users.forEach(u => {
+                  csv += `${u.email},${u.full_name || ''},${u.company || ''},${u.subscription_tier},${u.is_admin},${u.is_active},${u.created_at},${u.last_login || ''}\n`
+                })
+                const blob = new Blob([csv], { type: 'text/csv' })
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = 'users.csv'
+                a.click()
+              }}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            >
+              <Download className="w-4 h-4" />
+              Export CSV
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Email</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Name</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Company</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Tier</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Registered</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {users.map((u) => (
+                  <tr key={u.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium">
+                      {u.email}
+                      {u.is_admin && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                          Admin
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm">{u.full_name || '-'}</td>
+                    <td className="px-6 py-4 text-sm">{u.company || '-'}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        u.subscription_tier === 'premium' ? 'bg-yellow-100 text-yellow-800' :
+                        u.subscription_tier === 'pro' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {u.subscription_tier}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        u.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {u.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(u.created_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 

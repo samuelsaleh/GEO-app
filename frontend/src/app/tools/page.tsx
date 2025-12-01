@@ -111,7 +111,7 @@ export default function ToolsPage() {
             <Sparkles className="w-4 h-4 text-claude-500" />
             <span className="text-sm font-medium text-ink-light uppercase tracking-wider">GEO Tools Suite</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-ink animate-enter delay-100">
+          <h1 className="text-3xl md:text-6xl font-bold mb-6 text-ink animate-enter delay-100">
             Free GEO Tools
           </h1>
           <p className="text-xl text-ink-light max-w-2xl mx-auto leading-relaxed animate-enter delay-200">
