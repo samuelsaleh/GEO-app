@@ -759,6 +759,10 @@ Competitors: "{comp_str}"
 
 Determine:
 1. Is "{brand}" mentioned? (true/false)
+   IMPORTANT: Consider accent/diacritic variations as matches! Examples:
+   - "Kimaï" matches "Kimai" (ï = i)
+   - "Café" matches "Cafe" (é = e)
+   - Also count domain mentions like "kimai.com" as brand mentions
 2. What is the sentiment? (positive/neutral/negative)
 3. If it's a list/ranking, what position is it? (1 = first, null if not in list)
 4. Are any competitors mentioned? (list of names)

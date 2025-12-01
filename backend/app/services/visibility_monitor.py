@@ -7,6 +7,7 @@ Similar to what Peec AI offers at €89-499/month.
 
 import asyncio
 import re
+import unicodedata
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 import logging
@@ -152,9 +153,22 @@ class VisibilityMonitor:
             return self._mock_result(prompt, brand, competitors)
     
     def _normalize_for_matching(self, text: str) -> str:
-        """Normalize text for fuzzy brand matching."""
+        """Normalize text for fuzzy brand matching.
+        
+        Handles:
+        - Case insensitivity (Kimai = kimai)
+        - Diacritics/accents (Kimaï = Kimai, café = cafe)
+        - Common separators (Basic-Fit = Basic Fit)
+        """
         # Convert to lowercase
         text = text.lower()
+        
+        # Remove diacritics/accents (e.g., ï → i, é → e, ñ → n)
+        # NFKD decomposes characters: ï becomes i + combining diaeresis
+        # Then we filter out the combining marks
+        text = unicodedata.normalize('NFKD', text)
+        text = ''.join(c for c in text if not unicodedata.combining(c))
+        
         # Remove common separators and make uniform
         text = text.replace('-', ' ').replace('_', ' ').replace('.', ' ')
         # Remove extra whitespace
