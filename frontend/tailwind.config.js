@@ -43,6 +43,10 @@ module.exports = {
           800: '#4A2F22',
           900: '#3A251B',
           950: '#21130E',
+          DEFAULT: '#5B3A29',
+          light: '#7A5135',
+          dark: '#3A251B',
+          muted: '#A06E4A',
         },
       },
       fontFamily: {

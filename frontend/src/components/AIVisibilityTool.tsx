@@ -572,11 +572,11 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
   }
   
   const getGrade = (score: number) => {
-    if (score >= 80) return { grade: 'A', label: 'Excellent', color: 'text-green-600', bg: 'bg-green-100' }
-    if (score >= 60) return { grade: 'B', label: 'Good', color: 'text-blue-600', bg: 'bg-blue-100' }
-    if (score >= 40) return { grade: 'C', label: 'Average', color: 'text-yellow-600', bg: 'bg-yellow-100' }
-    if (score >= 20) return { grade: 'D', label: 'Poor', color: 'text-orange-600', bg: 'bg-orange-100' }
-    return { grade: 'F', label: 'Invisible', color: 'text-red-600', bg: 'bg-red-100' }
+    if (score >= 90) return { grade: 'A', label: 'Excellent', color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-200' }
+    if (score >= 80) return { grade: 'B', label: 'Good', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200' }
+    if (score >= 70) return { grade: 'C', label: 'Average', color: 'text-yellow-700', bg: 'bg-yellow-50', border: 'border-yellow-200' }
+    if (score >= 60) return { grade: 'D', label: 'Below Average', color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200' }
+    return { grade: 'F', label: 'Poor', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200' }
   }
 
   const getRecommendations = () => {
@@ -1031,159 +1031,99 @@ export function AIVisibilityTool({ hideHeader = false, onInputUpdate }: { hideHe
         )}
 
         {step === 'results' && profile && (
-          <div className="space-y-8 animate-enter">
-            
-            {/* 1. HERO SCORE - REDESIGNED WITH PLAIN ENGLISH */}
-            <div className="glass-card p-12 text-center rounded-[2rem] bg-gradient-to-br from-white/80 to-claude-50/30 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Target className="w-64 h-64" />
-              </div>
-              <div className="relative z-10">
-                {/* Grade Badge - Big and Clear */}
-                <div className={`inline-block text-7xl font-bold px-10 py-6 rounded-3xl mb-6 ${getGrade(getOverallScore()).bg} ${getGrade(getOverallScore()).color}`}>
-                  {getGrade(getOverallScore()).grade}
-                </div>
+          <div className="space-y-12 animate-enter">
 
-                {/* Score */}
+            {/* 1. HERO SCORE - CLEAN & PROFESSIONAL */}
+            <div className="glass-card p-12 rounded-2xl bg-gradient-to-br from-white to-cream-50 border border-cream-200">
+              <div className="max-w-2xl mx-auto text-center">
                 <div className="mb-6">
-                  <span className="text-6xl font-bold text-claude-600">{getOverallScore()}</span>
-                  <span className="text-2xl text-ink-muted">/100</span>
+                  <div className={`inline-flex items-center gap-4 px-8 py-4 rounded-xl border-2 ${getGrade(getOverallScore()).bg} ${getGrade(getOverallScore()).border}`}>
+                    <span className={`text-5xl font-bold ${getGrade(getOverallScore()).color}`}>
+                      {getGrade(getOverallScore()).grade}
+                    </span>
+                    <div className="text-left">
+                      <div className="text-3xl font-bold text-ink">{getOverallScore()}</div>
+                      <div className="text-sm text-ink-muted">Visibility Score</div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* What This Means - PLAIN ENGLISH */}
-                <div className="max-w-2xl mx-auto">
-                  <h3 className="text-2xl font-bold text-ink mb-4">
-                    {getOverallScore() >= 80 ? "🎉 You're Winning!" :
-                     getOverallScore() >= 60 ? "✅ You're Visible" :
-                     getOverallScore() >= 40 ? "⚠️ You're Getting Missed" :
-                     getOverallScore() >= 20 ? "😰 You're Invisible" :
-                     "🚨 Major Problem"}
-                  </h3>
-                  <p className="text-lg text-ink-light leading-relaxed">
-                    {getOverallScore() >= 80
-                      ? `When people ask AI tools about ${profile.industry}, you show up ${getOverallScore()}% of the time. Keep doing what you're doing!`
-                      : getOverallScore() >= 60
-                      ? `AI tools mention you ${getOverallScore()}% of the time. You're doing well, but competitors are still beating you in some areas.`
-                      : getOverallScore() >= 40
-                      ? `AI tools only mention you ${getOverallScore()}% of the time. Most people asking AI about ${profile.industry} won't hear about you.`
-                      : getOverallScore() >= 20
-                      ? `AI tools barely mention you (${getOverallScore()}% of the time). Your competitors are dominating the conversation.`
-                      : `AI tools almost never mention you (${getOverallScore()}% of the time). You're losing customers to competitors every day.`}
-                  </p>
-                </div>
+                <h2 className="text-2xl font-bold text-ink mb-3">
+                  {getOverallScore() >= 80 ? "Excellent visibility across AI platforms" :
+                   getOverallScore() >= 60 ? "You are visible, but there is room for improvement" :
+                   getOverallScore() >= 40 ? "Limited visibility - missing key opportunities" :
+                   getOverallScore() >= 20 ? "Low visibility - competitors are dominating" :
+                   "Critical visibility issues require immediate attention"}
+                </h2>
+                <p className="text-lg text-ink-light leading-relaxed">
+                  AI tools mention your brand {getOverallScore()}% of the time when asked relevant questions.
+                  {getOverallScore() < 60 && " Competitors are capturing attention in areas where you could be winning."}
+                </p>
               </div>
             </div>
 
-            {/* 2. QUICK WINS - DO THESE TODAY! */}
-            <div className="glass-card p-8 rounded-[2rem] border-2 border-green-200 bg-gradient-to-br from-green-50/50 to-white/80">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-green-500 text-white p-2 rounded-xl">
-                  <Zap className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-ink">Quick Wins</h3>
-                  <p className="text-sm text-ink-muted">Do these TODAY (5-30 minutes each)</p>
-                </div>
+            {/* 2. KEY ACTIONS - CLEANER */}
+            <div className="glass-card p-8 rounded-2xl bg-white border border-cream-200">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-ink mb-2">Recommended Actions</h3>
+                <p className="text-ink-muted">High-impact steps to improve your AI visibility</p>
               </div>
 
-              <div className="mt-6 space-y-4">
-                {/* Quick Win 1: Google Business Profile */}
-                <div className="bg-white p-6 rounded-xl border-2 border-green-100">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">5 MIN</span>
-                        <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded">HIGH IMPACT</span>
-                      </div>
-                      <h4 className="font-bold text-ink text-lg">Claim Your Google Business Profile</h4>
-                    </div>
+              <div className="space-y-3">
+                {/* Action 1 */}
+                <div className="p-5 bg-cream-50 rounded-xl border border-cream-200 hover:border-ink-200 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-ink">Claim Google Business Profile</h4>
+                    <span className="text-xs bg-ink text-white px-2 py-1 rounded font-medium">5 min</span>
                   </div>
-                  <p className="text-ink-light mb-3">
-                    AI tools pull information from Google first. If you don&apos;t have a Google Business Profile, AI will ignore you.
+                  <p className="text-sm text-ink-light mb-3">
+                    AI models prioritize Google Business information. Claiming your profile significantly increases visibility.
                   </p>
                   <a
                     href="https://www.google.com/business/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition-colors"
+                    className="inline-flex items-center gap-2 text-sm text-ink hover:text-claude-600 font-medium transition-colors"
                   >
-                    Claim Now <ExternalLink className="w-4 h-4" />
+                    Get Started <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
 
-                {/* Quick Win 2: Write Detailed About Page */}
-                <div className="bg-white p-6 rounded-xl border-2 border-green-100">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">30 MIN</span>
-                        <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded">HIGH IMPACT</span>
-                      </div>
-                      <h4 className="font-bold text-ink text-lg">Write a Detailed About Page</h4>
-                    </div>
+                {/* Action 2 */}
+                <div className="p-5 bg-cream-50 rounded-xl border border-cream-200 hover:border-ink-200 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-ink">Enhance Your About Page</h4>
+                    <span className="text-xs bg-ink text-white px-2 py-1 rounded font-medium">30 min</span>
                   </div>
-                  <p className="text-ink-light mb-3">
-                    AI needs clear information about your business. Add your story, what makes you unique, and why customers choose you.
+                  <p className="text-sm text-ink-light mb-3">
+                    Provide clear, detailed information about your business, unique value, and service area.
                   </p>
-                  <div className="bg-claude-50 p-4 rounded-lg">
-                    <p className="text-sm text-ink-light mb-2 font-medium">Include these sections:</p>
-                    <ul className="text-sm text-ink-light space-y-1">
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span>What you do and who you serve</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span>Your unique selling points</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span>Your location and service area</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span>Awards, certifications, or press mentions</span>
-                      </li>
-                    </ul>
+                  <div className="text-sm text-ink-muted space-y-1">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-3.5 h-3.5 text-ink" />
+                      <span>Business description and differentiators</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-3.5 h-3.5 text-ink" />
+                      <span>Location and service coverage</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-3.5 h-3.5 text-ink" />
+                      <span>Credentials and social proof</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Quick Win 3: Add Location Everywhere (for local businesses only) */}
+                {/* Action 3 - Local Business Only */}
                 {profile.is_local_business && (
-                  <div className="bg-white p-6 rounded-xl border-2 border-green-100">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">10 MIN</span>
-                          <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded">HIGH IMPACT</span>
-                        </div>
-                        <h4 className="font-bold text-ink text-lg">Add Your Location Everywhere</h4>
-                      </div>
+                  <div className="p-5 bg-cream-50 rounded-xl border border-cream-200 hover:border-ink-200 transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-ink">Optimize Location Presence</h4>
+                      <span className="text-xs bg-ink text-white px-2 py-1 rounded font-medium">10 min</span>
                     </div>
-                    <p className="text-ink-light mb-3">
-                      AI needs to know where you are. Add your city to your homepage, footer, about page, and contact page.
+                    <p className="text-sm text-ink-light">
+                      Add your city ({profile.location?.city || 'your city'}) consistently across homepage, footer, and key pages.
                     </p>
-                    <div className="bg-claude-50 p-4 rounded-lg">
-                      <p className="text-sm text-ink-light mb-2 font-medium">Add location to:</p>
-                      <ul className="text-sm text-ink-light space-y-1">
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span>Homepage headline (e.g., &quot;Best Pizza in {profile.location?.city || 'your city'}&quot;)</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span>Footer with full address</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span>About page story</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span>Contact page with map</span>
-                        </li>
-                      </ul>
-                    </div>
                   </div>
                 )}
               </div>

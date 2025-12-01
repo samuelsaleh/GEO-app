@@ -431,6 +431,131 @@ export function AIVisibilityDemo() {
         </div>
       </div>
 
+      {/* 5.5 LOCKED PREMIUM FEATURES - PAYWALL */}
+      <div className="glass-card p-8 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 relative overflow-hidden">
+        <div className="absolute top-0 right-0 opacity-5">
+          <Lock className="w-64 h-64 text-amber-600" />
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-amber-500 text-white rounded-lg">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-ink">Unlock Full Detailed Analysis</h3>
+              <p className="text-sm text-ink-muted">Get the complete breakdown your competitors do not want you to see</p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-amber-200">
+              <div className="flex items-start gap-3">
+                <div className="p-1 bg-amber-100 rounded">
+                  <Lock className="w-4 h-4 text-amber-700" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-ink text-sm mb-1">Why AI Models Ignore You</h4>
+                  <p className="text-xs text-ink-muted">Deep analysis of content gaps and missing E-E-A-T signals that cause AI to skip your brand</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-amber-200">
+              <div className="flex items-start gap-3">
+                <div className="p-1 bg-amber-100 rounded">
+                  <Lock className="w-4 h-4 text-amber-700" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-ink text-sm mb-1">Competitor Secret Strategies</h4>
+                  <p className="text-xs text-ink-muted">Reverse-engineered playbook of exactly what top performers do to dominate AI recommendations</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-amber-200">
+              <div className="flex items-start gap-3">
+                <div className="p-1 bg-amber-100 rounded">
+                  <Lock className="w-4 h-4 text-amber-700" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-ink text-sm mb-1">Keyword & Phrase Optimization</h4>
+                  <p className="text-xs text-ink-muted">Specific words and phrases to add to your content that trigger AI mentions</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-amber-200">
+              <div className="flex items-start gap-3">
+                <div className="p-1 bg-amber-100 rounded">
+                  <Lock className="w-4 h-4 text-amber-700" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-ink text-sm mb-1">30-Day Implementation Roadmap</h4>
+                  <p className="text-xs text-ink-muted">Week-by-week action plan prioritized by impact so you know exactly what to do first</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl border-2 border-amber-300 text-center">
+            <div className="mb-4">
+              <div className="text-sm text-ink-muted mb-2">One-Time Payment</div>
+              <div className="flex items-baseline justify-center gap-2">
+                <span className="text-4xl font-bold text-ink">$79</span>
+                <span className="text-ink-muted line-through">$149</span>
+                <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-medium">47% OFF</span>
+              </div>
+              <p className="text-xs text-ink-muted mt-2">Limited time launch pricing</p>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              <div className="flex items-center justify-center gap-2 text-sm text-ink-light">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>Detailed PDF Report (30+ pages)</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-ink-light">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>Full AI Response Analysis</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-ink-light">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>Competitor Playbook</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-ink-light">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>7-Day Email Implementation Course</span>
+              </div>
+            </div>
+
+            <button
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg"
+            >
+              Unlock Full Analysis
+              <ArrowRight className="w-5 h-5" />
+            </button>
+
+            <p className="text-xs text-ink-muted mt-4">Instant access • Delivered to your email</p>
+          </div>
+
+          {/* Upgrade to Strategy Session */}
+          <div className="mt-6 p-4 bg-ink-50 rounded-xl border border-ink-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-ink">Need Expert Guidance?</p>
+                <p className="text-xs text-ink-muted">Book a 1-hour strategy call with our team</p>
+              </div>
+              <a
+                href="mailto:hello@miageru.com?subject=Strategy Session"
+                className="text-sm font-medium text-claude-600 hover:text-claude-700 whitespace-nowrap"
+              >
+                Learn More →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 6. CTA - WORK WITH US */}
       <div className="glass-card p-10 rounded-2xl bg-gradient-to-br from-ink to-ink-dark text-white border border-ink-light">
         <div className="max-w-2xl mx-auto text-center">
