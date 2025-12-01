@@ -1,4 +1,5 @@
 'use client'
+// Updated: Force Vercel redeploy
 
 import { useState } from 'react'
 import { ArrowRight, Loader, ChevronDown } from 'lucide-react'
