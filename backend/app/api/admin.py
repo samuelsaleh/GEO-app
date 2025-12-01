@@ -99,13 +99,15 @@ async def get_visibility_tests(limit: int = 50):
 
         results = []
         for test in tests:
+            # Count how many models were tested
+            models_count = len(test.models_tested) if test.models_tested else 0
+
             results.append({
                 "id": test.id,
                 "brand_name": test.brand_name,
                 "overall_score": test.overall_score,
                 "created_at": test.created_at.isoformat() if test.created_at else None,
-                "test_type": test.test_type,
-                "models_tested": test.models_tested
+                "models_tested": models_count
             })
 
         db.close()
