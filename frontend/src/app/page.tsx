@@ -10,7 +10,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-dream-cream relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass-nav py-4">
@@ -69,7 +69,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 text-center mb-8">
           <p className="text-sm font-bold text-dream-ink-muted uppercase tracking-widest">Optimized for all major AI Engines</p>
         </div>
-        <div className="flex justify-center items-center gap-12 md:gap-32 w-full max-w-6xl mx-auto px-4 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+        <div className="flex justify-center items-center gap-12 md:gap-32 w-full max-w-6xl mx-auto px-4">
            <div className="flex items-center gap-2">
              <div className="w-32 h-16 relative">
                <Image src="/logos/chatgpt.png" alt="ChatGPT" fill className="object-contain" />
