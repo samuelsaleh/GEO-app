@@ -1,7 +1,11 @@
 """Application configuration"""
 import os
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from functools import lru_cache
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -40,7 +44,35 @@ class Settings(BaseSettings):
     
     # Admin
     admin_email: str = "admin@dwight.app"
-    
+
+    @model_validator(mode='after')
+    def validate_production_settings(self):
+        """Validate that production settings are secure"""
+        # Check if this is production (not debug mode)
+        if not self.debug:
+            # CRITICAL: Secret key must be changed in production
+            if self.secret_key == "dev-secret-key-change-in-production":
+                raise ValueError(
+                    "🚨 SECURITY ERROR: Cannot use default SECRET_KEY in production! "
+                    "Set a strong random key in your .env file."
+                )
+
+            # Warn if database is still SQLite in production
+            if "sqlite" in self.database_url.lower():
+                logger.warning(
+                    "⚠️  WARNING: Using SQLite in production is not recommended. "
+                    "Switch to PostgreSQL for production deployments."
+                )
+
+        # Always check for weak secret keys
+        if len(self.secret_key) < 32:
+            logger.warning(
+                "⚠️  WARNING: SECRET_KEY should be at least 32 characters long. "
+                "Generate a strong key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+
+        return self
+
     class Config:
         env_file = ".env"
         case_sensitive = False

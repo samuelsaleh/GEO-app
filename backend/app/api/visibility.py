@@ -10,6 +10,8 @@ from typing import List, Optional
 import logging
 import time
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.services.visibility_monitor import visibility_monitor, VisibilityReport, PromptResult, MultiModelResult, AI_MODELS, FREE_MODELS, PAID_MODELS
 from app.database import SessionLocal
@@ -35,6 +37,7 @@ from app.services.competitor_analyzer import competitor_analyzer, CompetitorDisc
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+limiter = Limiter(key_func=get_remote_address)
 
 
 class SinglePromptRequest(BaseModel):
@@ -252,7 +255,8 @@ async def analyze_website(request: AnalyzeSiteRequest):
 # =============================================================================
 
 @router.post("/analyze-brand", response_model=BrandAnalysisResponse)
-async def analyze_brand_smart(request: BrandAnalysisRequest):
+@limiter.limit("10/hour")
+async def analyze_brand_smart(request: Request, analysis_request: BrandAnalysisRequest):
     """
     🧠 SMART BRAND ANALYSIS - Peec AI-style intelligent website analysis
     
@@ -282,13 +286,13 @@ async def analyze_brand_smart(request: BrandAnalysisRequest):
     - detected_competitors: Auto-detected + user-provided competitors
     """
     try:
-        logger.info(f"Smart brand analysis for {request.brand_name}: {request.website_url}")
-        
+        logger.info(f"Smart brand analysis for {analysis_request.brand_name}: {analysis_request.website_url}")
+
         profile = await brand_analyzer.analyze_brand(
-            website_url=request.website_url,
-            brand_name=request.brand_name,
-            industry_hint=request.industry_hint,
-            known_competitors=request.known_competitors
+            website_url=analysis_request.website_url,
+            brand_name=analysis_request.brand_name,
+            industry_hint=analysis_request.industry_hint,
+            known_competitors=analysis_request.known_competitors
         )
         
         logger.info(f"Analysis complete: {profile.industry}, {len(profile.suggested_prompts)} prompts")
@@ -314,7 +318,8 @@ async def analyze_brand_smart(request: BrandAnalysisRequest):
 # =============================================================================
 
 @router.post("/score", response_model=ScoreResponse)
-async def get_visibility_score(request: ScoreRequest):
+@limiter.limit("5/hour")
+async def get_visibility_score(request: Request, score_request: ScoreRequest):
     """
     🚀 AI VISIBILITY SCORE - Instant brand visibility test
     
@@ -348,9 +353,9 @@ async def get_visibility_score(request: ScoreRequest):
         logger.info(f"Running AI Visibility Score test for {request.brand} in {request.category}")
         
         result = await speed_test_service.run_test(
-            brand=request.brand,
-            category=request.category,
-            location=request.location
+            brand=score_request.brand,
+            category=score_request.category,
+            location=score_request.location
         )
         
         logger.info(f"Test completed: score={result.score}, verdict={result.verdict}")
@@ -365,7 +370,8 @@ async def get_visibility_score(request: ScoreRequest):
 
 
 @router.post("/test-multi-model")
-async def test_across_models(request: MultiModelRequest):
+@limiter.limit("20/hour")
+async def test_across_models(request: Request, test_request: MultiModelRequest):
     """
     Test a single prompt across ALL AI models.
     
@@ -387,10 +393,10 @@ async def test_across_models(request: MultiModelRequest):
     """
     try:
         result = await visibility_monitor.test_across_models(
-            prompt=request.prompt,
-            brand=request.brand,
-            competitors=request.competitors,
-            models_to_test=request.models
+            prompt=test_request.prompt,
+            brand=test_request.brand,
+            competitors=test_request.competitors,
+            models_to_test=test_request.models
         )
         
         # Add model icons for frontend

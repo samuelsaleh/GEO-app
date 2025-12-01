@@ -3,6 +3,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import os
+import html
 from typing import List, Optional
 
 class EmailService:
@@ -156,7 +157,7 @@ class EmailService:
                     <h1>Your AI Visibility Report</h1>
                 </div>
                 <div class="content">
-                    <p>Hi {company_name},</p>
+                    <p>Hi {html.escape(company_name)},</p>
 
                     <p>Your AI Visibility Health-Check is complete!</p>
 
@@ -217,17 +218,17 @@ class EmailService:
                 <h2>New Contact Form Submission</h2>
 
                 <div class="info">
-                    <strong>Name:</strong> {name}<br>
-                    <strong>Email:</strong> {email}<br>
-                    <strong>Company:</strong> {company}<br>
-                    <strong>Service:</strong> {service}
+                    <strong>Name:</strong> {html.escape(name)}<br>
+                    <strong>Email:</strong> {html.escape(email)}<br>
+                    <strong>Company:</strong> {html.escape(company)}<br>
+                    <strong>Service:</strong> {html.escape(service)}
                 </div>
 
                 <h3>Message:</h3>
-                <p>{message}</p>
+                <p>{html.escape(message)}</p>
 
                 <hr>
-                <p><small>Reply directly to this email to contact {name}</small></p>
+                <p><small>Reply directly to this email to contact {html.escape(name)}</small></p>
             </div>
         </body>
         </html>
@@ -267,24 +268,24 @@ class EmailService:
             status_icon = '✅' if cat['status'] == 'strong' else '⚠️' if cat['status'] == 'moderate' else '❌'
             category_html += f"""
             <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{cat['categoryLabel']}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{html.escape(cat['categoryLabel'])}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">
                     <span style="color: {status_color}; font-weight: bold;">{cat['score']}%</span>
                 </td>
                 <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">{status_icon}</td>
             </tr>
             """
-        
+
         # Build strengths HTML
-        strengths_html = "".join([f"<li style='margin: 8px 0;'>✅ {s['categoryLabel']} ({s['score']}%)</li>" for s in strengths]) if strengths else "<li>No strong categories yet</li>"
-        
+        strengths_html = "".join([f"<li style='margin: 8px 0;'>✅ {html.escape(s['categoryLabel'])} ({s['score']}%)</li>" for s in strengths]) if strengths else "<li>No strong categories yet</li>"
+
         # Build weaknesses HTML
-        weaknesses_html = "".join([f"<li style='margin: 8px 0;'>❌ {w['categoryLabel']} ({w['score']}%)</li>" for w in weaknesses]) if weaknesses else "<li>No critical weaknesses</li>"
-        
+        weaknesses_html = "".join([f"<li style='margin: 8px 0;'>❌ {html.escape(w['categoryLabel'])} ({w['score']}%)</li>" for w in weaknesses]) if weaknesses else "<li>No critical weaknesses</li>"
+
         # Build recommendations HTML
-        recommendations_html = "".join([f"<li style='margin: 8px 0;'>{i+1}. {rec}</li>" for i, rec in enumerate(recommendations)])
-        
-        subject = f"Your AI Visibility Score: {overall_score}% (Grade {grade}) - {brand_name}"
+        recommendations_html = "".join([f"<li style='margin: 8px 0;'>{i+1}. {html.escape(rec)}</li>" for i, rec in enumerate(recommendations)])
+
+        subject = f"Your AI Visibility Score: {overall_score}% (Grade {grade}) - {html.escape(brand_name)}"
         
         html_content = f"""
         <!DOCTYPE html>
@@ -309,17 +310,17 @@ class EmailService:
             <div class="container">
                 <div class="header">
                     <h1 style="margin: 0 0 10px 0; font-size: 24px;">AI Visibility Report</h1>
-                    <p style="margin: 0; opacity: 0.9;">{brand_name}</p>
+                    <p style="margin: 0; opacity: 0.9;">{html.escape(brand_name)}</p>
                     <div class="score-circle">
                         <span class="score">{overall_score}%</span>
                     </div>
                     <div class="grade">Grade {grade}</div>
                 </div>
-                
+
                 <div class="content">
                     <p style="font-size: 16px; color: #4b5563;">
                         Here's your AI visibility breakdown across 5 key query categories.
-                        This shows how often AI mentions {brand_name} when users ask different types of questions.
+                        This shows how often AI mentions {html.escape(brand_name)} when users ask different types of questions.
                     </p>
                     
                     <div class="section">

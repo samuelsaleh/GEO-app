@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.api import health_check, schema_generator, waitlist, contact, visibility, competitive
 from app.config import settings
@@ -13,6 +16,9 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+# Configure rate limiting
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/hour"])
 
 
 @asynccontextmanager
@@ -32,13 +38,27 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration - Allow all origins for now (can be restricted later)
+# Attach rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS configuration - Secure origins only
+allowed_origins = [
+    settings.frontend_url,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Add production domains if set
+if hasattr(settings, 'production_url') and settings.production_url:
+    allowed_origins.append(settings.production_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Must be False when using "*"
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins,  # Only allow specific origins
+    allow_credentials=True,  # Can now be True with specific origins
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Be explicit
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Include routers
